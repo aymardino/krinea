@@ -1,0 +1,230 @@
+{
+  "full_title": {
+    "value": "Energy sustainability and carbon dioxide emissions mitigation options for South Africa’s road transport sector",
+    "quote": "Energy sustainability and carbon dioxide emissions mitigation options for South Africa’s road transport sector"
+  },
+  "authors": {
+    "value": "Menzi Nazi Ntuli et al.",
+    "quote": "Menzi Nazi Ntuli1, Andrew C. Eloka‑Eboka2, Festus Maina Mwangi1, Daniel Raphael Ejike Ewim1*    and Michael O. Dioha3"
+  },
+  "year": {
+    "value": "2024",
+    "quote": "(2024) 48:37"
+  },
+  "study_type": {
+    "value": "article",
+    "quote": "Bulletin of the National Research Centre"
+  },
+  "model_name": {
+    "value": "LEAP",
+    "quote": "Low Emissions Analysis Platform (LEAP)"
+  },
+  "tools_used": {
+    "value": "LEAP",
+    "quote": "Low Emissions Analysis Platform (LEAP)"
+  },
+  "tool_categories": {
+    "value": "capacity_expansion",
+    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+  },
+  "extraction_level": {
+    "value": "full",
+    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP), this research investigated five low-carbon transition scenarios"
+  },
+  "study_category": {
+    "value": "long_term_planning",
+    "quote": "investigated five low-carbon transition scenarios alongside a business-as-usual (BAU) scenario for road transport."
+  },
+  "scale": {
+    "value": "national",
+    "quote": "South Africa’s road transport sector"
+  },
+  "countries": {
+    "value": "ZA",
+    "quote": "South Africa’s road transport sector"
+  },
+  "nb_countries_covered": {
+    "value": 1,
+    "quote": "South Africa’s road transport sector"
+  },
+  "study_objective": {
+    "value": "To investigate transport energy demand and CO2 mitigation strategies in South Africa using a long-term energy modelling framework.",
+    "quote": "this study aims to investigate transport energy demand and CO2 mitigation strategies in South Africa using a long-term energy modelling framework"
+  },
+  "key_result": {
+    "value": "A combined approach, integrating multiple low-carbon policies, can achieve more substantial reductions in energy demand and Carbon Dioxide (CO2) emissions than applying single policies separately.",
+    "quote": "Significantly, a combined approach, integrating multiple low-carbon policies, can achieve more substantial reductions in energy demand and Carbon Dioxide (CO2) emissions than applying single policies separately."
+  },
+  "time_horizon": {
+    "value": "long_term",
+    "quote": "using a long-term energy modelling framework"
+  },
+  "time_horizon_start": {
+    "value": "2020",
+    "quote": "from 769 petajoules (PJ) in 2020 to 1240 PJ by 2050"
+  },
+  "time_horizon_end": {
+    "value": "2050",
+    "quote": "from 769 petajoules (PJ) in 2020 to 1240 PJ by 2050"
+  },
+  "approach": {
+    "value": "bottom-up",
+    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+  },
+  "method": {
+    "value": "accounting",
+    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+  },
+  "mathematical_approach": {
+    "value": "other",
+    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+  },
+  "hydro": {
+    "value": "no",
+    "quote": ""
+  },
+  "solar": {
+    "value": "no",
+    "quote": "studies have suggested the potential of battery swapping with solar-charged minibus trailers in South Africa’s long-distance para-transit sector"
+  },
+  "wind": {
+    "value": "no",
+    "quote": ""
+  },
+  "biomass": {
+    "value": "no",
+    "quote": ""
+  },
+  "nuclear": {
+    "value": "no",
+    "quote": ""
+  },
+  "geothermal": {
+    "value": "no",
+    "quote": ""
+  },
+  "fossil": {
+    "value": "yes",
+    "quote": "primarily petroleum-based fuels, primarily gasoline and diesel"
+  },
+  "h2": {
+    "value": "no",
+    "quote": ""
+  },
+  "coal": {
+    "value": "no",
+    "quote": ""
+  },
+  "other_technologies": {
+    "value": "electric vehicles,CNG vehicles",
+    "quote": "new electric vehicle (NEV) promotion policy", "introducing CNG buses pilot programme"
+  },
+  "sector": {
+    "value": "other",
+    "quote": "South Africa’s road transport sector"
+  },
+  "open_source": {
+    "value": "proprietary",
+    "quote": "Low Emissions Analysis Platform (LEAP), The tool was developed by Stockholm Environment Institute (SEI)."
+  },
+  "data_requirements": {
+    "value": "quantitative,monetary,disaggregated",
+    "quote": "Vehicle registration data in South Africa per vehicle type and per province", "all fuel tariffs in South Africa have seen a significant increase", "model generated provincial-specific results"
+  },
+  "frequency_of_use": {
+    "value": "unknown",
+    "quote": ""
+  },
+  "sdg_7": {
+    "value": "yes",
+    "quote": "Energy sustainability and carbon dioxide emissions mitigation options"
+  },
+  "sdg_13": {
+    "value": "yes",
+    "quote": "carbon dioxide emissions mitigation options"
+  },
+  "ndc_mention": {
+    "value": "yes",
+    "quote": "As part of its commitment to global climate pacts, South Africa aims to reduce emissions from its road transport sector."
+  },
+  "agenda_2063": {
+    "value": "no",
+    "quote": ""
+  },
+  "aisesa_theme": {
+    "value": "cross_cutting",
+    "quote": "Energy sustainability and carbon dioxide emissions mitigation options for South Africa’s road transport sector"
+  },
+  "informal_economy": {
+    "value": "no",
+    "quote": ""
+  },
+  "biomass_charcoal": {
+    "value": "no",
+    "quote": ""
+  },
+  "clean_cooking": {
+    "value": "no",
+    "quote": ""
+  },
+  "power_reliability": {
+    "value": "no",
+    "quote": ""
+  },
+  "urbanization": {
+    "value": "partial",
+    "quote": "Metropolitan areas across all provinces have embraced Bus Rapid Transit (BRT) systems", "more people choosing buses for their urban commute"
+  },
+  "strengths": {
+    "value": "model generated provincial-specific results,tailoring measures that are relevant to each province’s unique characteristics",
+    "quote": "The model generated provincial-specific results to delineate the focus areas within South Africa’s transport sector. This approach involved tailoring measures that are relevant to each province’s unique characteristics."
+  },
+  "weaknesses": {
+    "value": "did not account for economic, social, and political factors,lack of corresponding implementation plans,gap in recorded data from reputable institutions",
+    "quote": "our study did not account for economic, social, and political factors.", "there is a lack of corresponding implementation plans, including infrastructure development", "there is a gap in recorded data from reputable institutions like universities"
+  },
+  "authors_affiliation": {
+    "value": "Department of Mechanical Engineering, Durban University of Technology,Centre of Excellence in Carbon‑Based Fuels, School of Chemical and Minerals Engineering, North-West University,Independent Energy Specialist",
+    "quote": "Department of Mechanical Engineering, Durban University of Technology", "Centre of Excellence in Carbon‑Based Fuels, School of Chemical and Minerals Engineering, North-West University", "Independent Energy Specialist"
+  },
+  "author_origin": {
+    "value": "ZA,US",
+    "quote": "Durban, South Africa", "Potchefstroom, South Africa", "Sacramento, CA 95835, USA"
+  },
+  "local_ownership": {
+    "value": "yes",
+    "quote": "Durban University of Technology, Durban, South Africa", "North-West University, Potchefstroom, South Africa"
+  },
+  "institutional_users": {
+    "value": "",
+    "quote": ""
+  },
+  "grey_literature": {
+    "value": "no",
+    "quote": "Bulletin of the National Research Centre"
+  },
+  "cost_of_capital": {
+    "value": "not_stated",
+    "quote": ""
+  },
+  "financing_modelling": {
+    "value": "no",
+    "quote": "offering subsidies to manufacturers and buyers to drive up the supply and demand of NEVs"
+  },
+  "financing_mechanism": {
+    "value": "",
+    "quote": ""
+  },
+  "link_doi": {
+    "value": "https://doi.org/10.1186/s42269-024-01192-4",
+    "quote": "https://doi.org/10.1186/s42269-024-01192-4"
+  },
+  "contact": {
+    "value": "daniel.ewim@yahoo.com",
+    "quote": "daniel.ewim@yahoo.com"
+  },
+  "other_references": {
+    "value": "https://cdn.leap.sei.org/documents/LEAPTrainingExerciseEnglish2020.pdf",
+    "quote": "LEAP low emissions analysis platform. Available https://cdn.leap.sei.org/documents/LEAPTrainingExerciseEnglish2020.pdf"
+  }
+}

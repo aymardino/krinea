@@ -54,7 +54,6 @@ FIELDS = [
     ("full_title", "text", "the paper's full title"),
     ("authors", "text", "author names"),
     ("year", "year", ""),
-    ("study_type", "enum", ["article", "report"]),
     ("model_name", "text", "primary named model/tool, or '' if custom/unnamed"),
     ("tools_used", "list", "list ALL energy-modelling tools used, comma-separated (e.g. MESSAGE, HOMER)"),
     ("tool_categories", "list", "for EACH tool above, its category in the same order, comma-separated. "
@@ -68,7 +67,6 @@ FIELDS = [
     ("nb_countries_covered", "text", "number of countries covered (integer)"),
     ("study_objective", "sentences", "1-2 sentences on the study's objective"),
     ("key_result", "sentences", "1-2 sentences on the key result"),
-    ("time_horizon", "enum", ["long_term", "medium", "short"]),
     ("time_horizon_start", "year", "first year of the modelling horizon"),
     ("time_horizon_end", "year", "last year of the modelling horizon"),
     ("approach", "enum", ["bottom-up", "top-down", "hybrid"]),
@@ -78,11 +76,8 @@ FIELDS = [
     ("hydro", "yesno", ""), ("solar", "yesno", ""), ("wind", "yesno", ""),
     ("biomass", "yesno", ""), ("nuclear", "yesno", ""), ("geothermal", "yesno", ""),
     ("fossil", "yesno", ""), ("h2", "yesno", ""), ("coal", "yesno", ""),
-    ("other_technologies", "list", "any other technologies modelled, comma-separated"),
     ("sector", "enum", ["electricity", "full_energy", "power_heat", "other"]),
     ("open_source", "enum", ["open", "proprietary", "mixed"]),
-    ("data_requirements", "multi", ["qualitative", "quantitative", "monetary",
-        "aggregated", "disaggregated"]),
     ("frequency_of_use", "enum", ["routine", "occasional", "ad_hoc", "unknown"]),
     ("sdg_7", "yesno", ""), ("sdg_13", "yesno", ""),
     ("ndc_mention", "yesno", ""), ("agenda_2063", "yesno", ""),
@@ -102,8 +97,6 @@ FIELDS = [
     ("financing_mechanism", "text", "financing mechanism described, or '' "),
     ("link_doi", "text", "DOI or URL"),
     ("contact", "text", "corresponding author email if present"),
-    ("other_references", "list", "other links using this model/study: GitHub, datasets, "
-        "or relevant URLs from references, comma-separated"),
 ]
 
 # Fields the model fills (everything except computed power_pool).
@@ -215,14 +208,6 @@ mathematical_approach: infer from the method description.
   - other: simulation, multi-criteria, heuristics, agent-based.
   If the paper says "optimization" without detail, "linear_programming" is the safe default for cost-minimisation models like MESSAGE/OSeMOSYS/TIMES. Use "" only if truly indeterminable.
 
-data_requirements: classify what KIND of data the model needs (multi-select if applicable).
-  - quantitative: numerical time-series (demand, prices, capacities) — almost always YES for these models.
-  - qualitative: narrative/policy inputs that aren't numeric.
-  - monetary: explicit costs, prices, investment data.
-  - aggregated: national or sectoral totals.
-  - disaggregated: spatial (grid-cell, settlement) or technology-detailed data.
-  Example: OnSSET = quantitative, monetary, disaggregated. MESSAGE = quantitative, monetary, aggregated.
-
 aisesa_theme: classify by which AISESA theme the study primarily addresses.
   - powering_livelihoods: productive uses of energy, rural electrification, energy access for households and small businesses.
   - inclusive_industrialisation: energy for industry, large-scale productive sectors, manufacturing.
@@ -257,17 +242,62 @@ STUDY TEXT:
 Return ONLY the JSON object, no markdown fences, no commentary."""
 
 
-def call_gemini(prompt: str, api_key: str, model: str = MODEL) -> dict:
+def _try_parse_json(raw: str) -> dict:
+    """Parse Gemini JSON output, with fallback strategies for malformed JSON."""
+    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
+    # Strategy 1: straight parse
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+    # Strategy 2: escape unescaped newlines inside string values (frequent culprit)
+    fixed = re.sub(r'(?<!\\)\n(?=[^"]*"[^"]*$)', r'\\n', raw)
+    try:
+        return json.loads(fixed)
+    except json.JSONDecodeError:
+        pass
+    # Strategy 3: trim everything before first { and after last }
+    a, b = raw.find("{"), raw.rfind("}")
+    if a != -1 and b != -1:
+        try:
+            return json.loads(raw[a:b+1])
+        except json.JSONDecodeError:
+            pass
+    # All strategies failed — raise the original error so caller sees it
+    return json.loads(raw)
+
+
+def call_gemini(prompt: str, api_key: str, model: str = MODEL, max_retries: int = 2) -> dict:
+    """Call Gemini and parse the JSON response, with retry on malformed JSON."""
     import google.generativeai as genai
     genai.configure(api_key=api_key)
     gm = genai.GenerativeModel(model)
-    resp = gm.generate_content(
-        prompt,
-        generation_config={"temperature": 0, "response_mime_type": "application/json"},
-    )
-    raw = resp.text.strip()
-    raw = re.sub(r"^```(?:json)?|```$", "", raw, flags=re.MULTILINE).strip()
-    return json.loads(raw)
+    last_raw = ""
+    last_err = None
+    for attempt in range(max_retries + 1):
+        resp = gm.generate_content(
+            prompt,
+            generation_config={"temperature": 0, "response_mime_type": "application/json"},
+        )
+        last_raw = resp.text or ""
+        try:
+            return _try_parse_json(last_raw)
+        except json.JSONDecodeError as e:
+            last_err = e
+            # On retry, ask Gemini to be more careful next time
+            if attempt < max_retries:
+                continue
+    # All retries failed: persist the bad response so the user can inspect it
+    debug_path = os.path.join(os.path.dirname(__file__) if "__file__" in globals() else ".",
+                              "_last_bad_response.txt")
+    try:
+        with open(debug_path, "w", encoding="utf-8") as fh:
+            fh.write(last_raw)
+    except OSError:
+        pass
+    raise json.JSONDecodeError(
+        f"{last_err.msg} (after {max_retries+1} attempts; raw response saved to "
+        f"{debug_path} for inspection)", last_raw, last_err.pos)
 
 
 def upgrade_synthesis_fields(text: str, current: dict, api_key: str) -> dict:
