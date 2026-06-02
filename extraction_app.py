@@ -407,19 +407,62 @@ elif st.session_state.main_tab == "review":
     if not len(drafts):
         st.info("No drafts to review. Upload PDFs in the first tab.")
     else:
-        # Quick list of all drafts
-        st.markdown(f"**{len(drafts)} draft(s) waiting.** Pick one to verify.")
+        # ── Picker: one draft at a time, with prev/next navigation ────────────
+        # Drafts come pre-sorted by id; build a labelled list
+        draft_options = []
         for _, d in drafts.iterrows():
-            label = f"#{d['id']} — {d['source_file']}"
-            if d["status"] == "failed":
-                label = f"❌ {label} ({d['error'][:80] if d['error'] else 'failed'})"
-            with st.expander(label, expanded=False):
-                if d["status"] == "failed":
-                    st.error(d["error"] or "Unknown error")
-                    if st.button("🗑 Delete this failure", key=f"fail_{d['id']}"):
-                        delete_extraction(int(d["id"])); st.rerun()
-                else:
-                    render_verification(int(d["id"]))
+            tag = "❌ " if d["status"] == "failed" else ""
+            draft_options.append((int(d["id"]), f"{tag}#{d['id']} — {d['source_file']}"))
+
+        # Track which draft we're currently viewing
+        if "current_draft_idx" not in st.session_state:
+            st.session_state.current_draft_idx = 0
+        # Clamp if a draft was deleted since last rerun
+        st.session_state.current_draft_idx = min(st.session_state.current_draft_idx,
+                                                  len(draft_options) - 1)
+
+        # Header row: counter + prev/next + picker
+        c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
+        with c1:
+            if st.button("◀ Prev", disabled=st.session_state.current_draft_idx == 0,
+                         use_container_width=True):
+                st.session_state.current_draft_idx -= 1
+                st.rerun()
+        with c2:
+            if st.button("Next ▶",
+                         disabled=st.session_state.current_draft_idx >= len(draft_options) - 1,
+                         use_container_width=True):
+                st.session_state.current_draft_idx += 1
+                st.rerun()
+        with c3:
+            st.markdown(f"<div style='padding-top:6px;'><strong>"
+                        f"{st.session_state.current_draft_idx + 1} / {len(draft_options)}"
+                        f"</strong></div>", unsafe_allow_html=True)
+        with c4:
+            # Jump directly to any draft via dropdown
+            labels = [lbl for _, lbl in draft_options]
+            new_idx = st.selectbox("Jump to draft", range(len(labels)),
+                                    format_func=lambda i: labels[i],
+                                    index=st.session_state.current_draft_idx,
+                                    label_visibility="collapsed",
+                                    key="draft_picker")
+            if new_idx != st.session_state.current_draft_idx:
+                st.session_state.current_draft_idx = new_idx
+                st.rerun()
+
+        st.divider()
+
+        # Render ONE draft only — no list of expanders, no eager loading
+        current_id, _ = draft_options[st.session_state.current_draft_idx]
+        current_row = drafts[drafts["id"] == current_id].iloc[0]
+        if current_row["status"] == "failed":
+            st.error(f"This draft failed during extraction:\n\n{current_row['error']}")
+            if st.button("🗑 Delete this failure"):
+                delete_extraction(current_id)
+                # Stay on same index so the next draft slides in
+                st.rerun()
+        else:
+            render_verification(current_id)
 
 
 # ── Tab 3: Verified studies ──────────────────────────────────────────────────────
