@@ -280,9 +280,37 @@ def render_verification(draft_id):
 
     with left:
         st.markdown("##### Fields (AI values + source quotes)")
-        edited = {}
         field_spec = {n: (k, h) for n, k, h in extractor.FIELDS}
+
+        # Render extraction_level FIRST so we know the scope for the rest.
+        # Changing this dropdown re-runs the page and updates which fields show.
+        el_item = result.get("extraction_level", {"value": "", "quote": ""})
+        el_opts = ["", "full", "light", "narrative"]
+        el_idx = el_opts.index(el_item.get("value", "")) if el_item.get("value", "") in el_opts else 0
+        extraction_level_value = st.selectbox(
+            "extraction_level", el_opts, index=el_idx, key=f"f_{draft_id}_extraction_level",
+            help="Choose first — this determines which fields you need to fill below.")
+        el_quote = el_item.get("quote", "")
+        if el_quote:
+            st.markdown(f"<div style='font-size:0.78rem;color:#666;margin-top:-8px;"
+                        f"margin-bottom:10px;'>“{el_quote}”</div>", unsafe_allow_html=True)
+
+        # Scope: which fields to render for this level
+        scope = extractor.fields_in_scope(extraction_level_value) if extraction_level_value \
+                else list(extractor.EXPORT_FIELDS)
+        if extraction_level_value in ("light", "narrative"):
+            st.caption(f"Showing {len(scope)} fields (level **{extraction_level_value}** "
+                       f"hides irrelevant fields from {len(extractor.EXPORT_FIELDS)} total).")
+
+        edited = {"extraction_level": extraction_level_value}
         for field in extractor.SCHEMA_FIELDS:
+            if field == "extraction_level":
+                continue  # already rendered above
+            # Skip fields not in scope for this extraction level
+            if field not in scope:
+                # Still preserve the AI value (saved as-is) but don't show it
+                edited[field] = result.get(field, {}).get("value", "")
+                continue
             item = result.get(field, {"value": "", "quote": ""})
             ai_val = item.get("value", "")
             kind, hint = field_spec.get(field, ("text", ""))
@@ -309,7 +337,13 @@ def render_verification(draft_id):
 
         bcol1, bcol2 = st.columns(2)
         if bcol1.button("✅ Save as verified", type="primary", key=f"save_{draft_id}"):
-            quotes = {f: result.get(f, {}).get("quote", "") for f in extractor.SCHEMA_FIELDS}
+            # Save quotes only for fields actually verified (kept in scope)
+            quotes = {f: result.get(f, {}).get("quote", "")
+                      for f in extractor.SCHEMA_FIELDS if f in scope}
+            # For fields hors-périmètre, clear the value to avoid storing unreviewed AI guesses
+            for f in extractor.SCHEMA_FIELDS:
+                if f not in scope and f != "extraction_level":
+                    edited[f] = ""
             update_verified(draft_id, edited, quotes)
             st.success("Saved."); st.rerun()
         if bcol2.button("🗑 Delete this draft", key=f"del_{draft_id}"):
@@ -407,19 +441,62 @@ elif st.session_state.main_tab == "review":
     if not len(drafts):
         st.info("No drafts to review. Upload PDFs in the first tab.")
     else:
-        # Quick list of all drafts
-        st.markdown(f"**{len(drafts)} draft(s) waiting.** Pick one to verify.")
+        # ── Picker: one draft at a time, with prev/next navigation ────────────
+        # Drafts come pre-sorted by id; build a labelled list
+        draft_options = []
         for _, d in drafts.iterrows():
-            label = f"#{d['id']} — {d['source_file']}"
-            if d["status"] == "failed":
-                label = f"❌ {label} ({d['error'][:80] if d['error'] else 'failed'})"
-            with st.expander(label, expanded=False):
-                if d["status"] == "failed":
-                    st.error(d["error"] or "Unknown error")
-                    if st.button("🗑 Delete this failure", key=f"fail_{d['id']}"):
-                        delete_extraction(int(d["id"])); st.rerun()
-                else:
-                    render_verification(int(d["id"]))
+            tag = "❌ " if d["status"] == "failed" else ""
+            draft_options.append((int(d["id"]), f"{tag}#{d['id']} — {d['source_file']}"))
+
+        # Track which draft we're currently viewing
+        if "current_draft_idx" not in st.session_state:
+            st.session_state.current_draft_idx = 0
+        # Clamp if a draft was deleted since last rerun
+        st.session_state.current_draft_idx = min(st.session_state.current_draft_idx,
+                                                  len(draft_options) - 1)
+
+        # Header row: counter + prev/next + picker
+        c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
+        with c1:
+            if st.button("◀ Prev", disabled=st.session_state.current_draft_idx == 0,
+                         use_container_width=True):
+                st.session_state.current_draft_idx -= 1
+                st.rerun()
+        with c2:
+            if st.button("Next ▶",
+                         disabled=st.session_state.current_draft_idx >= len(draft_options) - 1,
+                         use_container_width=True):
+                st.session_state.current_draft_idx += 1
+                st.rerun()
+        with c3:
+            st.markdown(f"<div style='padding-top:6px;'><strong>"
+                        f"{st.session_state.current_draft_idx + 1} / {len(draft_options)}"
+                        f"</strong></div>", unsafe_allow_html=True)
+        with c4:
+            # Jump directly to any draft via dropdown
+            labels = [lbl for _, lbl in draft_options]
+            new_idx = st.selectbox("Jump to draft", range(len(labels)),
+                                    format_func=lambda i: labels[i],
+                                    index=st.session_state.current_draft_idx,
+                                    label_visibility="collapsed",
+                                    key="draft_picker")
+            if new_idx != st.session_state.current_draft_idx:
+                st.session_state.current_draft_idx = new_idx
+                st.rerun()
+
+        st.divider()
+
+        # Render ONE draft only — no list of expanders, no eager loading
+        current_id, _ = draft_options[st.session_state.current_draft_idx]
+        current_row = drafts[drafts["id"] == current_id].iloc[0]
+        if current_row["status"] == "failed":
+            st.error(f"This draft failed during extraction:\n\n{current_row['error']}")
+            if st.button("🗑 Delete this failure"):
+                delete_extraction(current_id)
+                # Stay on same index so the next draft slides in
+                st.rerun()
+        else:
+            render_verification(current_id)
 
 
 # ── Tab 3: Verified studies ──────────────────────────────────────────────────────

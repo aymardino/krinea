@@ -111,6 +111,37 @@ for f in SCHEMA_FIELDS:
 MODEL = "gemini-2.5-flash"
 
 
+# ── Field scope per extraction_level ─────────────────────────────────────────────
+# Gemini still extracts everything (one API call, deterministic). But the
+# verification form and Excel export only show/keep the fields below per level.
+# This avoids verifying or storing irrelevant fields on light/narrative studies.
+
+FIELDS_BY_LEVEL = {
+    "full": None,   # None = all SCHEMA_FIELDS + power_pool (52 fields total)
+    "light": ["authors", "model_name", "full_title", "year", "extraction_level",
+        "study_category", "tools_used", "tool_categories", "scale", "countries",
+        "nb_countries_covered", "power_pool", "study_objective", "key_result", "sector",
+        "open_source", "aisesa_theme", "informal_economy", "biomass_charcoal",
+        "clean_cooking", "power_reliability", "urbanization", "link_doi", "contact",
+        "sdg_7", "sdg_13", "ndc_mention", "time_horizon_start", "time_horizon_end"],
+    "narrative": ["authors", "model_name", "full_title", "year", "extraction_level",
+        "tools_used", "tool_categories", "scale", "countries", "nb_countries_covered",
+        "power_pool", "study_objective", "key_result", "open_source", "link_doi", "contact",
+        "study_category", "aisesa_theme", "ndc_mention"],
+}
+
+
+def fields_in_scope(extraction_level: str) -> list:
+    """Return the list of fields to keep for a given extraction level.
+    Unknown / empty level → keep all fields (safe default)."""
+    scope = FIELDS_BY_LEVEL.get(extraction_level)
+    if scope is None:
+        # 'full' or unknown → keep everything in EXPORT_FIELDS order
+        return list(EXPORT_FIELDS)
+    # Preserve EXPORT_FIELDS order for the scoped subset
+    return [f for f in EXPORT_FIELDS if f in scope]
+
+
 def _field_spec_line(name, kind, hint):
     if kind == "enum":
         return f"- {name}: choose ONE of: {' | '.join(hint)}"
