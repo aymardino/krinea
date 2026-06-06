@@ -140,6 +140,25 @@ def reset_all():
         except OSError: pass
 
 
+def _move_to_next_draft_after(current_id):
+    """After saving or deleting the current draft, set current_draft_id to the
+    next remaining draft (or previous if we were at the end). The selectbox
+    in the Review tab uses a dynamic key that includes current_draft_id, so
+    changing this value alone is enough — Streamlit will recreate the widget."""
+    df = load_drafts()
+    remaining_ids = [int(x) for x in df["id"].tolist() if int(x) != current_id]
+    if not remaining_ids:
+        st.session_state.pop("current_draft_id", None)
+        return
+    all_ids_before = [int(x) for x in df["id"].tolist()]
+    try:
+        was_idx = all_ids_before.index(current_id)
+    except ValueError:
+        was_idx = 0
+    next_idx = min(was_idx, len(remaining_ids) - 1)
+    st.session_state.current_draft_id = remaining_ids[next_idx]
+
+
 def build_relational_excel(df: pd.DataFrame, out_path):
     import re as _re
     def split(v): return [x.strip() for x in _re.split(r"[,;]", str(v)) if x.strip()]
@@ -345,8 +364,11 @@ def render_verification(draft_id):
                 if f not in scope and f != "extraction_level":
                     edited[f] = ""
             update_verified(draft_id, edited, quotes)
+            # Move to the NEXT draft so the user keeps flowing (Rayyan-style)
+            _move_to_next_draft_after(draft_id)
             st.success("Saved."); st.rerun()
         if bcol2.button("🗑 Delete this draft", key=f"del_{draft_id}"):
+            _move_to_next_draft_after(draft_id)
             delete_extraction(draft_id); st.rerun()
 
 
@@ -441,59 +463,66 @@ elif st.session_state.main_tab == "review":
     if not len(drafts):
         st.info("No drafts to review. Upload PDFs in the first tab.")
     else:
-        # ── Picker: one draft at a time, with prev/next navigation ────────────
-        # Drafts come pre-sorted by id; build a labelled list
         draft_options = []
         for _, d in drafts.iterrows():
             tag = "❌ " if d["status"] == "failed" else ""
             draft_options.append((int(d["id"]), f"{tag}#{d['id']} — {d['source_file']}"))
+        draft_ids = [did for did, _ in draft_options]
+        labels = [lbl for _, lbl in draft_options]
 
-        # Track which draft we're currently viewing
-        if "current_draft_idx" not in st.session_state:
-            st.session_state.current_draft_idx = 0
-        # Clamp if a draft was deleted since last rerun
-        st.session_state.current_draft_idx = min(st.session_state.current_draft_idx,
-                                                  len(draft_options) - 1)
+        # ── State: current_draft_id is the only source of truth ───────────────
+        # The selectbox uses a DYNAMIC key tied to current_draft_id, so each
+        # time current_draft_id changes, the widget is freshly recreated and
+        # honours its `index=` parameter. This sidesteps Streamlit's rule that
+        # "you can't modify session_state[key] after a widget with that key
+        # is instantiated".
+        stored_id = st.session_state.get("current_draft_id")
+        if stored_id not in draft_ids:
+            stored_id = draft_ids[0]
+            st.session_state.current_draft_id = stored_id
+        current_idx = draft_ids.index(stored_id)
 
-        # Header row: counter + prev/next + picker
+        # Header row: prev / next / counter / picker
         c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
         with c1:
-            if st.button("◀ Prev", disabled=st.session_state.current_draft_idx == 0,
-                         use_container_width=True):
-                st.session_state.current_draft_idx -= 1
+            if st.button("◀ Prev", disabled=current_idx == 0,
+                          use_container_width=True, key="btn_prev"):
+                st.session_state.current_draft_id = draft_ids[current_idx - 1]
                 st.rerun()
         with c2:
-            if st.button("Next ▶",
-                         disabled=st.session_state.current_draft_idx >= len(draft_options) - 1,
-                         use_container_width=True):
-                st.session_state.current_draft_idx += 1
+            if st.button("Next ▶", disabled=current_idx >= len(draft_ids) - 1,
+                          use_container_width=True, key="btn_next"):
+                st.session_state.current_draft_id = draft_ids[current_idx + 1]
                 st.rerun()
         with c3:
             st.markdown(f"<div style='padding-top:6px;'><strong>"
-                        f"{st.session_state.current_draft_idx + 1} / {len(draft_options)}"
+                        f"{current_idx + 1} / {len(draft_ids)}"
                         f"</strong></div>", unsafe_allow_html=True)
         with c4:
-            # Jump directly to any draft via dropdown
-            labels = [lbl for _, lbl in draft_options]
-            new_idx = st.selectbox("Jump to draft", range(len(labels)),
-                                    format_func=lambda i: labels[i],
-                                    index=st.session_state.current_draft_idx,
-                                    label_visibility="collapsed",
-                                    key="draft_picker")
-            if new_idx != st.session_state.current_draft_idx:
-                st.session_state.current_draft_idx = new_idx
+            # DYNAMIC key: includes current_draft_id, so when the user navigates
+            # via Prev/Next/Save, the selectbox is recreated with its `index=`
+            # initial value (no stale state to override us).
+            picker_key = f"picker_for_{stored_id}_{len(draft_ids)}"
+            picked = st.selectbox("Jump to draft", range(len(labels)),
+                                   format_func=lambda i: labels[i],
+                                   index=current_idx,
+                                   label_visibility="collapsed",
+                                   key=picker_key)
+            # If user changed the picker manually, sync current_draft_id
+            if draft_ids[picked] != st.session_state.current_draft_id:
+                st.session_state.current_draft_id = draft_ids[picked]
                 st.rerun()
 
         st.divider()
 
-        # Render ONE draft only — no list of expanders, no eager loading
-        current_id, _ = draft_options[st.session_state.current_draft_idx]
+        # Render the currently-selected draft
+        current_id = st.session_state.current_draft_id
         current_row = drafts[drafts["id"] == current_id].iloc[0]
         if current_row["status"] == "failed":
             st.error(f"This draft failed during extraction:\n\n{current_row['error']}")
             if st.button("🗑 Delete this failure"):
+                _move_to_next_draft_after(current_id)
                 delete_extraction(current_id)
-                # Stay on same index so the next draft slides in
                 st.rerun()
         else:
             render_verification(current_id)
