@@ -123,11 +123,15 @@ FIELDS_BY_LEVEL = {
         "nb_countries_covered", "power_pool", "study_objective", "key_result", "sector",
         "open_source", "aisesa_theme", "informal_economy", "biomass_charcoal",
         "clean_cooking", "power_reliability", "urbanization", "link_doi", "contact",
-        "sdg_7", "sdg_13", "ndc_mention", "time_horizon_start", "time_horizon_end"],
+        "sdg_7", "sdg_13", "ndc_mention", "time_horizon_start", "time_horizon_end",
+        "authors_affiliation", "author_origin", "local_ownership", "grey_literature",
+        "frequency_of_use"],
     "narrative": ["authors", "model_name", "full_title", "year", "extraction_level",
         "tools_used", "tool_categories", "scale", "countries", "nb_countries_covered",
         "power_pool", "study_objective", "key_result", "open_source", "link_doi", "contact",
-        "study_category", "aisesa_theme", "ndc_mention"],
+        "study_category", "aisesa_theme", "ndc_mention",
+        "authors_affiliation", "author_origin", "local_ownership", "grey_literature",
+        "frequency_of_use"],
 }
 
 
@@ -217,6 +221,10 @@ countries: list EVERY country actually modelled, as ISO-2 codes, from this list 
   {", ".join(ISO_CODES)}. If the study is continental/regional, list all the specific countries you can identify.
 
 tools_used and tool_categories MUST align by position (1st tool -> 1st category).
+Read the article to determine HOW each tool is actually used in this specific study,
+rather than assigning a default category based on the tool's name. The same tool can
+serve different purposes in different studies (e.g. PLEXOS used for demand forecast in
+one study, production cost simulation in another).
 
 Do NOT output power pools — they are computed separately from the countries.
 
@@ -315,10 +323,8 @@ def call_gemini(prompt: str, api_key: str, model: str = MODEL, max_retries: int 
             return _try_parse_json(last_raw)
         except json.JSONDecodeError as e:
             last_err = e
-            # On retry, ask Gemini to be more careful next time
             if attempt < max_retries:
                 continue
-    # All retries failed: persist the bad response so the user can inspect it
     debug_path = os.path.join(os.path.dirname(__file__) if "__file__" in globals() else ".",
                               "_last_bad_response.txt")
     try:
@@ -331,13 +337,59 @@ def call_gemini(prompt: str, api_key: str, model: str = MODEL, max_retries: int 
         f"{debug_path} for inspection)", last_raw, last_err.pos)
 
 
-def upgrade_synthesis_fields(text: str, current: dict, api_key: str) -> dict:
-    """Re-run study_objective and key_result on gemini-2.5-pro (better at synthesis).
+def call_deepseek(prompt: str, api_key: str, model: str = "deepseek-v4-flash",
+                  max_retries: int = 2) -> dict:
+    """Call DeepSeek (OpenAI-compatible API) and parse the JSON response.
 
-    Cheap: one short focused call per study instead of upgrading the whole extraction.
-    Returns the updated dict with the two fields replaced.
+    DeepSeek's prompt caching kicks in automatically when the same system prompt
+    is sent repeatedly — so batch extractions get progressively cheaper.
     """
-    import google.generativeai as genai
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+    last_raw = ""
+    last_err = None
+    for attempt in range(max_retries + 1):
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+        last_raw = resp.choices[0].message.content or ""
+        try:
+            return _try_parse_json(last_raw)
+        except json.JSONDecodeError as e:
+            last_err = e
+            if attempt < max_retries:
+                continue
+    debug_path = os.path.join(os.path.dirname(__file__) if "__file__" in globals() else ".",
+                              "_last_bad_response.txt")
+    try:
+        with open(debug_path, "w", encoding="utf-8") as fh:
+            fh.write(last_raw)
+    except OSError:
+        pass
+    raise json.JSONDecodeError(
+        f"{last_err.msg} (after {max_retries+1} attempts; raw response saved to "
+        f"{debug_path} for inspection)", last_raw, last_err.pos)
+
+
+def call_llm(prompt: str, api_key: str, provider: str = "gemini",
+             model: str = None) -> dict:
+    """Dispatch to the right provider. Use this instead of call_gemini directly."""
+    if provider == "gemini":
+        return call_gemini(prompt, api_key, model or "gemini-2.5-flash")
+    elif provider == "deepseek":
+        return call_deepseek(prompt, api_key, model or "deepseek-v4-flash")
+    else:
+        raise ValueError(f"Unknown provider: {provider!r} (use 'gemini' or 'deepseek')")
+
+
+def upgrade_synthesis_fields(text: str, current: dict, api_key: str,
+                              provider: str = "gemini") -> dict:
+    """Re-run study_objective and key_result on the provider's 'pro' model
+    (better at synthesis). Cheap: one short focused call per study.
+    """
     prompt = f"""Read this energy-modelling study and write TWO short answers in your own words.
 
 STYLE RULES (very important):
@@ -351,14 +403,8 @@ Return JSON: {{"study_objective": {{"value": "...", "quote": "short verbatim fro
 
 STUDY TEXT:
 {text}"""
-    genai.configure(api_key=api_key)
-    gm = genai.GenerativeModel("gemini-2.5-pro")
-    resp = gm.generate_content(
-        prompt,
-        generation_config={"temperature": 0, "response_mime_type": "application/json"},
-    )
-    raw = re.sub(r"^```(?:json)?|```$", "", resp.text.strip(), flags=re.MULTILINE).strip()
-    upgraded = json.loads(raw)
+    pro_model = "gemini-2.5-pro" if provider == "gemini" else "deepseek-v4-pro"
+    upgraded = call_llm(prompt, api_key, provider=provider, model=pro_model)
     for f in ("study_objective", "key_result"):
         if f in upgraded and isinstance(upgraded[f], dict):
             current[f] = {"value": str(upgraded[f].get("value", "")).strip(),
@@ -367,11 +413,12 @@ STUDY TEXT:
 
 
 def extract_pdf(pdf_path: str, api_key: str, model: str = MODEL,
-                upgrade_synthesis: bool = False) -> dict:
+                upgrade_synthesis: bool = False,
+                provider: str = "gemini") -> dict:
     text = extract_text(pdf_path)
     if len(text) < 500:
         raise ValueError("Extracted text too short — PDF may be scanned (needs OCR).")
-    result = call_gemini(build_prompt(text), api_key, model)
+    result = call_llm(build_prompt(text), api_key, provider=provider, model=model)
     clean = {}
     for f in SCHEMA_FIELDS:
         item = result.get(f, {})
@@ -381,9 +428,10 @@ def extract_pdf(pdf_path: str, api_key: str, model: str = MODEL,
         else:
             clean[f] = {"value": str(item).strip(), "quote": ""}
     # Optional upgrade: re-do the two synthesis fields with Pro
-    if upgrade_synthesis and model != "gemini-2.5-pro":
+    pro_models = {"gemini-2.5-pro", "deepseek-v4-pro"}
+    if upgrade_synthesis and model not in pro_models:
         try:
-            clean = upgrade_synthesis_fields(text, clean, api_key)
+            clean = upgrade_synthesis_fields(text, clean, api_key, provider=provider)
         except Exception as e:
             # Don't fail the whole extraction if the upgrade call fails
             print(f"[warn] synthesis upgrade failed, keeping Flash output: {e}")
@@ -391,7 +439,8 @@ def extract_pdf(pdf_path: str, api_key: str, model: str = MODEL,
     pools = compute_pools(clean.get("countries", {}).get("value", ""))
     clean["power_pool"] = {"value": pools, "quote": "computed from countries"}
     clean["_meta"] = {"source_file": os.path.basename(pdf_path),
-                      "model": model, "synthesis_upgraded": upgrade_synthesis,
+                      "provider": provider, "model": model,
+                      "synthesis_upgraded": upgrade_synthesis,
                       "text_chars": len(text)}
     return clean
 

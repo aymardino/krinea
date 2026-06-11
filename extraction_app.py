@@ -185,7 +185,7 @@ def build_relational_excel(df: pd.DataFrame, out_path):
         pd.DataFrame(pools).to_excel(xl, sheet_name="study_pools", index=False)
 
 
-def run_extraction(pdf_path, api_key, model, upgrade_synth):
+def run_extraction(pdf_path, api_key, model, upgrade_synth, provider="gemini"):
     """Run extraction and save as draft. Returns (success, error_msg)."""
     source = Path(pdf_path).name
     cached_pdf = PDF_CACHE / f"{dt.datetime.now().strftime('%Y%m%d%H%M%S%f')}_{source}"
@@ -195,7 +195,9 @@ def run_extraction(pdf_path, api_key, model, upgrade_synth):
         text = extractor.extract_text(pdf_path)
         if len(text) < 500:
             raise ValueError("Extracted text too short — PDF may be scanned (needs OCR).")
-        result = extractor.extract_pdf(pdf_path, api_key, model, upgrade_synthesis=upgrade_synth)
+        result = extractor.extract_pdf(pdf_path, api_key, model,
+                                        upgrade_synthesis=upgrade_synth,
+                                        provider=provider)
         save_draft(source, model, result, text, cached_pdf)
         return True, None
     except Exception as e:
@@ -209,13 +211,26 @@ C = counts()
 # ── Sidebar ──────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### Configuration")
-    api_key = st.text_input("Gemini API key", type="password",
-                            value=os.environ.get("GEMINI_API_KEY", ""))
-    model = st.selectbox("Model", ["gemini-2.5-flash", "gemini-2.5-pro"],
-                         help="Flash = cheap. Pro = better on interpretive fields.")
+    provider = st.selectbox("Provider", ["gemini", "deepseek"],
+                            help="Gemini = default. DeepSeek = backup if you hit Gemini limits.")
+    # Show the right key field per provider
+    if provider == "gemini":
+        api_key = st.text_input("Gemini API key", type="password",
+                                value=os.environ.get("GEMINI_API_KEY", ""))
+        model = st.selectbox("Model", ["gemini-2.5-flash", "gemini-2.5-pro"],
+                             help="Flash = cheap. Pro = better on interpretive fields.")
+        flash_model = "gemini-2.5-flash"
+    else:
+        api_key = st.text_input("DeepSeek API key", type="password",
+                                value=os.environ.get("DEEPSEEK_API_KEY", ""),
+                                help="Get one from https://platform.deepseek.com")
+        model = st.selectbox("Model", ["deepseek-v4-flash", "deepseek-v4-pro"],
+                             help="Flash = cheap (~$0.003/article). Pro = better synthesis.")
+        flash_model = "deepseek-v4-flash"
     upgrade_synth = st.checkbox("Upgrade synthesis with Pro",
-                                value=(model == "gemini-2.5-flash"),
-                                help="Re-runs study_objective and key_result on Pro. ~$0.01/study.")
+                                value=(model == flash_model),
+                                help="Re-runs study_objective and key_result on Pro for "
+                                     "better synthesis. ~$0.01/study.")
     unpaywall_email = st.text_input("Email for Unpaywall (DOI lookup)",
                                     value=os.environ.get("UNPAYWALL_EMAIL", ""),
                                     help="Required by Unpaywall to fetch open-access PDFs by DOI. "
@@ -411,7 +426,7 @@ if st.session_state.main_tab == "upload":
                     tmp = PDF_CACHE / f"_tmp_{up.name}"
                     tmp.write_bytes(up.getbuffer())
                     log.text(f"[{i}/{len(uploaded)}] {up.name}…")
-                    success, errmsg = run_extraction(str(tmp), api_key, model, upgrade_synth)
+                    success, errmsg = run_extraction(str(tmp), api_key, model, upgrade_synth, provider=provider)
                     tmp.unlink(missing_ok=True)
                     if success: ok += 1
                     else: err += 1
@@ -441,7 +456,7 @@ if st.session_state.main_tab == "upload":
                     log.text(f"[{i}/{len(dois)}] {doi}…")
                     try:
                         pdf_path = extractor.fetch_pdf_by_doi(doi, unpaywall_email, str(PDF_CACHE))
-                        success, errmsg = run_extraction(pdf_path, api_key, model, upgrade_synth)
+                        success, errmsg = run_extraction(pdf_path, api_key, model, upgrade_synth, provider=provider)
                         if success: ok += 1
                         else: err += 1
                     except FileNotFoundError:
