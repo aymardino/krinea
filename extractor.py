@@ -59,7 +59,7 @@ FIELDS = [
     ("tool_categories", "list", "for EACH tool above, its category in the same order, comma-separated. "
         "Categories: capacity_expansion;production_cost;geospatial_electrification;reliability;"
         "nexus;demand_forecast;system_dynamics;hybrid_optimization"),
-    ("extraction_level", "enum", ["full", "light", "narrative"]),
+    ("extraction_level", "enum", ["full", "light"]),
     ("study_category", "enum", ["long_term_planning", "rural_electrification", "microgrid",
         "dispatch", "nexus", "economic", "geospatial"]),
     ("scale", "enum", ["national", "subnational", "regional", "continental", "global"]),
@@ -114,7 +114,6 @@ MODEL = "gemini-2.5-flash"
 # ── Field scope per extraction_level ─────────────────────────────────────────────
 # Gemini still extracts everything (one API call, deterministic). But the
 # verification form and Excel export only show/keep the fields below per level.
-# This avoids verifying or storing irrelevant fields on light/narrative studies.
 
 FIELDS_BY_LEVEL = {
     "full": None,   # None = all SCHEMA_FIELDS + power_pool (52 fields total)
@@ -124,12 +123,6 @@ FIELDS_BY_LEVEL = {
         "open_source", "aisesa_theme", "informal_economy", "biomass_charcoal",
         "clean_cooking", "power_reliability", "urbanization", "link_doi", "contact",
         "sdg_7", "sdg_13", "ndc_mention", "time_horizon_start", "time_horizon_end",
-        "authors_affiliation", "author_origin", "local_ownership", "grey_literature",
-        "frequency_of_use"],
-    "narrative": ["authors", "model_name", "full_title", "year", "extraction_level",
-        "tools_used", "tool_categories", "scale", "countries", "nb_countries_covered",
-        "power_pool", "study_objective", "key_result", "open_source", "link_doi", "contact",
-        "study_category", "aisesa_theme", "ndc_mention",
         "authors_affiliation", "author_origin", "local_ownership", "grey_literature",
         "frequency_of_use"],
 }
@@ -189,33 +182,22 @@ Return a SINGLE JSON object. For EVERY field below, return an object with:
 
 KEY GUIDANCE:
 
-extraction_level: classify HIERARCHICALLY — first check if it's a country-policy document, then classify by tool.
+extraction_level: classify by the TYPE OF MODEL used in the study.
 
-  STEP 1: Is it a COUNTRY-POLICY document? If YES -> "narrative", regardless of any model used.
-  Country-policy documents are official documents tied to a SPECIFIC country, describing its situation or plan:
-    - NDCs (Nationally Determined Contributions), NAMAs, NAPAs, LT-LEDS for a specific country
-    - National Energy Plans, country master plans, SE4All Action Agendas for one country
-    - World Bank / AfDB country reports (e.g. "Ghana Energy Sector Review")
-    - Government ministry documents, country policy briefs
-  Key test: is the document SPECIFIC to one country's policy or planning?
-    - "Burkina Faso NDC using GACMO" -> narrative (country-policy + uses model, but it's a NDC)
-    - "Ghana Energy Sector Review (World Bank)" -> narrative
-    - "Senegal SE4All Action Agenda" -> narrative
+  - "full" = long-term planning models: MESSAGE, OSeMOSYS, TIMES, LEAP, PLEXOS, Balmorel, etc...
+    These include both long term optimization models and simulation/accounting models.
+    This applies whether the document is a peer-reviewed article, a technical report,
+    OR a country-policy document (NDC, national plan, World Bank report) that uses one
+    of these tools. What matters is the model, not the document type.
+    Examples: "Ghana NDC using LEAP" -> full. "IRENA West Africa study with OSeMOSYS" -> full. "Ghana energy transition study with EnergyPLAN" -> full.
 
-  STEP 2: For everything else — peer-reviewed articles AND technical/regional reports — classify by tool:
-    - "full" = long-term planning models: MESSAGE, OSeMOSYS, TIMES, LEAP, PLEXOS, Balmorel.
-      This applies to BOTH academic articles AND technical reports using these tools.
-      Examples: IRENA West Africa Power Pool study with OSeMOSYS -> full;
-      IEA Africa Energy Outlook using TIMES -> full.
-    - "light" = techno-economic / GIS / electrification / mini-grid / simulation: HOMER, OnSSET,
-      RETScreen, SAM, GACMO (in academic use), custom GIS code, site-specific analyses.
+  - "light" = everything else: techno-economic studies, GIS-based analyses, mini-grid
+    simulations, rural electrification studies, calculators (GACMO, CERC, KCERT, 2050 Calculator), custom code. Also: country-policy documents that don't use a full long-term planning model.
+    Examples: "HOMER mini-grid study" -> light. "Burkina Faso NDC using GACMO" -> light.
+    "Ghana Energy Sector Review (World Bank)" -> light. "OnSSET electrification study" -> light.
 
-  Rule of thumb:
-    - Country flag on cover + "Ministry of..." / "Republic of..." / "[Country] NDC" / WB country report -> narrative
-    - Has DOI, journal name, authors with academic affiliations -> full or light per the tool
-    - Technical report from IRENA / IEA / IIASA without country-specific policy framing -> full or light per the tool
-  Note: when extraction_level is "narrative", grey_literature must be "yes".
-  But the converse isn't true: many grey-lit technical reports are full or light, NOT narrative.
+  The `grey_literature` field (yes/no) captures whether the document is grey lit or
+  peer-reviewed, which is a separate dimension.
 
 countries: list EVERY country actually modelled, as ISO-2 codes, from this list ONLY:
   {", ".join(ISO_CODES)}. If the study is continental/regional, list all the specific countries you can identify.

@@ -159,25 +159,37 @@ def _move_to_next_draft_after(current_id):
     st.session_state.current_draft_id = remaining_ids[next_idx]
 
 
-def build_relational_excel(df: pd.DataFrame, out_path):
+def build_relational_excel(df: pd.DataFrame, out_path, start_id=1):
+    """Split the flat extractions into your relational sheets.
+    Renumbers studies sequentially from `start_id` to fill any gaps created
+    by deleted drafts. The internal SQLite IDs are unchanged."""
     import re as _re
     def split(v): return [x.strip() for x in _re.split(r"[,;]", str(v)) if x.strip()]
+
+    # Build a mapping: internal_id -> exported_id (sequential from start_id)
+    df_sorted = df.sort_values("_id").reset_index(drop=True)
+    id_map = {int(row["_id"]): start_id + i for i, row in df_sorted.iterrows()}
+
     studies, tools, ctries, pools = [], [], [], []
-    for _, r in df.iterrows():
-        sid = r["_id"]
-        srow = {"study_id": sid, "source_file": r.get("source_file", "")}
+    for _, r in df_sorted.iterrows():
+        old_sid = int(r["_id"])
+        new_sid = id_map[old_sid]
+        # Studies sheet: no source_file, renumbered study_id
+        srow = {"study_id": new_sid}
         for f in extractor.EXPORT_FIELDS:
             if f not in ("tools_used", "tool_categories"):
                 srow[f] = r.get(f, "")
         studies.append(srow)
+        # Link tables use the new IDs too
         for i, t in enumerate(split(r.get("tools_used", ""))):
             cats = split(r.get("tool_categories", ""))
-            tools.append({"study_id": sid, "tool_name": t,
+            tools.append({"study_id": new_sid, "tool_name": t,
                           "tool_category": cats[i] if i < len(cats) else ""})
         for iso in split(r.get("countries", "")):
-            ctries.append({"study_id": sid, "iso_code": iso})
+            ctries.append({"study_id": new_sid, "iso_code": iso})
         for p in split(r.get("power_pool", "")):
-            pools.append({"study_id": sid, "pool_code": p})
+            pools.append({"study_id": new_sid, "pool_code": p})
+
     with pd.ExcelWriter(out_path, engine="openpyxl") as xl:
         pd.DataFrame(studies).to_excel(xl, sheet_name="studies", index=False)
         pd.DataFrame(tools).to_excel(xl, sheet_name="study_tools", index=False)
@@ -242,15 +254,22 @@ with st.sidebar:
     cc2.metric("Verified", C.get("verified", 0))
     cc3.metric("Failed", C.get("failed", 0))
     st.divider()
-    if st.button("⬇ Export verified to Excel", use_container_width=True):
+    export_start = st.number_input(
+        "Start numbering exported studies at",
+        min_value=1, value=1, step=1,
+        help="Set this to the next available ID in your master Excel inventory. "
+            "For example, if your inventory ends at study_id 65, set this to 66. "
+            "The internal IDs in the extraction tool are not affected."
+    )
+    if st.button("⬇ Export to Excel (relational)", use_container_width=True):
         df = load_verified()
         if len(df):
             out = Path(__file__).parent / "extracted_studies.xlsx"
-            build_relational_excel(df, out)
+            build_relational_excel(df, out, start_id=int(export_start))
             with open(out, "rb") as f:
                 st.download_button("Download extracted_studies.xlsx", f,
-                                   file_name="extracted_studies.xlsx",
-                                   use_container_width=True)
+                                file_name="extracted_studies.xlsx",
+                                use_container_width=True)
         else:
             st.info("No verified studies yet.")
     st.divider()
@@ -319,7 +338,7 @@ def render_verification(draft_id):
         # Render extraction_level FIRST so we know the scope for the rest.
         # Changing this dropdown re-runs the page and updates which fields show.
         el_item = result.get("extraction_level", {"value": "", "quote": ""})
-        el_opts = ["", "full", "light", "narrative"]
+        el_opts = ["", "full", "light"]
         el_idx = el_opts.index(el_item.get("value", "")) if el_item.get("value", "") in el_opts else 0
         extraction_level_value = st.selectbox(
             "extraction_level", el_opts, index=el_idx, key=f"f_{draft_id}_extraction_level",
@@ -332,7 +351,7 @@ def render_verification(draft_id):
         # Scope: which fields to render for this level
         scope = extractor.fields_in_scope(extraction_level_value) if extraction_level_value \
                 else list(extractor.EXPORT_FIELDS)
-        if extraction_level_value in ("light", "narrative"):
+        if extraction_level_value in ("light"):
             st.caption(f"Showing {len(scope)} fields (level **{extraction_level_value}** "
                        f"hides irrelevant fields from {len(extractor.EXPORT_FIELDS)} total).")
 
@@ -551,7 +570,7 @@ elif st.session_state.main_tab == "saved":
     else:
         st.caption(f"{len(df)} verified studies. Use the checkboxes to delete some, "
                    "or export from the sidebar.")
-        show_cols = [c for c in ["_id", "source_file", "model_name", "year", "scale",
+        show_cols = [c for c in ["_id", "authors", "full_title", "source_file", "model_name", "year", "scale",
                                  "countries", "power_pool", "extraction_level"] if c in df.columns]
         disp = df[show_cols].copy()
         disp.insert(0, "Delete?", False)
