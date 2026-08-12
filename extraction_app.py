@@ -216,6 +216,55 @@ def run_extraction(pdf_path, api_key, model, upgrade_synth, provider="gemini"):
         save_draft(source, model, None, "", cached_pdf, error=f"{type(e).__name__}: {e}")
         return False, f"{type(e).__name__}: {e}"
 
+# ── Duplicate detection against the master Excel ──────────────────────────────
+MASTER_XLSX = Path(__file__).parent / "Models_Africa_v2.xlsm"
+
+
+@st.cache_data(ttl=300)
+def load_master_index(_mtime: float):
+    """Load a lightweight index (title + DOI) from the master Excel's
+    'studies' sheet. Cached for 5 minutes and keyed on the file's mtime, so
+    edits to the Excel are picked up without restarting the app."""
+    if not MASTER_XLSX.exists():
+        return pd.DataFrame(columns=["study_id", "full_title", "link_doi"])
+    try:
+        df = pd.read_excel(MASTER_XLSX, sheet_name="studies.csv", dtype=str)
+    except Exception:
+        return pd.DataFrame(columns=["study_id", "full_title", "link_doi"])
+    cols = {c.lower().strip(): c for c in df.columns}
+    title_col = cols.get("full_title") or cols.get("title")
+    doi_col = cols.get("link_doi") or cols.get("doi")
+    id_col = cols.get("study_id")
+    out = pd.DataFrame({
+        "study_id": df[id_col] if id_col else range(1, len(df) + 1),
+        "full_title": df[title_col].fillna("") if title_col else "",
+        "link_doi": df[doi_col].fillna("") if doi_col else "",
+    })
+    return out[out["full_title"].str.strip() != ""]
+
+
+def check_duplicate(new_title, new_doi, master_df, threshold=85):
+    """Return (match_type, matched_row, score) or (None, None, 0) if no match.
+    match_type is 'doi' (certain) or 'title' (fuzzy, score is similarity %)."""
+    if not len(master_df):
+        return None, None, 0
+
+    new_doi = (new_doi or "").strip().lower()
+    if new_doi:
+        hit = master_df[master_df["link_doi"].str.strip().str.lower() == new_doi]
+        if len(hit):
+            return "doi", hit.iloc[0], 100
+
+    new_title = (new_title or "").strip()
+    if not new_title:
+        return None, None, 0
+    from rapidfuzz import process, fuzz
+    result = process.extractOne(
+        new_title, master_df["full_title"].tolist(), scorer=fuzz.token_sort_ratio)
+    if result and result[1] >= threshold:
+        matched_row = master_df.iloc[result[2]]
+        return "title", matched_row, round(result[1])
+    return None, None, 0
 
 init_db()
 C = counts()
@@ -223,8 +272,8 @@ C = counts()
 # ── Sidebar ──────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### Configuration")
-    provider = st.selectbox("Provider", ["gemini", "deepseek"],
-                            help="Gemini = default. DeepSeek = backup if you hit Gemini limits.")
+    provider = st.selectbox("Provider", ["claude", "gemini", "deepseek"],
+                            help="Claude = recommended for reliable extraction. " "Gemini = alternative. DeepSeek = backup")
     # Show the right key field per provider
     if provider == "gemini":
         api_key = st.text_input("Gemini API key", type="password",
@@ -232,6 +281,14 @@ with st.sidebar:
         model = st.selectbox("Model", ["gemini-2.5-flash", "gemini-2.5-pro"],
                              help="Flash = cheap. Pro = better on interpretive fields.")
         flash_model = "gemini-2.5-flash"
+    elif provider == "claude":
+        api_key = st.text_input("Anthropic API key", type="password",
+                                value=os.environ.get("ANTHROPIC_API_KEY", ""),
+                                help="Get one from https://console.anthropic.com")
+        model = st.selectbox("Model", ["claude-sonnet-5", "claude-opus-5"],
+                            help="Sonnet 5 = best cost/quality ratio for extraction. "
+                                "Opus 5 = higher quality on interpretive fields, ~5x more expensive.")
+        flash_model = "claude-sonnet-5"
     else:
         api_key = st.text_input("DeepSeek API key", type="password",
                                 value=os.environ.get("DEEPSEEK_API_KEY", ""),
@@ -247,6 +304,29 @@ with st.sidebar:
                                     value=os.environ.get("UNPAYWALL_EMAIL", ""),
                                     help="Required by Unpaywall to fetch open-access PDFs by DOI. "
                                          "Any real email works.")
+
+    st.divider()
+    st.markdown("### Today's session")
+    # Count studies verified today
+    _today = dt.date.today().isoformat()
+    con_t = sqlite3.connect(DB)
+    verified_today = con_t.execute(
+        "SELECT COUNT(*) FROM extractions WHERE status='verified' "
+        "AND verified_at LIKE ?", (f"{_today}%",)
+    ).fetchone()[0]
+    con_t.close()
+
+    daily_goal = st.number_input("Today's goal", min_value=1, max_value=200,
+                                  value=15, step=5,
+                                  help="Set a realistic daily target. Small blocks "
+                                       "of 15-20 studies work better than 100+ marathons.")
+    progress = min(verified_today / daily_goal, 1.0)
+    st.progress(progress, text=f"{verified_today} / {daily_goal} today")
+    if verified_today >= daily_goal:
+        st.success("🎉 Daily goal reached — take a real break!")
+    elif verified_today > 0 and verified_today % 5 == 0:
+        st.info(f"☕ {verified_today} done — good time for a short break")
+
     st.divider()
     st.markdown("### Progress")
     cc1, cc2, cc3 = st.columns(3)
@@ -347,6 +427,20 @@ def render_verification(draft_id):
         if el_quote:
             st.markdown(f"<div style='font-size:0.78rem;color:#666;margin-top:-8px;"
                         f"margin-bottom:10px;'>“{el_quote}”</div>", unsafe_allow_html=True)
+
+        # ── Duplicate check against the master Excel ────────────────────────
+        _title_val = result.get("full_title", {}).get("value", "")
+        _doi_val = result.get("link_doi", {}).get("value", "")
+        _master = load_master_index(MASTER_XLSX.stat().st_mtime if MASTER_XLSX.exists() else 0)
+        _match_type, _match_row, _score = check_duplicate(_title_val, _doi_val, _master)
+        if _match_type == "doi":
+            st.error(f"🚨 **Certain duplicate** — same DOI as study_id "
+                     f"{_match_row['study_id']} in your master Excel: "
+                     f"\"{_match_row['full_title'][:90]}\"")
+        elif _match_type == "title":
+            st.warning(f"⚠ **Possible duplicate ({_score}% title match)** — study_id "
+                       f"{_match_row['study_id']} in your master Excel: "
+                       f"\"{_match_row['full_title'][:90]}\". Check before saving.")
 
         # Scope: which fields to render for this level
         scope = extractor.fields_in_scope(extraction_level_value) if extraction_level_value \

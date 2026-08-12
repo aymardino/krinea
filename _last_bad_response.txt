@@ -1,135 +1,119 @@
 {
   "full_title": {
-    "value": "Energy sustainability and carbon dioxide emissions mitigation options for South Africa’s road transport sector",
-    "quote": "Energy sustainability and carbon dioxide emissions mitigation options for South Africa’s road transport sector"
+    "value": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS",
+    "quote": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS"
   },
   "authors": {
-    "value": "Menzi Nazi Ntuli et al.",
-    "quote": "Menzi Nazi Ntuli1, Andrew C. Eloka‑Eboka2, Festus Maina Mwangi1, Daniel Raphael Ejike Ewim1*    and Michael O. Dioha3"
+    "value": "T.C. Chineke et al.",
+    "quote": "Chineke, T. C, Ozuomba, J.O, Anumaka, M.C. Ojiaka, J.C. & Akwuegbu, O. C"
   },
   "year": {
-    "value": "2024",
-    "quote": "(2024) 48:37"
-  },
-  "study_type": {
-    "value": "article",
-    "quote": "Bulletin of the National Research Centre"
+    "value": "2022",
+    "quote": "Chineke et al, 2022"
   },
   "model_name": {
-    "value": "LEAP",
-    "quote": "Low Emissions Analysis Platform (LEAP)"
+    "value": "",
+    "quote": ""
   },
   "tools_used": {
-    "value": "LEAP",
-    "quote": "Low Emissions Analysis Platform (LEAP)"
+    "value": "PVGIS",
+    "quote": "From data obtained from the Photovoltaic Geographic Information System (PVGIS)"
   },
   "tool_categories": {
-    "value": "capacity_expansion",
-    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+    "value": "geospatial_electrification",
+    "quote": "The Photovoltaic Geographic Information System (PVGIS) is a free online tool that is used to estimate the amount of solar electricity that can be produced by any photovoltaic (PV) system, at any location worldwide."
   },
   "extraction_level": {
-    "value": "full",
-    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP), this research investigated five low-carbon transition scenarios"
+    "value": "light",
+    "quote": "From data obtained from the Photovoltaic Geographic Information System (PVGIS), the solar electricity potential at some selected cities in Southern Nigeria that ranges from 4.5 to 6.5 kWh/m2 has been presented as a tool"
   },
   "study_category": {
-    "value": "long_term_planning",
-    "quote": "investigated five low-carbon transition scenarios alongside a business-as-usual (BAU) scenario for road transport."
+    "value": "geospatial",
+    "quote": "The Photovoltaic Geographic Information System (PVGIS) is a free online tool that is used to estimate the amount of solar electricity that can be produced by any photovoltaic (PV) system, at any location worldwide."
   },
   "scale": {
     "value": "national",
-    "quote": "South Africa’s road transport sector"
+    "quote": "We present in this paper the free and “seemingly idle” huge potentials of solar electricity at some selected cities in Nigeria"
   },
   "countries": {
-    "value": "ZA",
-    "quote": "South Africa’s road transport sector"
+    "value": "NG",
+    "quote": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS"
   },
   "nb_countries_covered": {
     "value": 1,
-    "quote": "South Africa’s road transport sector"
+    "quote": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS"
   },
   "study_objective": {
-    "value": "To investigate transport energy demand and CO2 mitigation strategies in South Africa using a long-term energy modelling framework.",
-    "quote": "this study aims to investigate transport energy demand and CO2 mitigation strategies in South Africa using a long-term energy modelling framework"
+    "value": "To present the abundant solar electricity potential in selected Nigerian cities and to highlight the urgent need for a comprehensive legal framework to boost renewable energy adoption and address associated challenges.",
+    "quote": "We present in this paper the free and “seemingly idle” huge potentials of solar electricity at some selected cities in Nigeria with a strong case made for targeted renewable energy technology adoption while orchestrating the need for consideration of legal aspects"
   },
   "key_result": {
-    "value": "A combined approach, integrating multiple low-carbon policies, can achieve more substantial reductions in energy demand and Carbon Dioxide (CO2) emissions than applying single policies separately.",
-    "quote": "Significantly, a combined approach, integrating multiple low-carbon policies, can achieve more substantial reductions in energy demand and Carbon Dioxide (CO2) emissions than applying single policies separately."
-  },
-  "time_horizon": {
-    "value": "long_term",
-    "quote": "using a long-term energy modelling framework"
+    "value": "Nigeria possesses significant solar electricity potential (4.5 to 6.5 kWh/m2), but its effective harnessing is hindered by a lack of coherent legal support, national standards, and quality control for renewable energy technologies.",
+    "quote": "From data obtained from the Photovoltaic Geographic Information System (PVGIS), the solar electricity potential at some selected cities in Southern Nigeria that ranges from 4.5 to 6.5 kWh/m2 has been presented as a tool, which when properly harnessed, can be used to mitigate avoidable energy-related “national disasters” such as unemployment and youth-restiveness, thereby accelerating Nigeria’s development. There is the urgent need to revise and effectively implement helpful laws and policies that support the addition of renewable energy sources for electricity generation. Lack of a coherent legal framework with incentives for the utilization of renewable energy is among the key factors causing poor utilization of renewable energy in Nigeria."
   },
   "time_horizon_start": {
-    "value": "2020",
-    "quote": "from 769 petajoules (PJ) in 2020 to 1240 PJ by 2050"
+    "value": "",
+    "quote": ""
   },
   "time_horizon_end": {
-    "value": "2050",
-    "quote": "from 769 petajoules (PJ) in 2020 to 1240 PJ by 2050"
+    "value": "",
+    "quote": ""
   },
   "approach": {
-    "value": "bottom-up",
-    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+    "value": "",
+    "quote": ""
   },
   "method": {
-    "value": "accounting",
-    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+    "value": "",
+    "quote": ""
   },
   "mathematical_approach": {
-    "value": "other",
-    "quote": "Utilizing a bottom-up accounting modelling framework Low Emissions Analysis Platform (LEAP)"
+    "value": "",
+    "quote": ""
   },
   "hydro": {
-    "value": "no",
-    "quote": ""
+    "value": "yes",
+    "quote": "Renewable/alternative or \"green\" energy (solar, hydroelectric, geothermal, wind, tidal, among many other up-and-coming sources, in addition to nuclear energy)"
   },
   "solar": {
-    "value": "no",
-    "quote": "studies have suggested the potential of battery swapping with solar-charged minibus trailers in South Africa’s long-distance para-transit sector"
+    "value": "yes",
+    "quote": "With solar energy as a major player in the Renewable Energy Master Plan (REMP) owing to the free and great abundance of solar radiation throughout the year in Nigeria"
   },
   "wind": {
-    "value": "no",
-    "quote": ""
+    "value": "yes",
+    "quote": "alternative/renewable energy (RE) sources like solar, hydroelectric, wind, biomass and geothermal"
   },
   "biomass": {
-    "value": "no",
-    "quote": ""
+    "value": "yes",
+    "quote": "alternative/renewable energy (RE) sources like solar, hydroelectric, wind, biomass and geothermal"
   },
   "nuclear": {
-    "value": "no",
-    "quote": ""
+    "value": "yes",
+    "quote": "Renewable/alternative or \"green\" energy (solar, hydroelectric, geothermal, wind, tidal, among many other up-and-coming sources, in addition to nuclear energy)"
   },
   "geothermal": {
-    "value": "no",
-    "quote": ""
+    "value": "yes",
+    "quote": "alternative/renewable energy (RE) sources like solar, hydroelectric, wind, biomass and geothermal"
   },
   "fossil": {
     "value": "yes",
-    "quote": "primarily petroleum-based fuels, primarily gasoline and diesel"
+    "quote": "reducing the carbon footprint from the conventional fossil fuels"
   },
   "h2": {
     "value": "no",
     "quote": ""
   },
   "coal": {
-    "value": "no",
-    "quote": ""
-  },
-  "other_technologies": {
-    "value": "electric vehicles,CNG vehicles",
-    "quote": "new electric vehicle (NEV) promotion policy", "introducing CNG buses pilot programme"
+    "value": "yes",
+    "quote": "Nigeria, before and after independence relied heavily on non-renewable energy such as coal, wood, and other fossil fuels from petroleum to drive her economy"
   },
   "sector": {
-    "value": "other",
-    "quote": "South Africa’s road transport sector"
+    "value": "electricity",
+    "quote": "solar electricity potential at some selected cities in Southern Nigeria", "electricity generation"
   },
   "open_source": {
-    "value": "proprietary",
-    "quote": "Low Emissions Analysis Platform (LEAP), The tool was developed by Stockholm Environment Institute (SEI)."
-  },
-  "data_requirements": {
-    "value": "quantitative,monetary,disaggregated",
-    "quote": "Vehicle registration data in South Africa per vehicle type and per province", "all fuel tariffs in South Africa have seen a significant increase", "model generated provincial-specific results"
+    "value": "open",
+    "quote": "The Photovoltaic Geographic Information System (PVGIS) is a free online tool"
   },
   "frequency_of_use": {
     "value": "unknown",
@@ -137,23 +121,23 @@
   },
   "sdg_7": {
     "value": "yes",
-    "quote": "Energy sustainability and carbon dioxide emissions mitigation options"
+    "quote": "Renewable energy has been highlighted not only as a means of satisfying the energy needs of Nigerians but also as a tool for the country's growth, thereby improving the income of the citizens who have more energy to work with, serving as the energy source for domestic and office use"
   },
   "sdg_13": {
     "value": "yes",
-    "quote": "carbon dioxide emissions mitigation options"
+    "quote": "reducing the carbon footprint from the conventional fossil fuels", "Nigeria must consider its role in climate change, as a high-risk country that will be impacted by desertification, droughts, flooding, and water scarcity."
   },
   "ndc_mention": {
-    "value": "yes",
-    "quote": "As part of its commitment to global climate pacts, South Africa aims to reduce emissions from its road transport sector."
+    "value": "no",
+    "quote": ""
   },
   "agenda_2063": {
     "value": "no",
     "quote": ""
   },
   "aisesa_theme": {
-    "value": "cross_cutting",
-    "quote": "Energy sustainability and carbon dioxide emissions mitigation options for South Africa’s road transport sector"
+    "value": "powering_livelihoods",
+    "quote": "satisfying the energy needs of Nigerians but also as a tool for the country's growth, thereby improving the income of the citizens who have more energy to work with, serving as the energy source for domestic and office use", "Small and Medium Scale Enterprises (SMEs)"
   },
   "informal_economy": {
     "value": "no",
@@ -168,32 +152,32 @@
     "quote": ""
   },
   "power_reliability": {
-    "value": "no",
-    "quote": ""
+    "value": "yes",
+    "quote": "mitigate avoidable energy-related “national disasters” such as unemployment and youth-restiveness", "epileptic performance of the former National Electric Power Authority (NEPA)", "avoid blackouts"
   },
   "urbanization": {
     "value": "partial",
-    "quote": "Metropolitan areas across all provinces have embraced Bus Rapid Transit (BRT) systems", "more people choosing buses for their urban commute"
+    "quote": "failing grid electricity. However, most of the systems built employed low-cost, poorly integrated components, underestimated battery requirements, and had inadequate installation and maintenance (Ogbeidi, 2012; Dike et al., 2017; Okoro & Chineke, 2021)."
   },
   "strengths": {
-    "value": "model generated provincial-specific results,tailoring measures that are relevant to each province’s unique characteristics",
-    "quote": "The model generated provincial-specific results to delineate the focus areas within South Africa’s transport sector. This approach involved tailoring measures that are relevant to each province’s unique characteristics."
+    "value": "",
+    "quote": ""
   },
   "weaknesses": {
-    "value": "did not account for economic, social, and political factors,lack of corresponding implementation plans,gap in recorded data from reputable institutions",
-    "quote": "our study did not account for economic, social, and political factors.", "there is a lack of corresponding implementation plans, including infrastructure development", "there is a gap in recorded data from reputable institutions like universities"
+    "value": "lack of a coherent legal framework with incentives for the utilization of renewable energy, poor utilization of renewable energy in Nigeria, lack of public awareness, government policy, theft, solar technology vandalism, lack of national standards and adequate quality control units, poor maintenance, lack of technical know-how and inadequate training, poor technical experience of the project personnel, substandard/low-quality solar components, improper installation by workers with insufficient competence and professionalism, high initial costs not justified",
+    "quote": "Lack of a coherent legal framework with incentives for the utilization of renewable energy is among the key factors causing poor utilization of renewable energy in Nigeria. The barriers/drivers of solar energy adoption in Nigeria include but are not limited to lack of public awareness, government policy, theft, and solar technology vandalism. A key institutional impediment regarding the adoption of renewable energy technology in households within Nigeria was noted as the lack of national standards and adequate quality control units in the country. The majority of the solar products are imported into the market from other countries, especially China. There are no established rules or regulations that regulate these products, and they lack trademark certifications and manufacturer manuals (most of the products in the market have no brand name). Solar street lighting installations, for example, have harmed renewable energy's reputation in Nigeria more than any other flaw in the nascent industry. They've been popular with state governments since roughly 2003 as a quick cure for the shortage of lights in urban and rural regions caused by failing grid electricity. However, most of the systems built employed low-cost, poorly integrated components, underestimated battery requirements, and had inadequate installation and maintenance. As a result, enormous numbers of substandard/low-quality solar components have flooded the market; most times mounted improperly by workers with insufficient competence and professionalism. Because the high initial costs of investing in these items have not been justified, confidence in the renewable energy technology, especially regarding to solar photovoltaic applications, has been eroded"
   },
   "authors_affiliation": {
-    "value": "Department of Mechanical Engineering, Durban University of Technology,Centre of Excellence in Carbon‑Based Fuels, School of Chemical and Minerals Engineering, North-West University,Independent Energy Specialist",
-    "quote": "Department of Mechanical Engineering, Durban University of Technology", "Centre of Excellence in Carbon‑Based Fuels, School of Chemical and Minerals Engineering, North-West University", "Independent Energy Specialist"
+    "value": "Department of Physics, Imo State University, Owerri, Nigeria, Department of Electrical and Electronics Engineering, Imo State University, Owerri Nigeria, Faculty of Law, Imo State University, Owerri, Nigeria, Department of Physics, Michael Okpara University of Agriculture, Umudike Nigeria",
+    "quote": "PhD, Department of Physics, Imo State University, Owerri, Nigeria; PhD, Department of Electrical and Electronics Engineering, Imo State University, Owerri Nigeria; PhD, Faculty of Law, Imo State University, Owerri, Nigeria; M.Sc, Department of Physics, Michael Okpara University of Agriculture, Umudike Nigeria"
   },
   "author_origin": {
-    "value": "ZA,US",
-    "quote": "Durban, South Africa", "Potchefstroom, South Africa", "Sacramento, CA 95835, USA"
+    "value": "NG",
+    "quote": "Imo State University, Owerri, Nigeria; Michael Okpara University of Agriculture, Umudike Nigeria"
   },
   "local_ownership": {
     "value": "yes",
-    "quote": "Durban University of Technology, Durban, South Africa", "North-West University, Potchefstroom, South Africa"
+    "quote": "Imo State University, Owerri, Nigeria; Michael Okpara University of Agriculture, Umudike Nigeria"
   },
   "institutional_users": {
     "value": "",
@@ -201,7 +185,7 @@
   },
   "grey_literature": {
     "value": "no",
-    "quote": "Bulletin of the National Research Centre"
+    "quote": "MATTER: International Journal of Science and Technology"
   },
   "cost_of_capital": {
     "value": "not_stated",
@@ -209,22 +193,18 @@
   },
   "financing_modelling": {
     "value": "no",
-    "quote": "offering subsidies to manufacturers and buyers to drive up the supply and demand of NEVs"
+    "quote": "We are making a case for targeted introduction of legal aspects of renewable energy use in Nigeria in the legal and policy issues relating to the land use, development/implementation, siting and finance issues encountered by developers of renewable energy projects, commercialization of renewable energy sources and consumer rights."
   },
   "financing_mechanism": {
     "value": "",
     "quote": ""
   },
   "link_doi": {
-    "value": "https://doi.org/10.1186/s42269-024-01192-4",
-    "quote": "https://doi.org/10.1186/s42269-024-01192-4"
+    "value": "https://doi.org/10.20319/mijst.2022.8.119134",
+    "quote": "DOI- https://doi.org/10.20319/mijst.2022.8.119134"
   },
   "contact": {
-    "value": "daniel.ewim@yahoo.com",
-    "quote": "daniel.ewim@yahoo.com"
-  },
-  "other_references": {
-    "value": "https://cdn.leap.sei.org/documents/LEAPTrainingExerciseEnglish2020.pdf",
-    "quote": "LEAP low emissions analysis platform. Available https://cdn.leap.sei.org/documents/LEAPTrainingExerciseEnglish2020.pdf"
+    "value": "chidiezie@gmail.com",
+    "quote": "chidiezie@gmail.com"
   }
 }

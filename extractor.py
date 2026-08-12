@@ -5,8 +5,6 @@ Pipeline: PDF -> text (PyMuPDF) -> Gemini structured JSON -> your full schema,
 with a source quote for every field. Power pools are COMPUTED from the extracted
 countries (deterministic), never guessed by the AI.
 
-Provider-agnostic: change MODEL or swap call_gemini to use Claude/OpenAI later.
-
 Usage:
     export GEMINI_API_KEY=...
     python extractor.py path/to/article.pdf
@@ -18,6 +16,7 @@ import os
 import json
 import re
 import fitz  # PyMuPDF
+import anthropic  # Claude API
 
 
 # ── Country -> power pool map (from your database; authoritative) ────────────────
@@ -247,8 +246,9 @@ study_objective: write 1-2 SHORT sentences synthesising the goal of the study, i
 
 key_result: 1-2 SHORT sentences on the MAIN finding (not the methodology). Same style — direct, no "The authors find that..." padding. Example: "Decentralised PV mini-grids serve 60% of the off-grid population at lowest cost." NOT "The authors find that..."
 
-authors: cite ONLY the lead author followed by "et al." if there are multiple authors. Examples:
+authors: cite ONLY the lead author followed by "et al." if there are more than 2 authors. Examples:
   - one author: "M Moner-Girona"
+  - two authors: "M Moner-Girona and J Doe"
   - multiple: "M Moner-Girona et al."
   Do NOT list all authors.
 
@@ -355,6 +355,55 @@ def call_deepseek(prompt: str, api_key: str, model: str = "deepseek-v4-flash",
         f"{last_err.msg} (after {max_retries+1} attempts; raw response saved to "
         f"{debug_path} for inspection)", last_raw, last_err.pos)
 
+def call_claude(prompt: str, api_key: str, model: str = "claude-sonnet-5",
+                max_retries: int = 2) -> dict:
+    """Call Claude via Anthropic API and parse JSON. Uses prompt caching
+    automatically on the system message — cached prompts cost 90% less after
+    the first call, which matters when running 100+ extractions with the
+    same instructions."""
+    from anthropic import Anthropic
+    client = Anthropic(api_key=api_key)
+    last_raw = ""
+    last_err = None
+
+    # Split the prompt so the STABLE part (instructions, vocabularies) is cached,
+    # and only the article text varies between calls.
+    marker = "STUDY TEXT:"
+    if marker in prompt:
+        system_prompt, article = prompt.split(marker, 1)
+        article = marker + article
+    else:
+        system_prompt, article = prompt, ""
+
+    for attempt in range(max_retries + 1):
+        resp = client.messages.create(
+            model=model,
+            max_tokens=8192,
+            system=[{
+                "type": "text",
+                "text": system_prompt,
+                "cache_control": {"type": "ephemeral"},
+            }],
+            messages=[{"role": "user", "content": article or prompt}],
+        )
+        # Claude returns a list of content blocks
+        last_raw = "".join(b.text for b in resp.content if hasattr(b, "text"))
+        try:
+            return _try_parse_json(last_raw)
+        except json.JSONDecodeError as e:
+            last_err = e
+            if attempt < max_retries:
+                continue
+    debug_path = os.path.join(os.path.dirname(__file__) if "__file__" in globals() else ".",
+                              "_last_bad_response.txt")
+    try:
+        with open(debug_path, "w", encoding="utf-8") as fh:
+            fh.write(last_raw)
+    except OSError:
+        pass
+    raise json.JSONDecodeError(
+        f"{last_err.msg} (after {max_retries+1} attempts; raw response saved to "
+        f"{debug_path} for inspection)", last_raw, last_err.pos)
 
 def call_llm(prompt: str, api_key: str, provider: str = "gemini",
              model: str = None) -> dict:
@@ -363,8 +412,10 @@ def call_llm(prompt: str, api_key: str, provider: str = "gemini",
         return call_gemini(prompt, api_key, model or "gemini-2.5-flash")
     elif provider == "deepseek":
         return call_deepseek(prompt, api_key, model or "deepseek-v4-flash")
+    elif provider == "claude":
+        return call_claude(prompt, api_key, model or "claude-sonnet-5")
     else:
-        raise ValueError(f"Unknown provider: {provider!r} (use 'gemini' or 'deepseek')")
+        raise ValueError(f"Unknown provider: {provider!r} (use 'gemini' or 'deepseek' or 'claude')")
 
 
 def upgrade_synthesis_fields(text: str, current: dict, api_key: str,
@@ -385,7 +436,7 @@ Return JSON: {{"study_objective": {{"value": "...", "quote": "short verbatim fro
 
 STUDY TEXT:
 {text}"""
-    pro_model = "gemini-2.5-pro" if provider == "gemini" else "deepseek-v4-pro"
+    pro_model = "gemini-2.5-pro" if provider == "gemini" else "deepseek-v4-pro" if provider == "deepseek" else "claude-opus-5"
     upgraded = call_llm(prompt, api_key, provider=provider, model=pro_model)
     for f in ("study_objective", "key_result"):
         if f in upgraded and isinstance(upgraded[f], dict):
@@ -410,7 +461,7 @@ def extract_pdf(pdf_path: str, api_key: str, model: str = MODEL,
         else:
             clean[f] = {"value": str(item).strip(), "quote": ""}
     # Optional upgrade: re-do the two synthesis fields with Pro
-    pro_models = {"gemini-2.5-pro", "deepseek-v4-pro"}
+    pro_models = {"gemini-2.5-pro", "deepseek-v4-pro", "claude-opus-5"}
     if upgrade_synthesis and model not in pro_models:
         try:
             clean = upgrade_synthesis_fields(text, clean, api_key, provider=provider)
