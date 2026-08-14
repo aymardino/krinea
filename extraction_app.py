@@ -530,7 +530,7 @@ if st.session_state.main_tab == "upload":
         if uploaded and st.button(f"🔍 Extract {len(uploaded)} PDF{'s' if len(uploaded)>1 else ''} with AI",
                                   type="primary"):
             if not api_key:
-                st.error("Please provide your Gemini API key in the sidebar.")
+                st.error("Please provide your API key in the sidebar.")
             else:
                 progress = st.progress(0.0)
                 log = st.empty()
@@ -557,7 +557,7 @@ if st.session_state.main_tab == "upload":
                                 height=120)
         if doi_text and st.button(f"🔗 Fetch & extract", type="primary"):
             if not api_key:
-                st.error("Please provide your Gemini API key in the sidebar.")
+                st.error("Please provide your API key in the sidebar.")
             elif not unpaywall_email:
                 st.error("Please provide an email for Unpaywall in the sidebar.")
             else:

@@ -50,11 +50,28 @@ def compute_pools(countries_csv: str) -> str:
 # kind: "enum" (one value), "multi" (comma-list from set), "yesno", "ynp" (yes/no/partial),
 #       "iso" (ISO-2 list), "text", "year", "sentences", "list"
 FIELDS = [
-    ("full_title", "text", "the paper's full title"),
     ("authors", "text", "author names"),
-    ("year", "year", ""),
     ("model_name", "text", "primary named model/tool, or '' if custom/unnamed"),
-    ("tools_used", "list", "list ALL energy-modelling tools used, comma-separated (e.g. MESSAGE, HOMER)"),
+    ("full_title", "text", "the paper's full title"),
+    ("year", "year", ""), 
+    ("tools_used", "list", "list ALL energy-modelling (ESM) tools used, comma-separated (e.g. "
+        "MESSAGE, HOMER). STRICT RULES: "
+        "(1) Only list dedicated energy-system-modelling software, NOT general-purpose languages "
+        "or environments used to implement a custom model (exclude Excel, Python, MATLAB, R, Julia, "
+        "GAMS-as-language). If the study builds its own model from scratch in "
+        "one of these, with no identifiable ESM tool, write exactly 'none' if there are not energy modeling tools (this flags the study "
+        "for exclusion from the inventory). Leave the field EMPTY only when you genuinely cannot "
+        "determine what was used. "
+        "(2) Do NOT list datasets (e.g. WorldPop, VIIRS night-lights, ERA5) as tools, those belong "
+        "in other fields, not here. "
+        "(3) Do NOT list methodologies or frameworks that are not standalone software (e.g. "
+        "'multi-criteria analysis', 'linear programming') as tools. "
+        "(4) Normalise names to their canonical short form, dropping edition/version suffixes: "
+        "'HOMER Pro' becomes 'HOMER'; 'HOMER Grid' becomes 'HOMER'; 'ArcMap' becomes 'ArcGIS'; "
+        "'ArcGIS Pro' becomes 'ArcGIS'; drop version numbers entirely (e.g. 'PVSyst 3.1' "
+        "becomes 'PVSyst'). "
+        "This uniform naming is critical: the same tool must always be written identically across "
+        "every study so usage can be aggregated."),
     ("tool_categories", "list", "for EACH tool above, its category in the same order, comma-separated. "
         "Categories: capacity_expansion;production_cost;geospatial_electrification;reliability;"
         "nexus;demand_forecast;system_dynamics;hybrid_optimization"),
@@ -66,8 +83,14 @@ FIELDS = [
     ("nb_countries_covered", "text", "number of countries covered (integer)"),
     ("study_objective", "sentences", "1-2 sentences on the study's objective"),
     ("key_result", "sentences", "1-2 sentences on the key result"),
-    ("time_horizon_start", "year", "first year of the modelling horizon"),
-    ("time_horizon_end", "year", "last year of the modelling horizon"),
+    ("time_horizon_start", "year", "first year of the modelling horizon, ONLY if explicitly "
+    "stated as a calendar year in the text. Do NOT use the publication year. Do NOT compute "
+    "it from a stated project lifetime (e.g. '20 year lifetime' does NOT mean start=publication "
+    "year). If no explicit start year is stated, leave blank."),
+    ("time_horizon_end", "year", "last year of the modelling horizon, ONLY if explicitly "
+    "stated as a calendar year in the text. Do NOT use the publication year. Do NOT compute "
+    "it from a stated project lifetime (e.g. '20-year lifetime' does NOT mean end=publication "
+    "year). If no explicit end year is stated, leave blank."),
     ("approach", "enum", ["bottom-up", "top-down", "hybrid"]),
     ("method", "enum", ["optimization", "simulation", "accounting", "hybrid"]),
     ("mathematical_approach", "enum", ["linear_programming", "mixed-integer_programming",
@@ -94,7 +117,10 @@ FIELDS = [
     ("cost_of_capital", "text", "discount rate / WACC e.g. '8%' or 'not_stated'"),
     ("financing_modelling", "yesno", "does it model financing?"),
     ("financing_mechanism", "text", "financing mechanism described, or '' "),
-    ("link_doi", "text", "DOI or URL"),
+    ("link_doi", "text", "the complete DOI URL, always starting with 'https://doi.org/' or "
+        "'http://dx.doi.org/', never just the bare DOI text (e.g. write "
+        "'https://doi.org/10.1016/j.rser.2020.110399', not '10.1016/j.rser.2020.110399'). "
+        "If no DOI exists, use the article's full URL instead, also starting with http:// or https://."),
     ("contact", "text", "corresponding author email if present"),
 ]
 

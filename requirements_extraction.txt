@@ -7,4 +7,3 @@ streamlit-pdf-viewer>=0.0.20
 openai>=1.0.0
 anthropic>=0.40.0
 rapidfuzz>=3.9.0
-fitz>=2024.1
