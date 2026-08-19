@@ -100,7 +100,6 @@ FIELDS = [
     ("fossil", "yesno", ""), ("h2", "yesno", ""), ("coal", "yesno", ""),
     ("sector", "enum", ["electricity", "full_energy", "power_heat", "other"]),
     ("open_source", "enum", ["open", "proprietary", "mixed"]),
-    ("frequency_of_use", "enum", ["routine", "occasional", "ad_hoc", "unknown"]),
     ("sdg_7", "yesno", ""), ("sdg_13", "yesno", ""),
     ("ndc_mention", "yesno", ""), ("agenda_2063", "yesno", ""),
     ("aisesa_theme", "enum", ["powering_livelihoods", "inclusive_industrialisation",
@@ -148,8 +147,7 @@ FIELDS_BY_LEVEL = {
         "open_source", "aisesa_theme", "informal_economy", "biomass_charcoal",
         "clean_cooking", "power_reliability", "urbanization", "link_doi", "contact",
         "sdg_7", "sdg_13", "ndc_mention", "time_horizon_start", "time_horizon_end",
-        "authors_affiliation", "author_origin", "local_ownership", "grey_literature",
-        "frequency_of_use"],
+        "authors_affiliation", "author_origin", "local_ownership", "grey_literature"],
 }
 
 
@@ -236,15 +234,30 @@ one study, production cost simulation in another).
 Do NOT output power pools — they are computed separately from the countries.
 
 open_source: use the tool's KNOWN licence rather than waiting for the paper to say it. If the paper uses one of these tools, classify accordingly:
-  - OPEN: OSeMOSYS, OnSSET, GenX, PyPSA, Calliope, SWITCH, urbs, oemof, Balmorel, TEMBA, atlite, SAM, OSeR, Python/R custom code
-  - PROPRIETARY: LEAP (freemium, treat as proprietary), MESSAGE (IAEA, treat as proprietary), PLEXOS, ANTARES, TIMES/MARKAL, HOMER Pro, Aurora, GAMS-based proprietary models, EnergyPLAN
-  - MIXED: studies that combine an open tool with a proprietary one (e.g. MESSAGE + HOMER, OnSSET + LEAP).
+  - OPEN: every required component is free or open-source. The model can be installed and run end-to-end at zero cost.
+    OSeMOSYS, OnSSET, GenX, PyPSA, Calliope, SWITCH, urbs, oemof, Balmorel, TEMBA, atlite, SAM, OSeR, Python/R custom code
+  - PROPRIETARY: the tool itself requires a paid licence.
+    LEAP (freemium, treat as proprietary), MESSAGE (IAEA, treat as proprietary), PLEXOS, ANTARES, HOMER Pro, Aurora, EnergyPLAN, PVsyst
+  - MIXED: studies that combine an open tool with a proprietary one (e.g. MESSAGE + HOMER, OnSSET + LEAP) or 
+    if the model code is free or open, but a commercial component is indispensable like TIMES which requires VEDA license and GAMS, or MARKAL, or BALMOREL.
   Only use "" if no specific tool can be identified.
 
 approach: infer from the model structure even if the words are absent.
-  - bottom-up: technology-rich models, capacity expansion, technology-by-technology cost optimisation (most MESSAGE/OSeMOSYS/TIMES/LEAP/OnSSET/HOMER studies are bottom-up).
-  - top-down: econometric / CGE / macro-economic models that start from aggregates.
-  - hybrid: combines bottom-up technology detail with top-down economic linkages.
+  - bottom-up: technology-rich models with technology-by-technology cost optimisation,
+    and NO macroeconomic feedback module.
+  - top-down: econometric, CGE, input-output or macro-economic models that start from
+    aggregates without explicit technology detail.
+  - hybrid: combines bottom-up technology detail WITH a top-down economic module.
+    IMPORTANT: check for coupling before answering bottom-up. A study is hybrid whenever
+    a technology-rich model is soft- or hard-linked to a macroeconomic model. Common
+    hybrid cases: TIMES-MACRO, MESSAGE-MACRO, MESSAGEix-GLOBIOM, LEAP coupled with a
+    CGE, OSeMOSYS linked to an economy-wide model, any "X + CGE" or "X + input-output"
+    combination.
+    Cue words that signal hybrid: "CGE", "computable general equilibrium", "MACRO module",
+    "soft-linked", "hard-linked", "coupled with", "macroeconomic feedback",
+    "input-output", "economy-wide".
+  If the paper names two tools where one is technology-rich and the other is
+  macroeconomic, answer "hybrid", not the category of the first tool.
 
 mathematical_approach: infer from the method description.
   - linear_programming: LP, cost minimisation over continuous variables.

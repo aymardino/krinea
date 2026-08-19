@@ -1,210 +1,38 @@
+```json
 {
-  "full_title": {
-    "value": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS",
-    "quote": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS"
-  },
-  "authors": {
-    "value": "T.C. Chineke et al.",
-    "quote": "Chineke, T. C, Ozuomba, J.O, Anumaka, M.C. Ojiaka, J.C. & Akwuegbu, O. C"
-  },
-  "year": {
-    "value": "2022",
-    "quote": "Chineke et al, 2022"
-  },
-  "model_name": {
-    "value": "",
-    "quote": ""
-  },
-  "tools_used": {
-    "value": "PVGIS",
-    "quote": "From data obtained from the Photovoltaic Geographic Information System (PVGIS)"
-  },
-  "tool_categories": {
-    "value": "geospatial_electrification",
-    "quote": "The Photovoltaic Geographic Information System (PVGIS) is a free online tool that is used to estimate the amount of solar electricity that can be produced by any photovoltaic (PV) system, at any location worldwide."
-  },
-  "extraction_level": {
-    "value": "light",
-    "quote": "From data obtained from the Photovoltaic Geographic Information System (PVGIS), the solar electricity potential at some selected cities in Southern Nigeria that ranges from 4.5 to 6.5 kWh/m2 has been presented as a tool"
-  },
-  "study_category": {
-    "value": "geospatial",
-    "quote": "The Photovoltaic Geographic Information System (PVGIS) is a free online tool that is used to estimate the amount of solar electricity that can be produced by any photovoltaic (PV) system, at any location worldwide."
-  },
-  "scale": {
-    "value": "national",
-    "quote": "We present in this paper the free and “seemingly idle” huge potentials of solar electricity at some selected cities in Nigeria"
-  },
-  "countries": {
-    "value": "NG",
-    "quote": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS"
-  },
-  "nb_countries_covered": {
-    "value": 1,
-    "quote": "BOOSTING THE HARVESTING OF NIGERIA’S ABUNDANT RENEWABLE ENERGY POTENTIALS AND LEGAL IMPLICATIONS"
-  },
-  "study_objective": {
-    "value": "To present the abundant solar electricity potential in selected Nigerian cities and to highlight the urgent need for a comprehensive legal framework to boost renewable energy adoption and address associated challenges.",
-    "quote": "We present in this paper the free and “seemingly idle” huge potentials of solar electricity at some selected cities in Nigeria with a strong case made for targeted renewable energy technology adoption while orchestrating the need for consideration of legal aspects"
-  },
-  "key_result": {
-    "value": "Nigeria possesses significant solar electricity potential (4.5 to 6.5 kWh/m2), but its effective harnessing is hindered by a lack of coherent legal support, national standards, and quality control for renewable energy technologies.",
-    "quote": "From data obtained from the Photovoltaic Geographic Information System (PVGIS), the solar electricity potential at some selected cities in Southern Nigeria that ranges from 4.5 to 6.5 kWh/m2 has been presented as a tool, which when properly harnessed, can be used to mitigate avoidable energy-related “national disasters” such as unemployment and youth-restiveness, thereby accelerating Nigeria’s development. There is the urgent need to revise and effectively implement helpful laws and policies that support the addition of renewable energy sources for electricity generation. Lack of a coherent legal framework with incentives for the utilization of renewable energy is among the key factors causing poor utilization of renewable energy in Nigeria."
-  },
-  "time_horizon_start": {
-    "value": "",
-    "quote": ""
-  },
-  "time_horizon_end": {
-    "value": "",
-    "quote": ""
-  },
-  "approach": {
-    "value": "",
-    "quote": ""
-  },
-  "method": {
-    "value": "",
-    "quote": ""
-  },
-  "mathematical_approach": {
-    "value": "",
-    "quote": ""
-  },
-  "hydro": {
-    "value": "yes",
-    "quote": "Renewable/alternative or \"green\" energy (solar, hydroelectric, geothermal, wind, tidal, among many other up-and-coming sources, in addition to nuclear energy)"
-  },
-  "solar": {
-    "value": "yes",
-    "quote": "With solar energy as a major player in the Renewable Energy Master Plan (REMP) owing to the free and great abundance of solar radiation throughout the year in Nigeria"
-  },
-  "wind": {
-    "value": "yes",
-    "quote": "alternative/renewable energy (RE) sources like solar, hydroelectric, wind, biomass and geothermal"
-  },
-  "biomass": {
-    "value": "yes",
-    "quote": "alternative/renewable energy (RE) sources like solar, hydroelectric, wind, biomass and geothermal"
-  },
-  "nuclear": {
-    "value": "yes",
-    "quote": "Renewable/alternative or \"green\" energy (solar, hydroelectric, geothermal, wind, tidal, among many other up-and-coming sources, in addition to nuclear energy)"
-  },
-  "geothermal": {
-    "value": "yes",
-    "quote": "alternative/renewable energy (RE) sources like solar, hydroelectric, wind, biomass and geothermal"
-  },
-  "fossil": {
-    "value": "yes",
-    "quote": "reducing the carbon footprint from the conventional fossil fuels"
-  },
-  "h2": {
-    "value": "no",
-    "quote": ""
-  },
-  "coal": {
-    "value": "yes",
-    "quote": "Nigeria, before and after independence relied heavily on non-renewable energy such as coal, wood, and other fossil fuels from petroleum to drive her economy"
-  },
-  "sector": {
-    "value": "electricity",
-    "quote": "solar electricity potential at some selected cities in Southern Nigeria", "electricity generation"
-  },
-  "open_source": {
-    "value": "open",
-    "quote": "The Photovoltaic Geographic Information System (PVGIS) is a free online tool"
-  },
-  "frequency_of_use": {
-    "value": "unknown",
-    "quote": ""
-  },
-  "sdg_7": {
-    "value": "yes",
-    "quote": "Renewable energy has been highlighted not only as a means of satisfying the energy needs of Nigerians but also as a tool for the country's growth, thereby improving the income of the citizens who have more energy to work with, serving as the energy source for domestic and office use"
-  },
-  "sdg_13": {
-    "value": "yes",
-    "quote": "reducing the carbon footprint from the conventional fossil fuels", "Nigeria must consider its role in climate change, as a high-risk country that will be impacted by desertification, droughts, flooding, and water scarcity."
-  },
-  "ndc_mention": {
-    "value": "no",
-    "quote": ""
-  },
-  "agenda_2063": {
-    "value": "no",
-    "quote": ""
-  },
-  "aisesa_theme": {
-    "value": "powering_livelihoods",
-    "quote": "satisfying the energy needs of Nigerians but also as a tool for the country's growth, thereby improving the income of the citizens who have more energy to work with, serving as the energy source for domestic and office use", "Small and Medium Scale Enterprises (SMEs)"
-  },
-  "informal_economy": {
-    "value": "no",
-    "quote": ""
-  },
-  "biomass_charcoal": {
-    "value": "no",
-    "quote": ""
-  },
-  "clean_cooking": {
-    "value": "no",
-    "quote": ""
-  },
-  "power_reliability": {
-    "value": "yes",
-    "quote": "mitigate avoidable energy-related “national disasters” such as unemployment and youth-restiveness", "epileptic performance of the former National Electric Power Authority (NEPA)", "avoid blackouts"
-  },
-  "urbanization": {
-    "value": "partial",
-    "quote": "failing grid electricity. However, most of the systems built employed low-cost, poorly integrated components, underestimated battery requirements, and had inadequate installation and maintenance (Ogbeidi, 2012; Dike et al., 2017; Okoro & Chineke, 2021)."
-  },
-  "strengths": {
-    "value": "",
-    "quote": ""
-  },
-  "weaknesses": {
-    "value": "lack of a coherent legal framework with incentives for the utilization of renewable energy, poor utilization of renewable energy in Nigeria, lack of public awareness, government policy, theft, solar technology vandalism, lack of national standards and adequate quality control units, poor maintenance, lack of technical know-how and inadequate training, poor technical experience of the project personnel, substandard/low-quality solar components, improper installation by workers with insufficient competence and professionalism, high initial costs not justified",
-    "quote": "Lack of a coherent legal framework with incentives for the utilization of renewable energy is among the key factors causing poor utilization of renewable energy in Nigeria. The barriers/drivers of solar energy adoption in Nigeria include but are not limited to lack of public awareness, government policy, theft, and solar technology vandalism. A key institutional impediment regarding the adoption of renewable energy technology in households within Nigeria was noted as the lack of national standards and adequate quality control units in the country. The majority of the solar products are imported into the market from other countries, especially China. There are no established rules or regulations that regulate these products, and they lack trademark certifications and manufacturer manuals (most of the products in the market have no brand name). Solar street lighting installations, for example, have harmed renewable energy's reputation in Nigeria more than any other flaw in the nascent industry. They've been popular with state governments since roughly 2003 as a quick cure for the shortage of lights in urban and rural regions caused by failing grid electricity. However, most of the systems built employed low-cost, poorly integrated components, underestimated battery requirements, and had inadequate installation and maintenance. As a result, enormous numbers of substandard/low-quality solar components have flooded the market; most times mounted improperly by workers with insufficient competence and professionalism. Because the high initial costs of investing in these items have not been justified, confidence in the renewable energy technology, especially regarding to solar photovoltaic applications, has been eroded"
-  },
-  "authors_affiliation": {
-    "value": "Department of Physics, Imo State University, Owerri, Nigeria, Department of Electrical and Electronics Engineering, Imo State University, Owerri Nigeria, Faculty of Law, Imo State University, Owerri, Nigeria, Department of Physics, Michael Okpara University of Agriculture, Umudike Nigeria",
-    "quote": "PhD, Department of Physics, Imo State University, Owerri, Nigeria; PhD, Department of Electrical and Electronics Engineering, Imo State University, Owerri Nigeria; PhD, Faculty of Law, Imo State University, Owerri, Nigeria; M.Sc, Department of Physics, Michael Okpara University of Agriculture, Umudike Nigeria"
-  },
-  "author_origin": {
-    "value": "NG",
-    "quote": "Imo State University, Owerri, Nigeria; Michael Okpara University of Agriculture, Umudike Nigeria"
-  },
-  "local_ownership": {
-    "value": "yes",
-    "quote": "Imo State University, Owerri, Nigeria; Michael Okpara University of Agriculture, Umudike Nigeria"
-  },
-  "institutional_users": {
-    "value": "",
-    "quote": ""
-  },
-  "grey_literature": {
-    "value": "no",
-    "quote": "MATTER: International Journal of Science and Technology"
-  },
-  "cost_of_capital": {
-    "value": "not_stated",
-    "quote": ""
-  },
-  "financing_modelling": {
-    "value": "no",
-    "quote": "We are making a case for targeted introduction of legal aspects of renewable energy use in Nigeria in the legal and policy issues relating to the land use, development/implementation, siting and finance issues encountered by developers of renewable energy projects, commercialization of renewable energy sources and consumer rights."
-  },
-  "financing_mechanism": {
-    "value": "",
-    "quote": ""
-  },
-  "link_doi": {
-    "value": "https://doi.org/10.20319/mijst.2022.8.119134",
-    "quote": "DOI- https://doi.org/10.20319/mijst.2022.8.119134"
-  },
-  "contact": {
-    "value": "chidiezie@gmail.com",
-    "quote": "chidiezie@gmail.com"
-  }
-}
+  "authors": {"value": "I Kimuli et al.", "quote": "Ismail Kimuli a,* , John Baptist Kirabira b , Saadat L.K. Nakyejwe c"},
+  "model_name": {"value": "KAMPALA-TIMES", "quote": "an energy-oriented input–output model linked to the KAMPALA-TIMES transport module"},
+  "full_title": {"value": "Electrifying boda-boda transportation with battery-swapping: a techno-economic and grid-aware rollout for Kampala Metropolis", "quote": "Electrifying boda-boda transportation with battery-swapping: a techno-economic and grid-aware rollout for Kampala Metropolis"},
+  "year": {"value": "2026", "quote": "Energy Conversion and Management: X 30 (2026) 101648"},
+  "tools_used": {"value": "ArcGIS, OpenDSS, QGIS, KAMPALA-TIMES", "quote": "implemented in ArcGIS Pro using weighted overlay layers and a p-median solver ... distribution feeder simulations were performed using OpenDSS coupled with - QGIS-based spatial load allocation ... coupling the KAMPALA-TIMES transportation module"},
+  "tool_categories": {"value": "geospatial_electrification, reliability, geospatial_electrification, nexus", "quote": "geospatial siting optimization ... distribution grid simulation ... KAMPALA-TIMES transportation module is linked to an energy-oriented input–output framework"},
+  "extraction_level": {"value": "light", "quote": "A Total Cost of Ownership (TCO) framework was developed ... distribution feeder simulations were performed using OpenDSS"},
+  "study_category": {"value": "nexus", "quote": "presenting a new E3-Mobility-Policy (E3MP) framework for urban e-mobility shifts in data-scarce settings"},
+  "scale": {"value": "subnational", "quote": "Greater Kampala Metropolitan Area (GKMA)"},
+  "countries": {"value": "UG", "quote": "battery-swapping–based electrification of boda-boda fleets in the Greater Kampala Metropolitan Area (GKMA)"},
+  "nb_countries_covered": {"value": "1", "quote": "Greater Kampala Metropolitan Area (GKMA)"},
+  "study_objective": {"value": "To develop and empirically validate an integrated, grid-aware techno-economic framework for electrifying Kampala's boda-boda motorcycle taxi fleets, linking travel-demand modelling, geospatial siting, grid simulation, financing pilot testing and macroeconomic assessment. To assess whether hybrid battery-swap-and-charge infrastructure can reduce ownership costs while respecting feeder capacity constraints.", "quote": "This study develops an integrated techno-economic and policy framework to evaluate battery-swapping–based electrification of boda-boda fleets in the Greater Kampala Metropolitan Area (GKMA)"},
+  "key_result": {"value": "Hybrid swap-charge configurations reduce levelized ownership costs by 28-35% while keeping feeder utilization below 85%, and macroeconomic modelling shows 0.6% GDP growth with 1.9% and 3.7% reductions in energy and CO2 intensity of GDP.", "quote": "hybrid swap–charge configurations reduce ownership costs by 18–27%, maintain feeder utilization below 85% of design capacity, and deliver measurable reductions in energy and carbon intensities of GDP"},
+  "time_horizon_start": {"value": "2024", "quote": "feeder-level distribution data from UMEME/ERA/UEDCL are assumed to represent 2024 loading"},
+  "time_horizon_end": {"value": "2050", "quote": "Table 8 Macroeconomic outcomes relative to baseline (2050)"},
+  "approach": {"value": "hybrid", "quote": "this study develops an integrated modeling approach that combines bottom-up technical optimization with macroeconomic policy assessment"},
+  "method": {"value": "hybrid", "quote": "multi-layered modeling framework that integrates engineering optimization, financial experimentation, and macroeconomic policy analysis"},
+  "mathematical_approach": {"value": "mixed-integer_programming", "quote": "x j ∈ {0,1}: 1 if a hub is sited at the candidate location j, 0 otherwise"},
+  "hydro": {"value": "no", "quote": ""},
+  "solar": {"value": "yes", "quote": "the incorporation of embedded PV–BESS systems at selected hubs"},
+  "wind": {"value": "no", "quote": ""},
+  "biomass": {"value": "no", "quote": ""},
+  "nuclear": {"value": "no", "quote": ""},
+  "geothermal": {"value": "no", "quote": ""},
+  "fossil": {"value": "yes", "quote": "even where electricity supply remains partly thermal"},
+  "h2": {"value": "no", "quote": ""},
+  "coal": {"value": "no", "quote": ""},
+  "sector": {"value": "electricity", "quote": "distribution grid simulation ... transformer loading, and congestion risks across feeder configurations"},
+  "open_source": {"value": "mixed", "quote": "distribution feeder simulations were performed using OpenDSS coupled with QGIS-based spatial load allocation ... implemented in ArcGIS Pro"},
+  "frequency_of_use": {"value": "ad_hoc", "quote": "This study develops an integrated, grid-aware techno-economic framework"},
+  "sdg_7": {"value": "yes", "quote": "The decline in energy intensity supports SDG 7 on efficiency"},
+  "sdg_13": {"value": "yes", "quote": "undermining the attainment of SDG 3.6 ... and SDG 13 (climate action)"},
+  "ndc_mention": {"value": "yes", "quote": "these gains demonstrate that electrifying even a single high-utilization segment ... advances Uganda's NDC objective"},
+  "agenda_2063": {"value": "no", "quote": ""},
+  "aisesa_theme": {"value": "urban_transitions", "quote": "Uganda's boda-boda subsector within the country's urban transport landscape"},
+  "informal_economy": {"value": "yes", "quote": "informal yet indispensable urban mobility ... techno-economic and infrastructure

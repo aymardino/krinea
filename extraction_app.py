@@ -41,7 +41,8 @@ def init_db():
     # Add columns if upgrading from the older schema
     cols = [r[1] for r in con.execute("PRAGMA table_info(extractions)").fetchall()]
     for col, typ in [("status", "TEXT DEFAULT 'verified'"), ("created_at", "TEXT"),
-                     ("text_extracted", "TEXT"), ("pdf_path", "TEXT"), ("error", "TEXT")]:
+                     ("text_extracted", "TEXT"), ("pdf_path", "TEXT"), ("error", "TEXT"),
+                     ("review_seconds", "REAL")]:
         if col not in cols:
             con.execute(f"ALTER TABLE extractions ADD COLUMN {col} {typ}")
     con.commit()
@@ -65,13 +66,13 @@ def save_draft(source_file, model, result, text, pdf_path, error=None):
     con.close()
 
 
-def update_verified(row_id, values, quotes):
+def update_verified(row_id, values, quotes, review_seconds=None):
     con = sqlite3.connect(DB)
     con.execute("UPDATE extractions SET status='verified', verified_at=?, data_json=?, "
-                "quotes_json=? WHERE id=?",
+                "quotes_json=?, review_seconds=? WHERE id=?",
                 (dt.datetime.now().isoformat(timespec="seconds"),
                  json.dumps(values, ensure_ascii=False),
-                 json.dumps(quotes, ensure_ascii=False), row_id))
+                 json.dumps(quotes, ensure_ascii=False), review_seconds, row_id))
     con.commit()
     con.close()
 
@@ -307,6 +308,7 @@ with st.sidebar:
 
     st.divider()
     st.markdown("### Today's session")
+    
     # Count studies verified today
     _today = dt.date.today().isoformat()
     con_t = sqlite3.connect(DB)
@@ -326,6 +328,41 @@ with st.sidebar:
         st.success("🎉 Daily goal reached — take a real break!")
     elif verified_today > 0 and verified_today % 5 == 0:
         st.info(f"☕ {verified_today} done — good time for a short break")
+
+    # Average review time today, and current draft timer
+    con_t2 = sqlite3.connect(DB)
+    row_today = con_t2.execute(
+        "SELECT AVG(review_seconds), COUNT(review_seconds), SUM(review_seconds) "
+        "FROM extractions WHERE status='verified' AND verified_at LIKE ? "
+        "AND review_seconds IS NOT NULL", (f"{_today}%",)
+    ).fetchone()
+    row_all = con_t2.execute(
+        "SELECT COUNT(review_seconds), SUM(review_seconds) FROM extractions "
+        "WHERE status='verified' AND review_seconds IS NOT NULL"
+    ).fetchone()
+    con_t2.close()
+
+    _avg_secs = row_today[0] or 0
+    _n_timed = row_today[1] or 0
+    _total_today = row_today[2] or 0
+    _n_all, _total_all = (row_all[0] or 0), (row_all[1] or 0)
+
+    def _fmt_duration(seconds):
+        seconds = int(seconds)
+        h, rem = divmod(seconds, 3600)
+        m, s = divmod(rem, 60)
+        return f"{h}h {m:02d}m" if h else f"{m}m {s:02d}s"
+
+    if _n_timed:
+        st.caption(f"⏱ Today: **{_fmt_duration(_total_today)}** total · "
+                   f"**{_fmt_duration(_avg_secs)}** average over {_n_timed} studies")
+        # Projection so you can plan the rest of the session
+        _remaining = max(daily_goal - verified_today, 0)
+        if _remaining:
+            st.caption(f"≈ {_fmt_duration(_avg_secs * _remaining)} left to reach today's goal "
+                       f"at this pace")
+    if _n_all:
+        st.caption(f"📊 All time: **{_fmt_duration(_total_all)}** over {_n_all} studies")
 
     st.divider()
     st.markdown("### Progress")
@@ -370,8 +407,36 @@ def render_verification(draft_id):
     src = data["source_file"]
     result = data["result"]
 
+    # Review timer, with pause support. We accumulate elapsed seconds rather than
+    # measuring a single start-to-save span, so breaks can be excluded.
+    if st.session_state.get("_timer_draft_id") != draft_id:
+        st.session_state._timer_draft_id = draft_id
+        st.session_state._timer_start = dt.datetime.now()
+        st.session_state._timer_accumulated = 0.0
+        st.session_state._timer_paused = False
+
+    if st.session_state._timer_paused:
+        _elapsed = st.session_state._timer_accumulated
+    else:
+        _elapsed = (st.session_state._timer_accumulated
+                    + (dt.datetime.now() - st.session_state._timer_start).total_seconds())
+
     st.markdown(f"### Verifying: `{src}` (draft #{draft_id})")
     left, right = st.columns([3, 2])
+    _m, _s = divmod(int(_elapsed), 60)
+    st.caption(f"⏱ {_m}m {_s:02d}s on this study")
+
+    if st.session_state._timer_paused:
+        if st.button("▶ Resume timer", key=f"resume_{draft_id}"):
+            st.session_state._timer_start = dt.datetime.now()
+            st.session_state._timer_paused = False
+            st.rerun()
+        st.caption("⏸ Timer paused — time spent away is not counted.")
+    else:
+        if st.button("⏸ Pause timer", key=f"pause_{draft_id}"):
+            st.session_state._timer_accumulated = _elapsed
+            st.session_state._timer_paused = True
+            st.rerun()
 
     with right:
         st.markdown("##### Source material")
@@ -491,7 +556,9 @@ def render_verification(draft_id):
             for f in extractor.SCHEMA_FIELDS:
                 if f not in scope and f != "extraction_level":
                     edited[f] = ""
-            update_verified(draft_id, edited, quotes)
+            _secs = _elapsed
+            update_verified(draft_id, edited, quotes, review_seconds=_secs)
+            st.session_state.pop("_timer_draft_id", None)
             # Move to the NEXT draft so the user keeps flowing (Rayyan-style)
             _move_to_next_draft_after(draft_id)
             st.success("Saved."); st.rerun()
