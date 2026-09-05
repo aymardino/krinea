@@ -1,0 +1,8 @@
+Corpus in tool: 506 records (124 verified, 382 drafts, 0 failed)
+Verification time: median 1.3 min, mean 1.9 min over 122 timed studies
+2 session(s) excluded as timer left running (> 20 min)
+Total human verification effort so far: 3.8 hours (excluded sessions not counted)
+Projected effort for the 382 remaining drafts at the median pace: 8.5 hours
+Best day: 35 studies verified; active days: 6
+Extraction levels: light 96, full 28
+Leading tool in this verified subset: HOMER (63.6% of 121 studies with a tool recorded)

@@ -20,11 +20,61 @@ import streamlit as st
 import pandas as pd
 
 import extractor
+import anomalies
 
 DB = Path(__file__).parent / "extractions.db"
 PDF_CACHE = Path(__file__).parent / "_pdf_cache"
 PDF_CACHE.mkdir(exist_ok=True)
-st.set_page_config(page_title="AISESA — AI Extraction", layout="wide", page_icon="📄")
+st.set_page_config(page_title="EnerMod Africa extraction", layout="wide", page_icon="📄",
+                   initial_sidebar_state="expanded")
+
+# Colours and the light base live in .streamlit/config.toml. The CSS below
+# only handles typography, vertical rhythm and the small note styles.
+st.html("""
+<style>
+  h1, h2, h3, h4, h5 { font-family: Charter, Georgia, 'Iowan Old Style', serif;
+                       letter-spacing: -0.01em; }
+
+  /* Tighter vertical rhythm so a thirty-field form scrolls less */
+  div[data-testid="stVerticalBlock"] { gap: 0.65rem; }
+
+  /* Reclaim the empty band at the top. The header stays present but
+     transparent so the sidebar reopen chevron keeps working; only the
+     Deploy toolbar and the coloured strip are hidden. */
+  header[data-testid="stHeader"] { background: transparent; height: 2.25rem; }
+  div[data-testid="stToolbar"], div[data-testid="stDecoration"] { display: none; }
+  div[data-testid="stMainBlockContainer"] { padding-top: 1.4rem; }
+  section[data-testid="stSidebar"] div[data-testid="stSidebarContent"] { padding-top: 1.2rem; }
+
+  /* Flags: one uniform accent colour so they stand out from the quotes below.
+     The quotes stay dim — they are context, not something to act on. */
+  .fieldnote { font-size:0.76rem; margin:-6px 0 9px 0; padding:5px 10px;
+               border-radius:5px; line-height:1.4;
+               background: rgba(174,124,32,0.14); color:#7A5716; font-weight:500; }
+  .note-quote { font-size:0.76rem; margin:-6px 0 9px 0; padding:5px 10px;
+                opacity:0.5; font-style:italic; }
+
+  .status-box { padding:9px 13px; border-radius:5px; margin-bottom:10px;
+                font-size:0.85rem; background: rgba(174,124,32,0.14);
+                color:#7A5716; font-weight:500; }
+  .status-ok  { padding:9px 13px; border-radius:5px; margin-bottom:10px;
+                font-size:0.85rem; background: rgba(33,115,70,0.12);
+                color:#1E5E3C; font-weight:500; }
+</style>
+""")
+
+
+def nice_name(fname) -> str:
+    """Display name for a source file, without machine prefixes."""
+    n = str(fname or "")
+    return n[5:] if n.startswith("_tmp_") else n
+
+
+_LABELS = {"link_doi": "DOI", "full_title": "Full title"}
+
+def field_label(field: str) -> str:
+    """Human-readable label for a schema field (internal keys stay snake_case)."""
+    return _LABELS.get(field, field.replace("_", " ").capitalize())
 
 
 # ── Storage ──────────────────────────────────────────────────────────────────────
@@ -42,7 +92,7 @@ def init_db():
     cols = [r[1] for r in con.execute("PRAGMA table_info(extractions)").fetchall()]
     for col, typ in [("status", "TEXT DEFAULT 'verified'"), ("created_at", "TEXT"),
                      ("text_extracted", "TEXT"), ("pdf_path", "TEXT"), ("error", "TEXT"),
-                     ("review_seconds", "REAL")]:
+                     ("review_seconds", "REAL"), ("ai_json", "TEXT")]:
         if col not in cols:
             con.execute(f"ALTER TABLE extractions ADD COLUMN {col} {typ}")
     con.commit()
@@ -56,12 +106,13 @@ def save_draft(source_file, model, result, text, pdf_path, error=None):
     con = sqlite3.connect(DB)
     con.execute(
         "INSERT INTO extractions (source_file, model, status, created_at, data_json, quotes_json, "
-        "text_extracted, pdf_path, error) VALUES (?,?,?,?,?,?,?,?,?)",
+        "text_extracted, pdf_path, error, ai_json) VALUES (?,?,?,?,?,?,?,?,?,?)",
         (source_file, model, "draft" if not error else "failed",
          dt.datetime.now().isoformat(timespec="seconds"),
          json.dumps(values, ensure_ascii=False),
          json.dumps(quotes, ensure_ascii=False),
-         text, str(pdf_path) if pdf_path else "", error))
+         text, str(pdf_path) if pdf_path else "", error,
+         json.dumps(values, ensure_ascii=False)))
     con.commit()
     con.close()
 
@@ -198,9 +249,9 @@ def build_relational_excel(df: pd.DataFrame, out_path, start_id=1):
         pd.DataFrame(pools).to_excel(xl, sheet_name="study_pools", index=False)
 
 
-def run_extraction(pdf_path, api_key, model, upgrade_synth, provider="gemini"):
+def run_extraction(pdf_path, api_key, model, upgrade_synth, provider="gemini", source_name=None):
     """Run extraction and save as draft. Returns (success, error_msg)."""
-    source = Path(pdf_path).name
+    source = source_name or Path(pdf_path).name
     cached_pdf = PDF_CACHE / f"{dt.datetime.now().strftime('%Y%m%d%H%M%S%f')}_{source}"
     try:
         # Copy PDF to cache so we can show it later in the review screen
@@ -272,6 +323,92 @@ C = counts()
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────────
 with st.sidebar:
+
+    st.markdown("### Today's session")
+    
+    # Count studies verified today
+    _today = dt.date.today().isoformat()
+    con_t = sqlite3.connect(DB)
+    verified_today = con_t.execute(
+        "SELECT COUNT(*) FROM extractions WHERE status='verified' "
+        "AND verified_at LIKE ?", (f"{_today}%",)
+    ).fetchone()[0]
+    con_t.close()
+
+    daily_goal = st.number_input("Today's goal", min_value=1, max_value=200,
+                                  value=30, step=5,
+                                  help="Set a realistic daily target. Small blocks "
+                                       "of 15-20 studies work better than 100+ marathons.")
+    progress = min(verified_today / daily_goal, 1.0)
+    st.progress(progress, text=f"{verified_today} / {daily_goal} today")
+    if verified_today >= daily_goal:
+        st.success("Daily goal reached. Take a real break.")
+    elif verified_today > 0 and verified_today % 5 == 0:
+        st.info(f"{verified_today} done, a good moment for a short break")
+
+    # Average review time today, and current draft timer
+    con_t2 = sqlite3.connect(DB)
+    row_today = con_t2.execute(
+        "SELECT AVG(review_seconds), COUNT(review_seconds), SUM(review_seconds) "
+        "FROM extractions WHERE status='verified' AND verified_at LIKE ? "
+        "AND review_seconds IS NOT NULL", (f"{_today}%",)
+    ).fetchone()
+    row_all = con_t2.execute(
+        "SELECT COUNT(review_seconds), SUM(review_seconds) FROM extractions "
+        "WHERE status='verified' AND review_seconds IS NOT NULL"
+    ).fetchone()
+    con_t2.close()
+
+    _avg_secs = row_today[0] or 0
+    _n_timed = row_today[1] or 0
+    _total_today = row_today[2] or 0
+    _n_all, _total_all = (row_all[0] or 0), (row_all[1] or 0)
+
+    def _fmt_duration(seconds):
+        seconds = int(seconds)
+        h, rem = divmod(seconds, 3600)
+        m, s = divmod(rem, 60)
+        return f"{h}h {m:02d}m" if h else f"{m}m {s:02d}s"
+
+    if _n_timed:
+        st.caption(f"Today: **{_fmt_duration(_total_today)}** total · "
+                   f"**{_fmt_duration(_avg_secs)}** average over {_n_timed} studies")
+        # Projection so you can plan the rest of the session
+        _remaining = max(daily_goal - verified_today, 0)
+        if _remaining:
+            st.caption(f"≈ {_fmt_duration(_avg_secs * _remaining)} left to reach today's goal "
+                       f"at this pace")
+    if _n_all:
+        st.caption(f"All time: **{_fmt_duration(_total_all)}** over {_n_all} studies")
+
+    st.divider()
+
+    st.markdown("### Progress")
+    cc1, cc2, cc3 = st.columns(3)
+    cc1.metric("Drafts", C.get("draft", 0))
+    cc2.metric("Verified", C.get("verified", 0))
+    cc3.metric("Failed", C.get("failed", 0))
+    st.divider()
+    export_start = st.number_input(
+        "Start numbering exported studies at",
+        min_value=1, value=1, step=1,
+        help="Set this to the next available ID in your master Excel inventory. "
+            "For example, if your inventory ends at study_id 65, set this to 66. "
+            "The internal IDs in the extraction tool are not affected."
+    )
+    if st.button("Export to Excel (relational)", use_container_width=True):
+        df = load_verified()
+        if len(df):
+            out = Path(__file__).parent / "extracted_studies.xlsx"
+            build_relational_excel(df, out, start_id=int(export_start))
+            with open(out, "rb") as f:
+                st.download_button("Download extracted_studies.xlsx", f,
+                                file_name="extracted_studies.xlsx",
+                                use_container_width=True)
+        else:
+            st.info("No verified studies yet.")
+    st.divider()
+
     st.markdown("### Configuration")
     provider = st.selectbox("Provider", ["claude", "gemini", "deepseek"],
                             help="Claude = recommended for reliable extraction. " "Gemini = alternative. DeepSeek = backup")
@@ -307,97 +444,19 @@ with st.sidebar:
                                          "Any real email works.")
 
     st.divider()
-    st.markdown("### Today's session")
-    
-    # Count studies verified today
-    _today = dt.date.today().isoformat()
-    con_t = sqlite3.connect(DB)
-    verified_today = con_t.execute(
-        "SELECT COUNT(*) FROM extractions WHERE status='verified' "
-        "AND verified_at LIKE ?", (f"{_today}%",)
-    ).fetchone()[0]
-    con_t.close()
 
-    daily_goal = st.number_input("Today's goal", min_value=1, max_value=200,
-                                  value=15, step=5,
-                                  help="Set a realistic daily target. Small blocks "
-                                       "of 15-20 studies work better than 100+ marathons.")
-    progress = min(verified_today / daily_goal, 1.0)
-    st.progress(progress, text=f"{verified_today} / {daily_goal} today")
-    if verified_today >= daily_goal:
-        st.success("🎉 Daily goal reached — take a real break!")
-    elif verified_today > 0 and verified_today % 5 == 0:
-        st.info(f"☕ {verified_today} done — good time for a short break")
-
-    # Average review time today, and current draft timer
-    con_t2 = sqlite3.connect(DB)
-    row_today = con_t2.execute(
-        "SELECT AVG(review_seconds), COUNT(review_seconds), SUM(review_seconds) "
-        "FROM extractions WHERE status='verified' AND verified_at LIKE ? "
-        "AND review_seconds IS NOT NULL", (f"{_today}%",)
-    ).fetchone()
-    row_all = con_t2.execute(
-        "SELECT COUNT(review_seconds), SUM(review_seconds) FROM extractions "
-        "WHERE status='verified' AND review_seconds IS NOT NULL"
-    ).fetchone()
-    con_t2.close()
-
-    _avg_secs = row_today[0] or 0
-    _n_timed = row_today[1] or 0
-    _total_today = row_today[2] or 0
-    _n_all, _total_all = (row_all[0] or 0), (row_all[1] or 0)
-
-    def _fmt_duration(seconds):
-        seconds = int(seconds)
-        h, rem = divmod(seconds, 3600)
-        m, s = divmod(rem, 60)
-        return f"{h}h {m:02d}m" if h else f"{m}m {s:02d}s"
-
-    if _n_timed:
-        st.caption(f"⏱ Today: **{_fmt_duration(_total_today)}** total · "
-                   f"**{_fmt_duration(_avg_secs)}** average over {_n_timed} studies")
-        # Projection so you can plan the rest of the session
-        _remaining = max(daily_goal - verified_today, 0)
-        if _remaining:
-            st.caption(f"≈ {_fmt_duration(_avg_secs * _remaining)} left to reach today's goal "
-                       f"at this pace")
-    if _n_all:
-        st.caption(f"📊 All time: **{_fmt_duration(_total_all)}** over {_n_all} studies")
-
-    st.divider()
-    st.markdown("### Progress")
-    cc1, cc2, cc3 = st.columns(3)
-    cc1.metric("Drafts", C.get("draft", 0))
-    cc2.metric("Verified", C.get("verified", 0))
-    cc3.metric("Failed", C.get("failed", 0))
-    st.divider()
-    export_start = st.number_input(
-        "Start numbering exported studies at",
-        min_value=1, value=1, step=1,
-        help="Set this to the next available ID in your master Excel inventory. "
-            "For example, if your inventory ends at study_id 65, set this to 66. "
-            "The internal IDs in the extraction tool are not affected."
-    )
-    if st.button("⬇ Export to Excel (relational)", use_container_width=True):
-        df = load_verified()
-        if len(df):
-            out = Path(__file__).parent / "extracted_studies.xlsx"
-            build_relational_excel(df, out, start_id=int(export_start))
-            with open(out, "rb") as f:
-                st.download_button("Download extracted_studies.xlsx", f,
-                                file_name="extracted_studies.xlsx",
-                                use_container_width=True)
-        else:
-            st.info("No verified studies yet.")
-    st.divider()
     st.markdown("##### Danger zone")
     confirm = st.checkbox("Confirm wipe everything")
-    if st.button("⚠ Reset (delete ALL)", disabled=not confirm, use_container_width=True):
+    if st.button("Reset (delete all)", disabled=not confirm, use_container_width=True):
         reset_all(); st.success("All cleared."); st.rerun()
 
 
 # ── Main: tabs for batch upload / review / saved ─────────────────────────────────
-st.title("AI extraction & verification")
+LOGO = Path(__file__).parent / "logo.png"
+if LOGO.exists():
+    st.image(str(LOGO), width=250)
+st.markdown("## Extraction workbench")
+st.caption("Full-text extraction and verification for the EnerMod Africa corpus")
 # ── Tab 2: Review drafts ─────────────────────────────────────────────────────────
 def render_verification(draft_id):
     """Render the verify-and-save UI for one draft."""
@@ -421,52 +480,49 @@ def render_verification(draft_id):
         _elapsed = (st.session_state._timer_accumulated
                     + (dt.datetime.now() - st.session_state._timer_start).total_seconds())
 
-    st.markdown(f"### Verifying: `{src}` (draft #{draft_id})")
-    left, right = st.columns([3, 2])
+    paper_title = (result.get("full_title") or {}).get("value", "")
+    st.markdown(f"### {paper_title or nice_name(src)}")
+    left, right = st.columns([10, 9])
     _m, _s = divmod(int(_elapsed), 60)
-    st.caption(f"⏱ {_m}m {_s:02d}s on this study")
+    st.caption(f"{nice_name(src)} (draft #{draft_id}), {_m}m {_s:02d}s on this study")
 
     if st.session_state._timer_paused:
-        if st.button("▶ Resume timer", key=f"resume_{draft_id}"):
+        if st.button("Resume timer", key=f"resume_{draft_id}"):
             st.session_state._timer_start = dt.datetime.now()
             st.session_state._timer_paused = False
             st.rerun()
-        st.caption("⏸ Timer paused — time spent away is not counted.")
+        st.caption("Timer paused. Time spent away is not counted.")
     else:
-        if st.button("⏸ Pause timer", key=f"pause_{draft_id}"):
+        if st.button("Pause timer", key=f"pause_{draft_id}"):
             st.session_state._timer_accumulated = _elapsed
             st.session_state._timer_paused = True
             st.rerun()
 
     with right:
         st.markdown("##### Source material")
-        view_tab1, view_tab2 = st.tabs(["📋 Extracted text", "📄 PDF pages"])
+        view_tab1, view_tab2 = st.tabs(["PDF pages", "Extracted text"])
         with view_tab1:
-            st.caption(f"~{len(data['text']):,} chars — exactly what the AI read. Ctrl/Cmd+F to search.")
-            st.text_area("Extracted text", data["text"], height=620,
-                         label_visibility="collapsed", key=f"txt_{draft_id}")
-        with view_tab2:
             pdf_path = data["pdf_path"]
             if pdf_path and Path(pdf_path).exists():
                 # Download button — opens natively in Chrome with full search/zoom/highlight
                 with open(pdf_path, "rb") as f:
-                    st.download_button("⬇ Open PDF in browser (full search, zoom, highlight)",
+                    st.download_button("Open PDF in browser (full search, zoom, highlight)",
                                        f.read(), file_name=Path(pdf_path).name,
                                        mime="application/pdf", key=f"dl_{draft_id}",
                                        use_container_width=True)
-                st.caption("Click above to open the PDF in a new tab — works in all browsers.")
+                st.caption("Opens in a new tab, works in all browsers.")
                 # Render pages as images so they're always visible inline
                 try:
                     import fitz
                     doc = fitz.open(pdf_path)
                     n_pages = len(doc)
-                    show_n = st.slider("Show pages", 1, min(n_pages, 10),
-                                       min(3, n_pages), key=f"pg_{draft_id}",
+                    show_n = st.slider("Show pages", 1, min(n_pages, 40),
+                                       min(1, n_pages), key=f"pg_{draft_id}",
                                        help=f"PDF has {n_pages} pages total; showing first N as images.")
                     for i in range(show_n):
                         page = doc[i]
-                        # ~120 DPI: enough to read, light enough to be fast
-                        pix = page.get_pixmap(matrix=fitz.Matrix(1.7, 1.7))
+                        # +200 DPI: enough to read, light enough to be fast
+                        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3))
                         img_bytes = pix.tobytes("png")
                         st.image(img_bytes, caption=f"Page {i+1}/{n_pages}",
                                  use_container_width=True)
@@ -476,8 +532,15 @@ def render_verification(draft_id):
             else:
                 st.info("PDF not available (cache cleared). Use the Extracted text tab.")
 
+        with view_tab2:
+            st.caption(f"About {len(data['text']):,} characters, exactly what the model read. Ctrl/Cmd+F to search.")
+            st.text_area("Extracted text", data["text"], height=620,
+                         label_visibility="collapsed", key=f"txt_{draft_id}")
+
+
     with left:
-        st.markdown("##### Fields (AI values + source quotes)")
+        actions_top = st.container()
+        st.markdown("##### Fields (extracted values and source quotes)")
         field_spec = {n: (k, h) for n, k, h in extractor.FIELDS}
 
         # Render extraction_level FIRST so we know the scope for the rest.
@@ -486,7 +549,7 @@ def render_verification(draft_id):
         el_opts = ["", "full", "light"]
         el_idx = el_opts.index(el_item.get("value", "")) if el_item.get("value", "") in el_opts else 0
         extraction_level_value = st.selectbox(
-            "extraction_level", el_opts, index=el_idx, key=f"f_{draft_id}_extraction_level",
+            field_label("extraction_level"), el_opts, index=el_idx, key=f"f_{draft_id}_extraction_level",
             help="Choose first — this determines which fields you need to fill below.")
         el_quote = el_item.get("quote", "")
         if el_quote:
@@ -499,12 +562,12 @@ def render_verification(draft_id):
         _master = load_master_index(MASTER_XLSX.stat().st_mtime if MASTER_XLSX.exists() else 0)
         _match_type, _match_row, _score = check_duplicate(_title_val, _doi_val, _master)
         if _match_type == "doi":
-            st.error(f"🚨 **Certain duplicate** — same DOI as study_id "
-                     f"{_match_row['study_id']} in your master Excel: "
+            st.error(f"Certain duplicate. Same DOI as study_id "
+                     f"{_match_row['study_id']} in the master Excel, "
                      f"\"{_match_row['full_title'][:90]}\"")
         elif _match_type == "title":
-            st.warning(f"⚠ **Possible duplicate ({_score}% title match)** — study_id "
-                       f"{_match_row['study_id']} in your master Excel: "
+            st.warning(f"Possible duplicate ({_score}% title match) with study_id "
+                       f"{_match_row['study_id']} in the master Excel, "
                        f"\"{_match_row['full_title'][:90]}\". Check before saving.")
 
         # Scope: which fields to render for this level
@@ -513,6 +576,25 @@ def render_verification(draft_id):
         if extraction_level_value in ("light"):
             st.caption(f"Showing {len(scope)} fields (level **{extraction_level_value}** "
                        f"hides irrelevant fields from {len(extractor.EXPORT_FIELDS)} total).")
+
+        # Run the anomaly checker on the AI values as currently proposed
+        _current = {f: result.get(f, {}).get("value", "") for f in extractor.SCHEMA_FIELDS}
+        _current["extraction_level"] = extraction_level_value
+        _quotes_now = {f: result.get(f, {}).get("quote", "") for f in extractor.SCHEMA_FIELDS}
+        _flags = anomalies.check_draft(_current, _quotes_now)
+        _n_err, _n_warn = anomalies.summarise(_flags)
+
+        if _n_err or _n_warn:
+            st.markdown(f"<div class='status-box'>{_n_err} error(s) · "
+                        f"{_n_warn} warning(s)</div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div class='status-ok'>Nothing flagged</div>",
+                        unsafe_allow_html=True)
+
+        _only_flagged = st.checkbox(
+            f"Show only the {len(_flags)} flagged field(s)", value=False,
+            key=f"onlyflag_{draft_id}",
+            help="Hide fields the checker found consistent, to review faster.")
 
         edited = {"extraction_level": extraction_level_value}
         for field in extractor.SCHEMA_FIELDS:
@@ -523,32 +605,51 @@ def render_verification(draft_id):
                 # Still preserve the AI value (saved as-is) but don't show it
                 edited[field] = result.get(field, {}).get("value", "")
                 continue
+            if _only_flagged and field not in _flags:
+                edited[field] = result.get(field, {}).get("value", "")
+                continue
             item = result.get(field, {"value": "", "quote": ""})
             ai_val = item.get("value", "")
             kind, hint = field_spec.get(field, ("text", ""))
             if kind == "enum":
                 opts = [""] + hint
                 idx = opts.index(ai_val) if ai_val in opts else 0
-                edited[field] = st.selectbox(field, opts, index=idx, key=f"f_{draft_id}_{field}")
+                edited[field] = st.selectbox(field_label(field), opts, index=idx, key=f"f_{draft_id}_{field}")
             elif kind == "yesno":
                 opts = ["", "yes", "no"]
                 idx = opts.index(ai_val) if ai_val in opts else 0
-                edited[field] = st.selectbox(field, opts, index=idx, key=f"f_{draft_id}_{field}")
+                edited[field] = st.selectbox(field_label(field), opts, index=idx, key=f"f_{draft_id}_{field}")
             elif kind == "ynp":
                 opts = ["", "yes", "no", "partial"]
                 idx = opts.index(ai_val) if ai_val in opts else 0
-                edited[field] = st.selectbox(field, opts, index=idx, key=f"f_{draft_id}_{field}")
+                edited[field] = st.selectbox(field_label(field), opts, index=idx, key=f"f_{draft_id}_{field}")
             else:
-                edited[field] = st.text_input(field, value=ai_val, key=f"f_{draft_id}_{field}")
-            q = item.get("quote", "")
+                edited[field] = st.text_input(field_label(field), value=ai_val, key=f"f_{draft_id}_{field}")
+
+            if field in _flags:
+                _sev, _msg = _flags[field]
+                st.markdown(f"<div class='fieldnote'>{_msg}</div>",
+                            unsafe_allow_html=True)
+            q = "".join(c for c in item.get("quote", "") if c >= " " or c in "\t\n")
             if q:
-                st.markdown(f"<div style='font-size:0.78rem;color:#666;margin-top:-8px;"
-                            f"margin-bottom:6px;'>“{q}”</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='note-quote'>↳ {q[:150]}"
+                            f"{'…' if len(q) > 150 else ''}</div>",
+                            unsafe_allow_html=True)
         edited["power_pool"] = extractor.compute_pools(edited.get("countries", ""))
         st.info(f"**Power pool** (computed): {edited['power_pool'] or '—'}")
 
+        with actions_top:
+            tcol1, tcol2 = st.columns(2)
+            save_top = tcol1.button("Save & next", type="primary",
+                                    key=f"save_top_{draft_id}", use_container_width=True)
+            delete_top = tcol2.button("Delete draft", key=f"del_top_{draft_id}",
+                                      use_container_width=True)
+
         bcol1, bcol2 = st.columns(2)
-        if bcol1.button("✅ Save as verified", type="primary", key=f"save_{draft_id}"):
+        save_bottom = bcol1.button("Save & next", type="primary", key=f"save_{draft_id}")
+        delete_bottom = bcol2.button("Delete draft", key=f"del_{draft_id}")
+
+        if save_top or save_bottom:
             # Save quotes only for fields actually verified (kept in scope)
             quotes = {f: result.get(f, {}).get("quote", "")
                       for f in extractor.SCHEMA_FIELDS if f in scope}
@@ -556,13 +657,12 @@ def render_verification(draft_id):
             for f in extractor.SCHEMA_FIELDS:
                 if f not in scope and f != "extraction_level":
                     edited[f] = ""
-            _secs = _elapsed
-            update_verified(draft_id, edited, quotes, review_seconds=_secs)
+            update_verified(draft_id, edited, quotes, review_seconds=_elapsed)
             st.session_state.pop("_timer_draft_id", None)
             # Move to the NEXT draft so the user keeps flowing (Rayyan-style)
             _move_to_next_draft_after(draft_id)
-            st.success("Saved."); st.rerun()
-        if bcol2.button("🗑 Delete this draft", key=f"del_{draft_id}"):
+            st.rerun()
+        if delete_top or delete_bottom:
             _move_to_next_draft_after(draft_id)
             delete_extraction(draft_id); st.rerun()
 
@@ -573,9 +673,9 @@ def render_verification(draft_id):
 if "main_tab" not in st.session_state:
     st.session_state.main_tab = "upload"
 tab_labels = {
-    "upload": f"📤 Upload & extract",
-    "review": f"📝 Review drafts ({C.get('draft',0) + C.get('failed',0)})",
-    "saved":  f"✅ Verified ({C.get('verified',0)})",
+    "upload": "Upload & extract",
+    "review": f"Review drafts ({C.get('draft',0) + C.get('failed',0)})",
+    "saved":  f"Verified ({C.get('verified',0)})",
 }
 choice = st.radio("Section", list(tab_labels.values()), horizontal=True,
                   index=list(tab_labels.keys()).index(st.session_state.main_tab),
@@ -586,15 +686,15 @@ st.divider()
 
 # ── Tab 1: Upload (single or batch) ──────────────────────────────────────────────
 if st.session_state.main_tab == "upload":
-    upload_mode = st.radio("Source", ["📤 Upload PDF files", "🔗 Fetch by DOI (open access only)"],
+    upload_mode = st.radio("Source", ["Upload PDF files", "Fetch by DOI (open access only)"],
                             horizontal=True, label_visibility="collapsed")
 
-    if upload_mode.startswith("📤"):
+    if upload_mode.startswith("Upload"):
         st.caption("Upload one PDF or a batch. Each PDF is extracted and saved as a **draft** "
                    "you can review in the next tab. Failures are recorded too, so you can retry.")
         uploaded = st.file_uploader("Choose one or more PDFs", type=["pdf"],
                                     accept_multiple_files=True)
-        if uploaded and st.button(f"🔍 Extract {len(uploaded)} PDF{'s' if len(uploaded)>1 else ''} with AI",
+        if uploaded and st.button(f"Extract {len(uploaded)} PDF{'s' if len(uploaded)>1 else ''}",
                                   type="primary"):
             if not api_key:
                 st.error("Please provide your API key in the sidebar.")
@@ -606,7 +706,7 @@ if st.session_state.main_tab == "upload":
                     tmp = PDF_CACHE / f"_tmp_{up.name}"
                     tmp.write_bytes(up.getbuffer())
                     log.text(f"[{i}/{len(uploaded)}] {up.name}…")
-                    success, errmsg = run_extraction(str(tmp), api_key, model, upgrade_synth, provider=provider)
+                    success, errmsg = run_extraction(str(tmp), api_key, model, upgrade_synth, provider=provider, source_name=up.name)
                     tmp.unlink(missing_ok=True)
                     if success: ok += 1
                     else: err += 1
@@ -622,7 +722,7 @@ if st.session_state.main_tab == "upload":
         doi_text = st.text_area("DOIs (one per line)",
                                 placeholder="10.1088/1748-9326/11/8/084010\n10.1016/j.energy.2020.117471",
                                 height=120)
-        if doi_text and st.button(f"🔗 Fetch & extract", type="primary"):
+        if doi_text and st.button("Fetch & extract", type="primary"):
             if not api_key:
                 st.error("Please provide your API key in the sidebar.")
             elif not unpaywall_email:
@@ -660,8 +760,8 @@ elif st.session_state.main_tab == "review":
     else:
         draft_options = []
         for _, d in drafts.iterrows():
-            tag = "❌ " if d["status"] == "failed" else ""
-            draft_options.append((int(d["id"]), f"{tag}#{d['id']} — {d['source_file']}"))
+            tag = "[failed] " if d["status"] == "failed" else ""
+            draft_options.append((int(d["id"]), f"{tag}#{d['id']}  {nice_name(d['source_file'])}"))
         draft_ids = [did for did, _ in draft_options]
         labels = [lbl for _, lbl in draft_options]
 
@@ -680,12 +780,12 @@ elif st.session_state.main_tab == "review":
         # Header row: prev / next / counter / picker
         c1, c2, c3, c4 = st.columns([1, 1, 1, 4])
         with c1:
-            if st.button("◀ Prev", disabled=current_idx == 0,
+            if st.button("Previous", disabled=current_idx == 0,
                           use_container_width=True, key="btn_prev"):
                 st.session_state.current_draft_id = draft_ids[current_idx - 1]
                 st.rerun()
         with c2:
-            if st.button("Next ▶", disabled=current_idx >= len(draft_ids) - 1,
+            if st.button("Next", disabled=current_idx >= len(draft_ids) - 1,
                           use_container_width=True, key="btn_next"):
                 st.session_state.current_draft_id = draft_ids[current_idx + 1]
                 st.rerun()
@@ -715,7 +815,7 @@ elif st.session_state.main_tab == "review":
         current_row = drafts[drafts["id"] == current_id].iloc[0]
         if current_row["status"] == "failed":
             st.error(f"This draft failed during extraction:\n\n{current_row['error']}")
-            if st.button("🗑 Delete this failure"):
+            if st.button("Delete this failed entry"):
                 _move_to_next_draft_after(current_id)
                 delete_extraction(current_id)
                 st.rerun()
@@ -738,6 +838,6 @@ elif st.session_state.main_tab == "saved":
         ed = st.data_editor(disp, use_container_width=True, hide_index=True,
                             disabled=show_cols, key="verified_editor")
         to_del = ed.loc[ed["Delete?"] == True, "_id"].tolist()
-        if to_del and st.button(f"🗑 Delete {len(to_del)} selected"):
+        if to_del and st.button(f"Delete {len(to_del)} selected"):
             for sid in to_del: delete_extraction(int(sid))
             st.rerun()

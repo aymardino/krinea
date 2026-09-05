@@ -186,7 +186,11 @@ def extract_text(pdf_path: str, max_chars: int = 180_000) -> str:
     findings and conclusions live at the end. Pure head-truncation loses them.
     """
     doc = fitz.open(pdf_path)
-    text = "".join(page.get_text() for page in doc)
+    raw = "".join(page.get_text() for page in doc)
+    # Strip control characters that break HTML/DOM rendering downstream
+    # (some PDFs embed them via OCR artefacts or broken encoding). Keep
+    # normal whitespace (tab, newline, carriage return).
+    text = "".join(c for c in raw if c >= " " or c in "\t\n\r")
     doc.close()
     if len(text) <= max_chars:
         return text
@@ -323,6 +327,19 @@ def _try_parse_json(raw: str) -> dict:
             return json.loads(raw[a:b+1])
         except json.JSONDecodeError:
             pass
+    # Strategy 4: response truncated mid-generation (output token cap) — salvage
+    # every complete top-level entry and close the object. Missing trailing
+    # fields stay empty and get flagged by the anomaly checker instead of
+    # losing the whole extraction.
+    a = raw.find("{")
+    if a != -1:
+        closers = list(re.finditer(r"\}", raw))
+        for m in reversed(closers[-200:]):
+            candidate = raw[a:m.end()].rstrip().rstrip(",") + "}"
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                continue
     # All strategies failed — raise the original error so caller sees it
     return json.loads(raw)
 
@@ -337,7 +354,8 @@ def call_gemini(prompt: str, api_key: str, model: str = MODEL, max_retries: int 
     for attempt in range(max_retries + 1):
         resp = gm.generate_content(
             prompt,
-            generation_config={"temperature": 0, "response_mime_type": "application/json"},
+            generation_config={"temperature": 0, "response_mime_type": "application/json",
+                               "max_output_tokens": 65536},
         )
         last_raw = resp.text or ""
         try:
