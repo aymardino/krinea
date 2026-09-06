@@ -22,9 +22,15 @@ import pandas as pd
 import extractor
 import anomalies
 
-DB = Path(__file__).parent / "extractions.db"
-PDF_CACHE = Path(__file__).parent / "_pdf_cache"
+# Data lives in DATA_DIR when the env var is set (e.g. a Render persistent
+# disk mounted at /var/data with DATA_DIR=/var/data). Defaults to the app
+# folder, so nothing changes on a laptop.
+DATA_DIR = Path(os.environ.get("DATA_DIR", str(Path(__file__).parent)))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+DB = DATA_DIR / "extractions.db"
+PDF_CACHE = DATA_DIR / "_pdf_cache"
 PDF_CACHE.mkdir(exist_ok=True)
+REPO_PDF_CACHE = Path(__file__).parent / "_pdf_cache"  # PDFs shipped in the repo
 st.set_page_config(page_title="EnerMod Africa extraction", layout="wide", page_icon="📄",
                    initial_sidebar_state="expanded")
 
@@ -407,6 +413,26 @@ with st.sidebar:
                                 use_container_width=True)
         else:
             st.info("No verified studies yet.")
+
+    st.markdown("##### Sync between devices")
+    if st.checkbox("Prepare database download",
+                   help="Download extractions.db at the end of every session on "
+                        "a deployed server; server disks are wiped on redeploy."):
+        st.download_button("Download database (.db)", DB.read_bytes(),
+                           file_name="extractions.db",
+                           mime="application/octet-stream",
+                           use_container_width=True)
+    _up_db = st.file_uploader("Restore database (.db)", type=["db"],
+                              key="db_restore",
+                              help="Replaces the local database with the uploaded "
+                                   "file. The current one is kept as extractions.db.bak")
+    if _up_db is not None and st.button("Replace database with uploaded file",
+                                        use_container_width=True):
+        if DB.exists():
+            DB.with_suffix(".db.bak").write_bytes(DB.read_bytes())
+        DB.write_bytes(_up_db.getbuffer())
+        st.success("Database replaced (backup kept as extractions.db.bak).")
+        st.rerun()
     st.divider()
 
     st.markdown("### Configuration")
@@ -503,6 +529,15 @@ def render_verification(draft_id):
         view_tab1, view_tab2 = st.tabs(["PDF pages", "Extracted text"])
         with view_tab1:
             pdf_path = data["pdf_path"]
+            # The DB stores the absolute path of the machine where extraction
+            # ran. On another machine (laptop vs server deploy), fall back to
+            # the same filename inside the local _pdf_cache folder.
+            if pdf_path and not Path(pdf_path).exists():
+                for _cand in (PDF_CACHE / Path(pdf_path).name,
+                              REPO_PDF_CACHE / Path(pdf_path).name):
+                    if _cand.exists():
+                        pdf_path = str(_cand)
+                        break
             if pdf_path and Path(pdf_path).exists():
                 # Download button — opens natively in Chrome with full search/zoom/highlight
                 with open(pdf_path, "rb") as f:
