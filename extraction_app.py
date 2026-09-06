@@ -38,12 +38,12 @@ st.html("""
   /* Tighter vertical rhythm so a thirty-field form scrolls less */
   div[data-testid="stVerticalBlock"] { gap: 0.65rem; }
 
-  /* Reclaim the empty band at the top. The header stays present but
-     transparent so the sidebar reopen chevron keeps working; only the
-     Deploy toolbar and the coloured strip are hidden. */
-  header[data-testid="stHeader"] { background: transparent; height: 2.25rem; }
-  div[data-testid="stToolbar"], div[data-testid="stDecoration"] { display: none; }
-  div[data-testid="stMainBlockContainer"] { padding-top: 1.4rem; }
+  /* Reclaim most of the empty band while keeping the native header intact,
+     so the sidebar collapse and reopen controls always work. Only the
+     Deploy button and the coloured strip are hidden. */
+  div[data-testid="stAppDeployButton"] { display: none; }
+  div[data-testid="stDecoration"] { display: none; }
+  div[data-testid="stMainBlockContainer"] { padding-top: 3.2rem; }
   section[data-testid="stSidebar"] div[data-testid="stSidebarContent"] { padding-top: 1.2rem; }
 
   /* Flags: one uniform accent colour so they stand out from the quotes below.
