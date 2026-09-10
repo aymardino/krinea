@@ -178,7 +178,7 @@ def _field_spec_line(name, kind, hint):
     return f"- {name}: {hint}"
 
 
-def extract_text(pdf_path: str, max_chars: int = 180_000) -> str:
+def extract_text(pdf_path: str, max_chars: int = 800_000) -> str:
     """Extract plain text from a PDF.
 
     For long papers (>max_chars), keep the FIRST ~70% and LAST ~30% of the

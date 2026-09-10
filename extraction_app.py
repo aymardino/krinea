@@ -341,7 +341,7 @@ with st.sidebar:
     ).fetchone()[0]
     con_t.close()
 
-    daily_goal = st.number_input("Today's goal", min_value=1, max_value=200,
+    daily_goal = st.number_input("Today's goal", min_value=1, max_value=300,
                                   value=30, step=5,
                                   help="Set a realistic daily target. Small blocks "
                                        "of 15-20 studies work better than 100+ marathons.")
@@ -867,7 +867,7 @@ elif st.session_state.main_tab == "saved":
         st.caption(f"{len(df)} verified studies. Use the checkboxes to delete some, "
                    "or export from the sidebar.")
         show_cols = [c for c in ["_id", "authors", "full_title", "source_file", "model_name", "year", "scale",
-                                 "countries", "power_pool", "extraction_level"] if c in df.columns]
+                                 "countries", "power_pool", "extraction_level", "link_doi"] if c in df.columns]
         disp = df[show_cols].copy()
         disp.insert(0, "Delete?", False)
         ed = st.data_editor(disp, use_container_width=True, hide_index=True,
