@@ -1,12 +1,12 @@
-RAISE self-audit, generated 2026-09-09
+RAISE self-audit, generated 2026-09-12
 
-Human verification coverage: 364 of 364 corpus records human-verified before inclusion (100% by design; 176 drafts pending)
-Documented verification effort: 9.8 h, median 1.2 min per study (n = 362)
+Human verification coverage: 435 of 435 corpus records human-verified before inclusion (100% by design; 0 drafts pending)
+Documented verification effort: 10.9 h, median 1.2 min per study (n = 433)
 
 AI systems used (declare per RAISE 1.9a):
   claude-sonnet-5: 19 studies, 2026-08-27 to 2026-09-03
-  gemini-2.5-pro: 345 studies, 2026-08-24 to 2026-08-30
+  gemini-2.5-pro: 416 studies, 2026-08-24 to 2026-08-30
 
-Source-quote traceability: 83.3% of filled fields carry a verbatim quote from the paper
-Residual anomaly-checker flags on the verified corpus: 1 error(s), 2003 warning(s) across 364 studies (0.00 errors per study)
+Source-quote traceability: 83.4% of filled fields carry a verbatim quote from the paper
+Residual anomaly-checker flags on the verified corpus: 1 error(s), 2340 warning(s) across 435 studies (0.00 errors per study)
 In-context evaluation sample (AI values preserved for comparison): 0 studies and growing
