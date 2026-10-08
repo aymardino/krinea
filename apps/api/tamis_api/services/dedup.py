@@ -38,7 +38,7 @@ def mark(db: Session, keeper_id: int, dup_ids: list[int], score: float, reason: 
 
 
 def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
-        review_threshold: float = 85.0) -> dict:
+        review_threshold: float = 85.0, user_id: str | None = None) -> dict:
     reset(db, review.id)
     db.flush()
     records = _record_dicts(db, review.id)
@@ -68,7 +68,7 @@ def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
             continue
         db.add(models.DedupCandidate(review_id=review.id, record_a=a, record_b=b, score=p.score, reason=p.reason[:200]))
         n_possible += 1
-    db.add(models.ActivityLog(review_id=review.id, kind="dedup",
+    db.add(models.ActivityLog(review_id=review.id, user_id=user_id, kind="dedup",
                               detail={"removed": removed, "groups": len(groups), "possible": n_possible}))
     db.commit()
     return {"records": len(records), "removed": removed, "groups": len(groups), "possible": n_possible}

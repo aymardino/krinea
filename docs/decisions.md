@@ -317,3 +317,44 @@ decisions donut, conflicts, throughput per reviewer and per day, time per
 record), screening keyword counts for include/exclude filters, year and
 journal distributions, source overlap, extraction dashboards per field
 (counts per option, numeric distributions), all exportable.
+
+## D-20 · 2026-10-08 · decided · Tamis product, first implementation
+
+**Decision.** The product exists as a monorepo: `packages/core` (MIT engine),
+`apps/api` (FastAPI, SQLAlchemy, PostgreSQL/SQLite), `apps/web` (Next.js 16,
+TypeScript, Tailwind 4, next-intl, Radix UI primitives with Tamis's own
+components, because the shadcn CLI needs network access the build
+environment does not have). Fonts are embedded (Inter, Source Serif 4 via
+fontsource) so builds never call Google. Charts are hand-written SVG/HTML
+following the data-visualisation rules (one axis, status colours only for
+statuses, labels in text ink, hover tooltips); the decision colours were
+validated for colour-vision deficiency in light mode (amber moved from
+#b45309 to #d97706 so that "maybe" and "exclude" stay distinguishable).
+
+**Why.** Everything in D-17 and D-18, delivered; the environment constraints
+dictated the two substitutions above.
+
+**Consequences.** Dark mode has tokens but no toggle yet; its amber/green
+pair sits in the validator's warning band and is acceptable only because
+every status is also labelled. Alembic migrations replace `create_all` once
+the schema stabilises. Billing (Stripe), SSO/ORCID sign-in, Rayyan/Covidence
+importers, abstract-based duplicate signals and per-field extraction
+dashboards are the next increments (see P-06 to P-08).
+
+## D-21 · 2026-10-08 · decided · Deployment topology
+
+**Decision.** Four services: `tamis-web` (Next.js standalone image),
+`tamis-api` (Docker, uvicorn), `tamis-worker` (same image, `python -m
+tamis_api.worker`), managed PostgreSQL. PDFs go to an S3-compatible bucket
+in production (`S3_BUCKET`), or to a disk mounted at `/data` for small
+self-hosted setups. `docker-compose.yml` runs the same four services on one
+machine; `render.yaml` is the Render blueprint (region Frankfurt, EU). The
+Streamlit edition keeps its own single-container Dockerfile at the root.
+
+**Why.** D-17; separating the worker keeps AI batches off the request path;
+a bucket keeps the API stateless so Render can scale it and no paid disk is
+needed.
+
+**Consequences.** DNS: apex to `tamis-web`, `api.` to `tamis-api`; cookies
+are same-site across the two hosts. Secrets (`SECRET_KEY`, provider keys,
+Resend, bucket credentials) live in the Render dashboard.

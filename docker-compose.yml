@@ -1,18 +1,61 @@
+# Tamis: full stack on one machine. `docker compose up --build` then open http://localhost:3000
 services:
-  review:
-    build: .
-    ports:
-      - "8501:8501"
-    volumes:
-      - review_data:/data          # review.db + PDFs survive restarts and rebuilds
+  db:
+    image: postgres:16-alpine
     environment:
-      - DATA_DIR=/data
-      - APP_LANG=${APP_LANG:-en}   # en or fr, default language of the interface
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
-      - UNPAYWALL_EMAIL=${UNPAYWALL_EMAIL:-}
-    restart: unless-stopped
+      POSTGRES_USER: tamis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tamis}
+      POSTGRES_DB: tamis
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tamis"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    depends_on: { db: { condition: service_healthy } }
+    environment: &api_env
+      TAMIS_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DATABASE_URL: postgresql+psycopg://tamis:${POSTGRES_PASSWORD:-tamis}@db:5432/tamis
+      DATA_DIR: /data
+      BASE_URL: ${BASE_URL:-http://localhost:3000}
+      CORS_ORIGINS: ${BASE_URL:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      INLINE_JOBS: "0"
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      UNPAYWALL_EMAIL: ${UNPAYWALL_EMAIL:-}
+    volumes:
+      - pdfs:/data
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: python -m tamis_api.worker
+    depends_on: { db: { condition: service_healthy } }
+    environment: *api_env
+    volumes:
+      - pdfs:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args: { NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000} }
+    depends_on: [api]
+    ports:
+      - "3000:3000"
+
+  # The original single-container Streamlit edition is still available:
+  #   docker build -t tamis-streamlit . && docker run -p 8501:8501 -v tamis_streamlit:/data tamis-streamlit
 
 volumes:
-  review_data:
+  pgdata:
+  pdfs:

@@ -39,7 +39,8 @@ def _run_dedup(db: Session, job: models.Job) -> dict:
     from tamis_api.services import dedup
     review = db.get(models.Review, job.review_id)
     p = job.payload or {}
-    return dedup.run(db, review, float(p.get("auto_threshold", 95)), float(p.get("review_threshold", 85)))
+    return dedup.run(db, review, float(p.get("auto_threshold", 95)), float(p.get("review_threshold", 85)),
+                     user_id=job.user_id)
 
 
 def _run_ai_screen(db: Session, job: models.Job) -> dict:

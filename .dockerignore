@@ -1,6 +1,8 @@
 .git
-__pycache__
-*.pyc
+**/node_modules
+**/.next
+**/__pycache__
+**/*.pyc
 *.db
 *.db.bak
 _pdf_cache
@@ -10,6 +12,5 @@ charts*.zip
 *.xlsx
 *.xlsm
 *.zip
-tests
 .pytest_cache
 .DS_Store
