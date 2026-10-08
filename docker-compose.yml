@@ -1,0 +1,18 @@
+services:
+  review:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - review_data:/data          # review.db + PDFs survive restarts and rebuilds
+    environment:
+      - DATA_DIR=/data
+      - APP_LANG=${APP_LANG:-en}   # en or fr, default language of the interface
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - UNPAYWALL_EMAIL=${UNPAYWALL_EMAIL:-}
+    restart: unless-stopped
+
+volumes:
+  review_data:

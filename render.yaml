@@ -1,0 +1,26 @@
+# Render blueprint: one web service built from the Dockerfile, with a persistent
+# disk so review.db and the PDFs survive deploys. Persistent disks need a paid
+# instance (Starter or above) and keep the service on a single instance.
+services:
+  - type: web
+    name: systematic-review
+    runtime: docker
+    plan: starter
+    healthCheckPath: /_stcore/health
+    disk:
+      name: review-data
+      mountPath: /data
+      sizeGB: 5
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: APP_LANG
+        value: en
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: UNPAYWALL_EMAIL
+        sync: false
