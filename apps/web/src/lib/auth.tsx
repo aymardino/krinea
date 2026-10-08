@@ -1,0 +1,28 @@
+"use client";
+
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api, ApiError, type User } from "@/lib/api";
+
+export function useMe() {
+  return useQuery<User | null>({
+    queryKey: ["me"],
+    queryFn: async () => {
+      try {
+        return await api.get<User>("/auth/me");
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401) return null;
+        throw e;
+      }
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useSignOut() {
+  const qc = useQueryClient();
+  return async () => {
+    await api.post("/auth/logout");
+    qc.setQueryData(["me"], null);
+    qc.clear();
+  };
+}

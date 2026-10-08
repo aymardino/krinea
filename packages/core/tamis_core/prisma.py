@@ -82,7 +82,7 @@ _NBSP = "\u00a0"
 def _wrap(text: str, max_chars: int = 32) -> list[str]:
     # keep "(n = 1234)" on one line, as the template does
     text = re.sub(r"\((n = [^)]*)\)", lambda m: "(" + m.group(1).replace(" ", _NBSP) + ")", text)
-    words, lines, cur = text.split(), [], ""
+    words, lines, cur = [w for w in text.split(" ") if w], [], ""   # NBSP is not a separator
     for w in words:
         if cur and len(cur) + 1 + len(w) > max_chars:
             lines.append(cur)

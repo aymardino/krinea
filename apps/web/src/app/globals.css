@@ -1,26 +1,103 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/source-serif-4";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Tamis design tokens (decision D-18) ─────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-50: #effcf8;  --brand-100: #d4f7ec; --brand-200: #a9eed9; --brand-300: #71dfc2;
+  --brand-400: #3cc8a8; --brand-500: #1fae90; --brand-600: #178c76; --brand-700: #16705f;
+  --brand-800: #16594d; --brand-900: #154a41; --brand-950: #082b26;
+  --amber-500: #d97706; --amber-100: #fef3c7; --amber-700: #b45309;
+
+  --background: #fbfcfc; --foreground: #0f172a;
+  --card: #ffffff; --card-foreground: #0f172a;
+  --muted: #f1f5f9; --muted-foreground: #64748b;
+  --border: #e2e8f0; --input: #e2e8f0; --ring: var(--brand-500);
+  --primary: var(--brand-700); --primary-foreground: #ffffff;
+  --accent: var(--brand-50); --accent-foreground: var(--brand-900);
+  --destructive: #b91c1c; --destructive-foreground: #ffffff;
+
+  --include: #15803d; --include-bg: #dcfce7;
+  --maybe: #d97706;   --maybe-bg: #fef3c7;
+  --exclude: #b91c1c; --exclude-bg: #fee2e2;
+  --conflict: #6d28d9; --conflict-bg: #ede9fe;
+  --pending: #475569; --pending-bg: #f1f5f9;
+
+  --radius: 10px;
+}
+
+.dark {
+  --background: #0b1220; --foreground: #e5edf3;
+  --card: #111a2b; --card-foreground: #e5edf3;
+  --muted: #1a2538; --muted-foreground: #93a3b8;
+  --border: #243049; --input: #243049; --ring: var(--brand-400);
+  --primary: var(--brand-400); --primary-foreground: #06211c;
+  --accent: #10302a; --accent-foreground: var(--brand-200);
+  --destructive: #ef4444; --destructive-foreground: #ffffff;
+  --include: #16a34a; --include-bg: #0f2e1d;
+  --maybe: #d97706;   --maybe-bg: #3a2a08;
+  --exclude: #e11d48; --exclude-bg: #3b1111;
+  --conflict: #8b5cf6; --conflict-bg: #2a1d4d;
+  --pending: #cbd5e1; --pending-bg: #1e293b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-brand-50: var(--brand-50); --color-brand-100: var(--brand-100); --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300); --color-brand-400: var(--brand-400); --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600); --color-brand-700: var(--brand-700); --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900); --color-brand-950: var(--brand-950);
+  --color-amber-500: var(--amber-500); --color-amber-100: var(--amber-100); --color-amber-700: var(--amber-700);
+  --color-include: var(--include); --color-include-bg: var(--include-bg);
+  --color-maybe: var(--maybe); --color-maybe-bg: var(--maybe-bg);
+  --color-exclude: var(--exclude); --color-exclude-bg: var(--exclude-bg);
+  --color-conflict: var(--conflict); --color-conflict-bg: var(--conflict-bg);
+  --color-pending: var(--pending); --color-pending-bg: var(--pending-bg);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Source Serif 4 Variable", Georgia, "Times New Roman", serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 10px 30px -10px rgb(15 23 42 / 0.25);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-background text-foreground font-sans antialiased; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+  h1, h2, h3 { @apply tracking-tight; }
+  ::selection { background: var(--brand-200); color: var(--brand-950); }
+  mark.kw-include { background: var(--include-bg); color: var(--include); border-radius: 3px; padding: 0 2px; }
+  mark.kw-exclude { background: var(--exclude-bg); color: var(--exclude); border-radius: 3px; padding: 0 2px; }
+  .dark mark.kw-include, .dark mark.kw-exclude { filter: none; }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .mesh-bg {
+    background-image:
+      linear-gradient(to right, rgb(22 112 95 / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(22 112 95 / 0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  .text-balance { text-wrap: balance; }
+  .scrollbar-thin { scrollbar-width: thin; }
 }
