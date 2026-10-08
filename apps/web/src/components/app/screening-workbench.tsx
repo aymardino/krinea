@@ -10,6 +10,8 @@ import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
 import { canEdit, canReview, useReview } from "@/components/app/review-context";
 import { Highlight } from "@/components/app/highlight";
+import { AiCard } from "@/components/app/ai-card";
+import { KeywordsCard } from "@/components/app/keywords-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Badge, StatusBadge } from "@/components/ui/badge";
@@ -249,19 +251,8 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("shortcuts")}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
-        {editable && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><Sparkles className="size-3.5" />AI</p>
-            <Button className="mt-3 w-full" size="sm" variant="outline" onClick={() => aiRun.mutate()} disabled={aiRun.isPending}>{t("runAi")}</Button>
-          </div>
-        )}
-        {kw.data && (kw.data.include.length > 0 || kw.data.exclude.length > 0) && (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("keywordCounts")}</p>
-            {kw.data.include.length > 0 && <ul className="mt-2 space-y-1 text-xs">{kw.data.include.map((k) => <li key={k.keyword} className="flex justify-between"><button className="truncate text-left hover:underline" onClick={() => setSearch(k.keyword.replace("*", ""))}><mark className="kw-include">{k.keyword}</mark></button><span className="tabular-nums text-muted-foreground">{k.n}</span></li>)}</ul>}
-            {kw.data.exclude.length > 0 && <ul className="mt-2 space-y-1 text-xs">{kw.data.exclude.map((k) => <li key={k.keyword} className="flex justify-between"><button className="truncate text-left hover:underline" onClick={() => setSearch(k.keyword.replace("*", ""))}><mark className="kw-exclude">{k.keyword}</mark></button><span className="tabular-nums text-muted-foreground">{k.n}</span></li>)}</ul>}
-          </div>
-        )}
+        {editable && <AiCard review={review} onRun={() => aiRun.mutate()} running={aiRun.isPending} label={t("runAi")} />}
+        <KeywordsCard review={review} counts={kw.data} editable={admin} onPick={(k) => { setSearch(k); setCurrent(null); }} onChanged={refresh} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">
           <p className="font-semibold uppercase tracking-wide text-muted-foreground">{c("decision.conflict")}</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-conflict">{stageStats.conflict}</p>
