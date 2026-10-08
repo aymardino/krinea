@@ -6,8 +6,11 @@
 #
 # Custom domain: add it to `tamis-web` (Settings → Custom domains), then set BASE_URL on
 # `tamis-api` to that https URL (optional: links already use the origin the proxy reports).
-# Cheaper test setup: `plan: free` on tamis-web and tamis-api, INLINE_JOBS=1 on the API,
-# and delete the worker (free instances sleep after 15 min of inactivity).
+# `fromService` values are filled in when the Blueprint syncs: if a service failed to build
+# during a sync, run "Manual sync" once everything is green so tamis-web gets API_URL.
+# Cheaper test setup: `plan: free` on tamis-web and tamis-api, INLINE_JOBS=1 on the API, no
+# worker. Free instances cannot receive private-network traffic, so then set API_URL on
+# tamis-web to the API's public https URL by hand (and expect 50 s cold starts).
 # PDFs: set S3_BUCKET / S3_ENDPOINT_URL (Cloudflare R2, Backblaze B2…) so the API needs no
 # persistent disk; otherwise attach a disk to the API at /data.
 databases:
@@ -102,8 +105,8 @@ services:
     plan: starter
     region: frankfurt
     envVars:
-      # Internal address of the API (host:port on Render's private network). If the
-      # blueprint cannot resolve it, set API_URL by hand to the API's https URL instead.
+      # Internal address of the API on Render's private network (host:port, plain http,
+      # paid instances only). Fallback: set API_URL by hand to the API's public https URL.
       - key: API_URL
         fromService: { type: web, name: tamis-api, property: hostport }
       - key: PROXY_KEY

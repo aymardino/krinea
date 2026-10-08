@@ -60,12 +60,25 @@ and no URL to configure, and the session cookie is first-party.
 - **"Server failure" mails / `tamis-api` restarting**: open the service's
   **Logs**. A traceback at startup means a bad environment variable (most
   often `DATABASE_URL`); `/health` must answer `{"ok": true}`.
-- **"Something went wrong" in the web app**: open the browser's network tab.
-  A `502` from `/api/...` means `tamis-web` cannot reach the API: check
-  `API_URL` on `tamis-web` (host:port of `tamis-api` on the private network,
-  or the API's public https URL as a fallback). A `401` after signing in means
+- **"The API is not reachable"** (a `502` from `/api/...`): `tamis-web`
+  cannot reach the API. The response body names the `target` it tried and
+  the error `code`; the same line is in `tamis-web`'s logs. Check, in this
+  order: `tamis-api` shows **Deployed** (not "Failed deploy"); `API_URL` on
+  `tamis-web` → **Environment** is the API's private address
+  (`tamis-api-xxxx:10000`), not empty and not `localhost`. Blueprint
+  references are filled in at sync time, so if the API failed to build during
+  the first sync, click **Manual sync** on the Blueprint once it is green.
+  Free instances cannot receive private traffic: with `plan: free`, set
+  `API_URL` to the API's public `https://….onrender.com` URL instead.
+- **"Something went wrong"** elsewhere: open the browser's network tab and
+  read the failing `/api/...` response. A `401` right after signing in means
   the session cookie did not come back: `COOKIE_SECURE` must be `true` only
   behind HTTPS.
+- **No e-mail arrives** (magic link, invitation): e-mails need
+  `RESEND_API_KEY` on `tamis-api` and an `EMAIL_FROM` address on a domain
+  verified in Resend. Without a domain yet, Resend lets you send from
+  `onboarding@resend.dev` to the address of your own Resend account only.
+  Password sign-up needs no e-mail.
 - **Blueprint sync errors on `fromService`**: replace the reference with a
   plain `value` (the API's public URL for `API_URL`, the API's `SECRET_KEY`
   for `PROXY_KEY`) and sync again.
