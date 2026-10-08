@@ -358,3 +358,16 @@ needed.
 **Consequences.** DNS: apex to `tamis-web`, `api.` to `tamis-api`; cookies
 are same-site across the two hosts. Secrets (`SECRET_KEY`, provider keys,
 Resend, bucket credentials) live in the Render dashboard.
+
+### P-09 · Legal vehicle operating the hosted service
+
+Open-source publication needs no legal entity. Taking payments does. Options
+being weighed: a company (SAS) run by a partner who is entitled to manage a
+business in France, with the founding researcher as shareholder and
+scientific contributor under the public-research "chercheur-entrepreneur"
+rules (Code de la recherche L531-1 and following; up to 49 % of the capital,
+authorisation by the employing institution); or a non-profit association
+hosting the service at cost. Prerequisite in all cases: written
+clarification with the employer of who owns the original extraction code
+and of the open-source release. Until this is settled, Tamis stays open
+source without a paid offer.
