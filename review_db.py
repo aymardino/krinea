@@ -259,7 +259,7 @@ def delete_record(rid: int) -> None:
 
 
 def import_batches(pid: int) -> pd.DataFrame:
-    return _query("SELECT source_file, MIN(source_db) AS source_db, COUNT(*) AS records, "
+    return _query("SELECT source_file, GROUP_CONCAT(DISTINCT source_db) AS source_db, COUNT(*) AS records, "
                   "SUM(is_duplicate) AS duplicates, MIN(imported_at) AS imported_at "
                   "FROM records WHERE project_id=? GROUP BY source_file ORDER BY imported_at",
                   (pid,))

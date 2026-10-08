@@ -63,7 +63,7 @@ st.html("""
   div[data-testid="stVerticalBlock"] { gap: 0.6rem; }
   div[data-testid="stAppDeployButton"], div[data-testid="stDecoration"], #MainMenu,
   footer { display: none; }
-  div[data-testid="stMainBlockContainer"] { padding-top: 2.4rem; max-width: 1400px; }
+  div[data-testid="stMainBlockContainer"] { padding-top: 3rem; max-width: 1400px; }
 
   /* Header band */
   .hero { display:flex; align-items:baseline; justify-content:space-between; gap: 16px;
@@ -73,16 +73,19 @@ st.html("""
   .hero .project { font-size: 0.95rem; opacity: 0.9; }
   .hero .sub { font-size: 0.8rem; opacity: 0.75; }
 
-  /* Stage navigation and view switches: pills instead of radio circles */
-  div[data-testid="stRadio"] > div[role="radiogroup"] { gap: 6px; flex-wrap: wrap; }
-  div[data-testid="stRadio"] > div[role="radiogroup"] > label {
+  /* Stage navigation and view switches: pills instead of radio circles
+     (Streamlit >= 1.4x DOM: stRadioGroup > div > label[data-testid=stRadioOption]) */
+  div[data-testid="stRadioGroup"] { gap: 6px; flex-wrap: wrap; }
+  label[data-testid="stRadioOption"] {
       border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; margin: 0;
-      background: #fff; color: var(--ink); font-size: 0.86rem; cursor: pointer; }
-  div[data-testid="stRadio"] > div[role="radiogroup"] > label:hover { background: var(--brand-soft); }
-  div[data-testid="stRadio"] > div[role="radiogroup"] > label:has(input:checked) {
-      background: var(--brand); border-color: var(--brand); color: #fff; }
-  div[data-testid="stRadio"] > div[role="radiogroup"] > label:has(input:checked) p { color: #fff; }
-  div[data-testid="stRadio"] > div[role="radiogroup"] > label > div:first-child { display: none; }
+      background: #fff; cursor: pointer; transition: background 0.15s; }
+  label[data-testid="stRadioOption"]:hover { background: var(--brand-soft); }
+  label[data-testid="stRadioOption"][data-selected="true"],
+  label[data-testid="stRadioOption"]:has(input:checked) {
+      background: var(--brand); border-color: var(--brand); }
+  label[data-testid="stRadioOption"][data-selected="true"] p,
+  label[data-testid="stRadioOption"]:has(input:checked) p { color: #fff; }
+  label[data-testid="stRadioOption"] > div > div:first-child { display: none; }
 
   /* Cards and notes */
   div[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 12px; }
