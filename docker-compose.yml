@@ -22,7 +22,6 @@ services:
       DATABASE_URL: postgresql+psycopg://tamis:${POSTGRES_PASSWORD:-tamis}@db:5432/tamis
       DATA_DIR: /data
       BASE_URL: ${BASE_URL:-http://localhost:3000}
-      CORS_ORIGINS: ${BASE_URL:-http://localhost:3000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       INLINE_JOBS: "0"
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
@@ -31,7 +30,6 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       UNPAYWALL_EMAIL: ${UNPAYWALL_EMAIL:-}
-      API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     volumes:
@@ -48,11 +46,11 @@ services:
       - pdfs:/data
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args: { NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000} }
+    build: { context: ., dockerfile: apps/web/Dockerfile }
     depends_on: [api]
+    environment:
+      API_URL: http://api:8000                                # the web app proxies /api/* to it (D-23)
+      PROXY_KEY: ${SECRET_KEY:-change-me-in-production}
     ports:
       - "3000:3000"
 

@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from tamis_api import models, schemas
 from tamis_api.config import get_settings
+from tamis_api.urls import public_base_url
 from tamis_api.db import get_db
 from tamis_api.deps import current_user, optional_user
 from tamis_api.security import (decrypt_secret, encrypt_secret, expires_in, hash_password, mask_key,
@@ -75,14 +76,14 @@ def logout(request: Request, response: Response, db: DBSession = Depends(get_db)
 
 
 @router.post("/magic-link")
-def magic_link(body: schemas.MagicLinkIn, db: DBSession = Depends(get_db)):
+def magic_link(body: schemas.MagicLinkIn, request: Request, db: DBSession = Depends(get_db)):
     s = get_settings()
     email = body.email.lower().strip()
     token = new_token()
     db.add(models.LoginToken(email=email, token_hash=token_hash(token), purpose="login",
                              expires_at=expires_in(minutes=s.magic_link_minutes)))
     db.commit()
-    url = f"{s.base_url}/auth/magic?token={token}"
+    url = f"{public_base_url(request)}/auth/magic?token={token}"
     email_service.send_magic_link(email, url, body.locale if body.locale in ("en", "fr") else "en")
     out = {"ok": True}
     if s.debug:
@@ -168,15 +169,16 @@ def providers():
 
 
 @router.get("/google/start")
-def google_start(next: str = "/app", locale: str = "en"):
+def google_start(request: Request, next: str = "/app", locale: str = "en"):
     if not oauth.enabled():
         raise HTTPException(404, "Google sign-in is not configured")
     state, nonce = new_token(16), new_token(16)
     payload = {"state": state, "nonce": nonce, "next": oauth.safe_next(next),
                "locale": locale if locale in ("en", "fr") else "en"}
-    resp = RedirectResponse(oauth.authorization_url(state, nonce), status_code=302)
+    resp = RedirectResponse(oauth.authorization_url(state, nonce, request), status_code=302)
+    # path "/" because browsers see the callback under the web app's /api prefix (D-23)
     resp.set_cookie(oauth.STATE_COOKIE, oauth.sign_state(payload), max_age=oauth.STATE_MAX_AGE, httponly=True,
-                    samesite="lax", secure=get_settings().cookie_secure, path="/auth/google")
+                    samesite="lax", secure=get_settings().cookie_secure, path="/")
     return resp
 
 
@@ -190,12 +192,13 @@ def google_callback(request: Request, code: str = "", state: str = "", error: st
         saved = {}
     locale = saved.get("locale", "en")
     prefix = "" if locale == "en" else f"/{locale}"
-    failure = RedirectResponse(f"{s.base_url}{prefix}/sign-in?error=google", status_code=302)
-    failure.delete_cookie(oauth.STATE_COOKIE, path="/auth/google")
+    base = public_base_url(request)
+    failure = RedirectResponse(f"{base}{prefix}/sign-in?error=google", status_code=302)
+    failure.delete_cookie(oauth.STATE_COOKIE, path="/")
     if error or not code or not saved or saved.get("state") != state:
         return failure
     try:
-        tokens = oauth.exchange_code(code)
+        tokens = oauth.exchange_code(code, request)
         claims = oauth.verify_id_token(tokens.get("id_token", ""), saved.get("nonce"))
     except oauth.OAuthError:
         return failure
@@ -218,7 +221,7 @@ def google_callback(request: Request, code: str = "", state: str = "", error: st
         user.email_verified_at = models.now()
     if not user.name and claims.get("name"):
         user.name = str(claims["name"]).strip()[:200]
-    resp = RedirectResponse(f"{s.base_url}{prefix}{saved.get('next', '/app')}", status_code=302)
-    resp.delete_cookie(oauth.STATE_COOKIE, path="/auth/google")
+    resp = RedirectResponse(f"{base}{prefix}{saved.get('next', '/app')}", status_code=302)
+    resp.delete_cookie(oauth.STATE_COOKIE, path="/")
     start_session(db, user, request, resp)
     return resp

@@ -62,7 +62,7 @@ def test_google_sign_in(client, monkeypatch):
     url = urlparse(r.headers["location"])
     q = parse_qs(url.query)
     assert url.netloc == "accounts.google.com" and q["client_id"] == ["cid.apps.googleusercontent.com"]
-    assert q["redirect_uri"] == ["http://localhost:8000/auth/google/callback"] and "openid" in q["scope"][0]
+    assert q["redirect_uri"] == ["http://web.test/api/auth/google/callback"] and "openid" in q["scope"][0]
     state = q["state"][0]
     assert oauth.STATE_COOKIE in r.cookies
 
@@ -73,7 +73,7 @@ def test_google_sign_in(client, monkeypatch):
     # A failed attempt clears the pending state: start again, then stub Google's side
     r = client.get("/auth/google/start", params={"next": "/app/reviews/x", "locale": "fr"}, follow_redirects=False)
     state = parse_qs(urlparse(r.headers["location"]).query)["state"][0]
-    monkeypatch.setattr(oauth, "exchange_code", lambda code: {"id_token": "signed"})
+    monkeypatch.setattr(oauth, "exchange_code", lambda code, request=None: {"id_token": "signed"})
     monkeypatch.setattr(oauth, "verify_id_token", lambda tok, nonce=None: {
         "sub": "g-123", "email": "Grace@Example.org", "email_verified": True, "name": "Grace Hopper"})
     r = client.get("/auth/google/callback", params={"code": "abc", "state": state}, follow_redirects=False)
@@ -89,3 +89,29 @@ def test_google_sign_in(client, monkeypatch):
     r = client.get("/auth/google/callback", params={"code": "abc", "state": state}, follow_redirects=False)
     assert r.headers["location"] == "http://web.test/app"
     assert client.get("/auth/me").json()["id"] == me["id"]
+
+
+def test_public_urls_from_proxy(client, monkeypatch):
+    from urllib.parse import parse_qs, urlparse
+    """Without explicit BASE_URL, links use the origin reported by the web proxy, but only
+    when the request carries the shared secret (D-23)."""
+    from tamis_api.config import get_settings
+
+    s = get_settings()
+    monkeypatch.setattr(s, "base_url_explicit", False)
+    monkeypatch.setattr(s, "api_url_explicit", False)
+    monkeypatch.setattr(s, "google_client_id", "cid")
+    monkeypatch.setattr(s, "google_client_secret", "secret")
+    proxied = {"X-Tamis-Origin": "https://tamis-web.onrender.com", "X-Tamis-Proxy-Key": "test-secret"}
+
+    r = client.get("/auth/google/start", headers=proxied, follow_redirects=False)
+    q = parse_qs(urlparse(r.headers["location"]).query)
+    assert q["redirect_uri"] == ["https://tamis-web.onrender.com/api/auth/google/callback"]
+    r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=proxied)
+    assert r.json()["dev_link"].startswith("https://tamis-web.onrender.com/auth/magic?token=")
+
+    # Wrong or missing key, or a non-origin value: the configured BASE_URL is used instead
+    for bad in ({**proxied, "X-Tamis-Proxy-Key": "nope"}, {"X-Tamis-Origin": "https://evil.example"},
+                {**proxied, "X-Tamis-Origin": "https://evil.example/path"}):
+        r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=bad)
+        assert r.json()["dev_link"].startswith("http://web.test/auth/magic?token=")

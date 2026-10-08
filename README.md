@@ -41,13 +41,24 @@ Render: `render.yaml` blueprint, see `docs/deploy-render.md`.
 Optional. In Google Cloud Console create a project, configure the OAuth
 consent screen (external, scopes `openid`, `email`, `profile`), then
 **Credentials → Create credentials → OAuth client ID → Web application** with
-the authorised redirect URI `https://api.<your-domain>/auth/google/callback`
-(and `http://localhost:8000/auth/google/callback` for development). Put the
-client id and secret in `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` of the API
-and make sure `API_URL` is the public URL of the API. The "Continue with
-Google" button appears on the sign-in and sign-up pages as soon as both
-variables are set; accounts are matched by verified e-mail, so a Google
-sign-in attaches to an existing password account with the same address.
+the authorised redirect URI `https://<your-domain>/api/auth/google/callback`
+(and `http://localhost:3000/api/auth/google/callback` for development). Put
+the client id and secret in `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` of the
+API. The "Continue with Google" button appears on the sign-in and sign-up
+pages as soon as both variables are set; accounts are matched by verified
+e-mail, so a Google sign-in attaches to an existing password account with
+the same address.
+
+## One origin: the web app proxies the API
+
+Browsers never call the API directly. The web app forwards `/api/*` to the
+API (`API_URL`, an internal address in production) and passes cookies
+through, so the session cookie is first-party, there is no CORS, and only
+one domain is needed (decision D-23). The API builds links (magic links,
+invitations, Google redirects) from `BASE_URL` when set, otherwise from the
+origin the proxy reports, which it trusts because the web app's `PROXY_KEY`
+equals the API's `SECRET_KEY`. Set `NEXT_PUBLIC_API_URL` only when the API
+is hosted separately and called directly.
 
 ## Tests
 

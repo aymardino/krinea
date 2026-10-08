@@ -1,12 +1,13 @@
 """Reviews, members, invitations, settings, summaries."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as DBSession
 
 from tamis_api import models, schemas
 from tamis_api.config import get_settings
+from tamis_api.urls import public_base_url
 from tamis_api.db import get_db
 from tamis_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
 from tamis_api.security import expires_in, new_token, token_hash
@@ -187,16 +188,16 @@ def remove_member(user_id: str, access=Depends(ReviewAccess("viewer")), user: mo
 
 
 # ── Invitations ──────────────────────────────────────────────────────────────────
-def _invite_out(inv: models.Invitation, token: str | None = None) -> schemas.InvitationOut:
+def _invite_out(inv: models.Invitation, token: str | None = None, base: str = "") -> schemas.InvitationOut:
     s = get_settings()
     return schemas.InvitationOut(id=inv.id, email=inv.email, role=inv.role, created_at=inv.created_at,
                                  expires_at=inv.expires_at, accepted_at=inv.accepted_at,
-                                 accept_url=f"{s.base_url}/invite/{token}" if token and s.debug else None)
+                                 accept_url=f"{base or s.base_url}/invite/{token}" if token and s.debug else None)
 
 
 @router.post("/{review_id}/invitations", response_model=schemas.InvitationOut, status_code=201)
-def invite(body: schemas.InviteIn, access=Depends(ReviewAccess("admin")), user: models.User = Depends(current_user),
-           db: DBSession = Depends(get_db)):
+def invite(body: schemas.InviteIn, request: Request, access=Depends(ReviewAccess("admin")),
+           user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     review, _ = access
     email = body.email.lower().strip()
     existing = db.scalar(select(models.Membership).join(models.User).where(models.Membership.review_id == review.id,
@@ -209,9 +210,10 @@ def invite(body: schemas.InviteIn, access=Depends(ReviewAccess("admin")), user: 
     db.add(inv)
     log_activity(db, review.id, user.id, "invited", email=email, role=body.role)
     db.commit()
-    url = f"{get_settings().base_url}/invite/{token}"
+    base = public_base_url(request)
+    url = f"{base}/invite/{token}"
     email_service.send_invitation(email, user.name or user.email, review.title, body.role, url, user.locale)
-    return _invite_out(inv, token)
+    return _invite_out(inv, token, base)
 
 
 @router.get("/{review_id}/invitations", response_model=list[schemas.InvitationOut])

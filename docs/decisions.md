@@ -375,6 +375,30 @@ needed.
 are same-site across the two hosts. Secrets (`SECRET_KEY`, provider keys,
 Resend, bucket credentials) live in the Render dashboard.
 
+## D-23 · 2026-10-08 · decided · One public origin: the web app proxies the API
+
+**Decision.** Browsers only talk to the web app. `apps/web/src/app/api/[...path]/route.ts`
+forwards `/api/*` to the API (`API_URL`, an internal address in production) and streams
+the response back, cookies included. The API builds public links (magic links,
+invitations, Google redirects) from `BASE_URL` when set, otherwise from the origin the
+proxy reports in `X-Tamis-Origin`, trusted only when `X-Tamis-Proxy-Key` equals the
+API's `SECRET_KEY`. `DATABASE_URL` values of the form `postgres://` or `postgresql://`
+are rewritten to the psycopg driver. `render.yaml` no longer hard-codes any domain.
+
+**Why.** The first Render deployment failed three ways: Render's PostgreSQL URL
+(`postgres://`) made SQLAlchemy crash at startup (hence the "server failure" mails), the
+blueprint pointed the browser at `api.tamis.app` before any domain existed, and two
+`onrender.com` hosts are different *sites* (the suffix is on the Public Suffix List), so
+a `SameSite=Lax` session cookie set by the API would never have been sent by the web app.
+One origin removes all three classes of problem and leaves one domain to buy and
+configure.
+
+**Consequences.** `NEXT_PUBLIC_API_URL` is no longer baked into the web image and is
+only for calling a separately hosted API directly (CORS then applies, with
+`CORS_ORIGINS`). The OAuth state cookie is scoped to `/`. The API's public hostname is
+unused by the product; a custom domain goes on `tamis-web` only. Large PDF uploads and
+exports stream through the Next.js server. Supersedes the DNS note in D-21.
+
 ### P-09 · Legal vehicle operating the hosted service
 
 Open-source publication needs no legal entity. Taking payments does. Options

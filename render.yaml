@@ -1,11 +1,21 @@
-# Render blueprint for Tamis (decision D-17). Services: PostgreSQL, API, worker, web.
-# PDFs: set S3_BUCKET / S3_ENDPOINT_URL (Cloudflare R2, Backblaze B2…) so that the API
-# needs no persistent disk and can scale; otherwise attach a disk to the API at /data.
+# Render blueprint for Tamis (decisions D-17, D-21, D-23).
+#
+# Services: PostgreSQL, API, worker, web. Browsers only talk to `tamis-web`; it proxies
+# `/api/*` to the API over Render's private network, so the deployment works on the
+# default *.onrender.com address with no domain and no extra configuration.
+#
+# Custom domain: add it to `tamis-web` (Settings → Custom domains), then set BASE_URL on
+# `tamis-api` to that https URL (optional: links already use the origin the proxy reports).
+# Cheaper test setup: `plan: free` on tamis-web and tamis-api, INLINE_JOBS=1 on the API,
+# and delete the worker (free instances sleep after 15 min of inactivity).
+# PDFs: set S3_BUCKET / S3_ENDPOINT_URL (Cloudflare R2, Backblaze B2…) so the API needs no
+# persistent disk; otherwise attach a disk to the API at /data.
 databases:
   - name: tamis-db
     plan: basic-256mb
     databaseName: tamis
     user: tamis
+    region: frankfurt
 
 services:
   - type: web
@@ -23,10 +33,6 @@ services:
         fromDatabase: { name: tamis-db, property: connectionString }
       - key: SECRET_KEY
         generateValue: true
-      - key: BASE_URL
-        value: https://tamis.app
-      - key: CORS_ORIGINS
-        value: https://tamis.app
       - key: COOKIE_SECURE
         value: "true"
       - key: INLINE_JOBS
@@ -35,6 +41,8 @@ services:
         value: resend
       - key: RESEND_API_KEY
         sync: false
+      - key: EMAIL_FROM
+        value: Tamis <no-reply@example.org>
       - key: S3_BUCKET
         sync: false
       - key: S3_ENDPOINT_URL
@@ -51,8 +59,6 @@ services:
         sync: false
       - key: UNPAYWALL_EMAIL
         sync: false
-      - key: API_URL
-        value: https://api.tamis.app
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -96,5 +102,9 @@ services:
     plan: starter
     region: frankfurt
     envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://api.tamis.app
+      # Internal address of the API (host:port on Render's private network). If the
+      # blueprint cannot resolve it, set API_URL by hand to the API's https URL instead.
+      - key: API_URL
+        fromService: { type: web, name: tamis-api, property: hostport }
+      - key: PROXY_KEY
+        fromService: { type: web, name: tamis-api, envVarKey: SECRET_KEY }

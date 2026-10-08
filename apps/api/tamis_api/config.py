@@ -14,15 +14,28 @@ def _bool(v: str | None, default: bool = False) -> bool:
     return default if v is None else v.strip().lower() in ("1", "true", "yes", "on")
 
 
+def _normalise_db_url(url: str) -> str:
+    """Managed PostgreSQL providers (Render, Heroku, Supabase…) hand out postgres:// or
+    postgresql:// URLs; SQLAlchemy needs the psycopg 3 driver spelled out."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
 class Settings:
     def __init__(self) -> None:
         self.env = os.environ.get("TAMIS_ENV", "development")          # development | test | production
         self.debug = self.env != "production"
         self.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
-        self.database_url = os.environ.get("DATABASE_URL", "sqlite:///./tamis.db")
+        self.database_url = _normalise_db_url(os.environ.get("DATABASE_URL", "sqlite:///./tamis.db"))
         self.data_dir = Path(os.environ.get("DATA_DIR", "./data")).resolve()
+        # Public URLs. The browser reaches the API through the web app's /api proxy (D-23), so
+        # BASE_URL is enough; both can be left unset when the web app runs the proxy (see urls.py).
         self.base_url = os.environ.get("BASE_URL", "http://localhost:3000").rstrip("/")   # the web app
-        self.api_url = os.environ.get("API_URL", "http://localhost:8000").rstrip("/")
+        self.base_url_explicit = bool(os.environ.get("BASE_URL"))
+        self.api_url = os.environ.get("API_URL", f"{self.base_url}/api").rstrip("/")    # as seen by browsers
+        self.api_url_explicit = bool(os.environ.get("API_URL"))
         self.cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", self.base_url).split(",") if o.strip()]
         self.cookie_name = "tamis_session"
         self.cookie_secure = _bool(os.environ.get("COOKIE_SECURE"), self.env == "production")

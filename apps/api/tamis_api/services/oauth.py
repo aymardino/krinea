@@ -14,7 +14,10 @@ import httpx
 import jwt
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
+from fastapi import Request
+
 from tamis_api.config import get_settings
+from tamis_api.urls import public_api_url
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -33,8 +36,8 @@ def enabled() -> bool:
     return bool(s.google_client_id and s.google_client_secret)
 
 
-def redirect_uri() -> str:
-    return f"{get_settings().api_url}/auth/google/callback"
+def redirect_uri(request: Request | None = None) -> str:
+    return f"{public_api_url(request)}/auth/google/callback"
 
 
 def _serializer() -> URLSafeTimedSerializer:
@@ -52,10 +55,10 @@ def load_state(token: str) -> dict:
         raise OAuthError("The sign-in attempt expired or was tampered with") from e
 
 
-def authorization_url(state: str, nonce: str) -> str:
+def authorization_url(state: str, nonce: str, request: Request | None = None) -> str:
     params = {
         "client_id": get_settings().google_client_id,
-        "redirect_uri": redirect_uri(),
+        "redirect_uri": redirect_uri(request),
         "response_type": "code",
         "scope": "openid email profile",
         "state": state,
@@ -66,12 +69,12 @@ def authorization_url(state: str, nonce: str) -> str:
     return GOOGLE_AUTH_URL + "?" + urllib.parse.urlencode(params)
 
 
-def exchange_code(code: str) -> dict:
+def exchange_code(code: str, request: Request | None = None) -> dict:
     """Authorization code -> token response ({id_token, access_token, ...})."""
     s = get_settings()
     r = httpx.post(GOOGLE_TOKEN_URL, timeout=20, data={
         "code": code, "client_id": s.google_client_id, "client_secret": s.google_client_secret,
-        "redirect_uri": redirect_uri(), "grant_type": "authorization_code"})
+        "redirect_uri": redirect_uri(request), "grant_type": "authorization_code"})
     if r.status_code != 200:
         raise OAuthError(f"Google did not accept the code ({r.status_code})")
     return r.json()

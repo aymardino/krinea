@@ -1,5 +1,7 @@
-/** Thin typed client for the Tamis API. Cookies carry the session (credentials: include). */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/** Thin typed client for the Tamis API. Cookies carry the session (credentials: include).
+ *  By default the browser goes through this app's own `/api` proxy (D-23): same origin, no CORS,
+ *  no build-time URL. Set NEXT_PUBLIC_API_URL only to call a separately hosted API directly. */
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "/api").replace(/\/+$/, "");
 
 export class ApiError extends Error {
   status: number;
