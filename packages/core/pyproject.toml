@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tamis-core"
+version = "0.1.0"
+description = "Bibliographic parsing, deduplication, screening and extraction-form logic for systematic reviews"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["rapidfuzz>=3.9", "pandas>=2.0"]
+
+[project.optional-dependencies]
+excel = ["openpyxl>=3.1"]
+
+[tool.setuptools.packages.find]
+include = ["tamis_core*"]

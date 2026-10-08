@@ -11,3 +11,15 @@ review.db.bak
 _review_pdfs/
 _pdf_cache/
 _last_bad_response.txt
+
+# JavaScript / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.pnpm-store/
+
+# Python packaging
+*.egg-info/
+build/
+dist/

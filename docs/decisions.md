@@ -162,68 +162,138 @@ Docker web service, persistent disk on `/data`, port taken from `PORT`).
 **Consequences.** Persistent disks need a paid Render instance. See
 `docs/deploy-render.md`.
 
-## D-13 · 2026-10-08 · proposed · Licence
+## D-13 · 2026-10-08 · decided · Licence: AGPL-3.0 for the application, MIT for the core modules
 
-**Current state.** A permissive MIT licence file was added to the repository
-when the README was written. This should be confirmed or changed before the
-repository goes public.
+**Decision.** The application (web app, API, Streamlit edition) is licensed
+under AGPL-3.0. The reusable core modules (bibliographic parsers,
+deduplication, screening logic, extraction schema) are licensed under MIT so
+other tools can embed them.
 
-**Recommendation.** AGPL-3.0 for the application (anyone may self-host and
-modify it, but a company offering it as a hosted service must publish its
-changes), keeping the reusable core modules (parsers, dedup) under MIT so
-other tools can embed them. This is the standard "open core + hosted
-service" pattern (Plausible, Cal.com, Nextcloud) and protects a paid hosted
-offer without closing the code.
+**Why.** Owner's choice. AGPL keeps the code open and self-hostable while
+obliging anyone who offers it as a hosted service to publish their changes,
+which protects the paid hosted offer (D-15). MIT on the core maximises reuse
+and goodwill in the research-software community.
+
+**Consequences.** `LICENSE` at the root is AGPL-3.0; `packages/core/LICENSE`
+is MIT; every source file states its licence in the header. Contributors
+accept both. The MIT licence file added earlier at the root is replaced.
+
+## D-14 · 2026-10-08 · decided · Product name: Tamis
+
+**Decision.** The product is called **Tamis** (French for sieve). Repository,
+package names, domain and brand follow (`tamis`, `tamis.app` to be
+registered by the owner; `tamis.com` is probably taken).
+
+**Why.** Owner's choice among the shortlist. One word, pronounceable in
+French and English, describes exactly what the tool does with a search
+(it sifts), and the mesh motif gives a natural logo.
+
+**Consequences.** Rename the GitHub repository to `aymardino/tamis` (GitHub
+keeps a redirect from the old name). Check trademark collisions before
+launch. Register `tamis.app` and, if free, `tamis.io`.
+
+## D-15 · 2026-10-08 · decided · Business model: open source + paid hosted service
+
+**Decision.** The code is open source (D-13) and self-hostable for free. The
+owner runs a hosted service at the product domain with three tiers:
+**Free** (hosted, limits on active reviews and collaborators, bring your own
+AI key), **Pro** (unlimited reviews, team features, included AI credits,
+priority support), **Institution** (SSO, admin console, invoicing, data
+residency). Free access for reviewers in low-income countries.
+
+**Why.** Owner's choice. It is the model that universities trust (they can
+audit and self-host) and that still funds hosting and development.
+Reference points: Rayyan (Free / Essential / Advanced individual tiers,
+Professional at about USD 8 per month billed yearly) and Covidence (USD 339
+per review per year).
+
+**Consequences.** The marketing site has a pricing page; billing (Stripe) and
+plan limits are part of phase 4; usage metering starts in phase 1 so limits
+can be enforced later.
+
+## D-16 · 2026-10-08 · decided · AI access: bring your own key, plus included credits on paid tiers
+
+**Decision.** Any user may store their own provider key (Anthropic, Google,
+DeepSeek), encrypted at rest per user and never logged. Paid tiers include a
+monthly AI budget billed at provider cost plus margin, shown as a meter in
+the app. The self-hosted edition supports keys only.
+
+**Why.** Owner's choice. Keys keep the free edition useful without the
+project paying for inference; credits remove the setup barrier for
+non-technical teams.
+
+**Consequences.** The API needs a key vault (encryption key in the
+environment), per-call cost accounting, and a hard stop when the budget is
+exhausted. Model choice stays per project.
+
+## D-17 · 2026-10-08 · decided · Product architecture and stack
+
+**Decision.** Monorepo: `apps/api` (Python 3.11+, FastAPI, SQLAlchemy 2,
+Alembic, PostgreSQL in production, SQLite for local development and tests),
+`apps/web` (Next.js App Router, TypeScript, Tailwind, shadcn/ui, next-intl
+for en/fr, TanStack Query), `packages/core` (the Python modules already
+written). Background jobs run from a database-backed queue processed by a
+worker process (no Redis at first). PDFs go to local disk in development
+and to an S3-compatible bucket in production. Authentication: email and
+password (argon2) plus magic links; Google and ORCID sign-in later.
+
+**Why.** Reuses everything built so far; FastAPI and Next.js are the most
+common pairing for this kind of product and are well supported on Render;
+a database queue avoids a paid Key Value instance until load justifies it.
+
+**Consequences.** Two languages in the repository (Python, TypeScript); CI
+runs both test suites. The Streamlit edition keeps working from
+`packages/core`.
+
+## D-18 · 2026-10-08 · decided · Tamis visual identity
+
+**Decision.** Typeface Inter for the interface and a serif (Source Serif 4)
+for marketing headings; palette built on a deep teal primary (sieve/mesh
+motif), warm amber accent for highlights and progress, slate neutrals;
+semantic colours for decisions: green include, amber maybe, red exclude.
+Light and dark themes from the same tokens. The screening workflow follows
+the conventions every review tool shares (a queue of records, a reading
+pane, decisions, filters, a progress overview) but the layout, components,
+icons, copy and visual language are Tamis's own: no element of Rayyan's
+interface is reproduced (see D-19). Keyboard shortcuts I / M / E and arrows.
+
+**Why.** Distinct from Rayyan's indigo and Covidence's palette, readable for
+long sessions, and the mesh motif makes the name visible. An original design
+is also the legal posture (D-19).
+
+**Consequences.** Tokens live in `apps/web` (CSS variables) and are mirrored
+in the Streamlit theme. Rayyan screenshots are used only to list features,
+never as a visual reference during design work.
+
+## D-19 · 2026-10-08 · decided · Legal posture towards competitors
+
+**Decision.** Tamis competes on features and openness, never by copying.
+Rules: no competitor name in the product, domain, logo or metadata; no
+competitor UI code, graphics, icons, colours, screenshots or copy in the
+codebase or the marketing site; original layout and visual language;
+comparisons on the website only as factual, verifiable statements (price,
+licence, self-hosting, features) without denigration; migration helpers
+only read the user's own exported files; third-party dependencies tracked
+with their licences; privacy policy, terms of service and a GDPR data
+processing agreement before the hosted service takes payments; hosting in
+an EU region.
+
+**Why.** Workflows and features of review software are not protected by
+copyright, and building a competitor is lawful. The residual risks are
+copyright on expression (code, graphics, text), trademark confusion, and, in
+French law, unfair competition or parasitism when a look and feel is copied
+slavishly. The rules above remove those risks. This is a working posture,
+not legal advice: a lawyer reviews the terms and the brand before launch.
+
+**Consequences.** Design reviews check originality; a `THIRD_PARTY_NOTICES`
+file lists dependencies; the brand name is checked and filed as a trademark
+before public launch.
 
 ---
 
 ## Proposed decisions (waiting for the owner)
 
-### P-01 · Product name and domain
-
-Shortlist to check on a registrar (the session's network cannot query domain
-registries): **Scrinium** (Latin: the box that held scrolls; .app/.io),
-**Sieva** (sieve; .app/.io), **Tamis** (French for sieve, reads well in
-English; .app), **LitSieve** (.com/.app). Pick one, check `.com` + `.app`
-availability and trademark collisions (no clash with Rayyan, Covidence,
-DistillerSR, EPPI-Reviewer, Colandr, ASReview, SysRev, Nested Knowledge,
-PICO Portal, Elicit).
-
-### P-02 · Business model
-
-Recommendation: fully open source (D-13) + a hosted service with three
-tiers: **Free** (self-host or hosted with limits: 1 active review, 2
-collaborators, bring-your-own AI key), **Pro** (unlimited reviews, team
-features, priority support, included AI credits), **Institution** (SSO,
-admin console, invoicing, data residency). Free for reviewers in low-income
-countries, as Covidence does. Rayyan's published tiers (Free / Essential /
-Advanced individual; Academic / Business / Enterprise institutional) and
-Covidence's per-review pricing (USD 339 per review per year) are the
-reference points.
-
-### P-03 · AI access: bring-your-own-key and included credits
-
-Recommendation: both. BYOK is always available (self-hosted and Free tier):
-the key is stored encrypted per user, never logged. Paid tiers include a
-monthly AI budget billed at provider cost plus margin, with a visible meter.
-This keeps the free edition useful without the project paying for inference.
-
-### P-04 · Product architecture
-
-Recommendation: monorepo with `apps/api` (Python, FastAPI, SQLAlchemy,
-PostgreSQL, background worker for imports/dedup/AI batches/PDF processing),
-`apps/web` (Next.js + TypeScript + Tailwind, marketing site and application,
-en/fr), `packages/core` (the existing Python modules). Accounts with
-email + password, magic link, Google and ORCID sign-in. PDFs in an
-S3-compatible bucket (Cloudflare R2 or Backblaze B2). Billing with Stripe.
-
-### P-05 · Design
-
-Recommendation: a design system (tokens, typography, components) built with
-shadcn/ui; application layout modelled on the owner's Rayyan screenshots
-(top tabs, list + detail screening view, filter rail with keyword counts,
-overview dashboard with summary cards and progress donut), plus keyboard
-shortcuts (I / M / E, arrows).
+P-01 to P-05 were decided on 2026-10-08 (see D-13 to D-18).
 
 ### P-06 · PRISMA 2020
 
