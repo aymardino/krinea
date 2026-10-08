@@ -1,0 +1,15 @@
+.git
+__pycache__
+*.pyc
+*.db
+*.db.bak
+_pdf_cache
+_review_pdfs
+charts
+charts*.zip
+*.xlsx
+*.xlsm
+*.zip
+tests
+.pytest_cache
+.DS_Store

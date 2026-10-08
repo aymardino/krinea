@@ -1,10 +1,16 @@
-# Put this file at .streamlit/config.toml, next to extraction_app.py.
-# It replaces Streamlit's default red identity with a calm Excel-green theme.
-# Delete the file to go back to the standard light/dark auto theme.
+# Theme shared by review_app.py and the legacy extraction_app.py.
+# Calm teal on white: readable for hours of screening, neutral enough to brand.
 
 [theme]
 base = "light"
-primaryColor = "#217346"
-backgroundColor = "#FCFCFA"
-secondaryBackgroundColor = "#F0F2EE"
-textColor = "#232B26"
+primaryColor = "#0E7490"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F6F8"
+textColor = "#1F2937"
+font = "sans serif"
+
+[server]
+maxUploadSize = 500
+
+[browser]
+gatherUsageStats = false

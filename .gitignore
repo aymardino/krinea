@@ -1,3 +1,13 @@
 __pycache__/
 *.pyc
 .vscode/
+.DS_Store
+.pytest_cache/
+.env
+
+# Local data of the workbench (keep out of the repository)
+review.db
+review.db.bak
+_review_pdfs/
+_pdf_cache/
+_last_bad_response.txt
