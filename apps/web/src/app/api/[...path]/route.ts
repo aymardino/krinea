@@ -9,18 +9,19 @@
  */
 import type { NextRequest } from "next/server";
 
+import { upstreamUrl } from "@/lib/upstream";
+
 export const dynamic = "force-dynamic";
 
-function upstream(): string {
-  const raw = (process.env.API_URL ?? "http://localhost:8000").trim().replace(/\/+$/, "");
-  return /^https?:\/\//.test(raw) ? raw : `http://${raw}`;
-}
 
 // Headers that belong to one hop only, or that fetch sets itself
 const HOP = new Set([
   "connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade", "host",
   "content-length", "content-encoding", "proxy-authorization", "proxy-authenticate", "expect",
 ]);
+const BUFFER_LIMIT = 2 * 1024 * 1024;        // bodies up to 2 MB are buffered so a request can be retried
+const RETRY_DELAYS_MS = [400, 1200];         // connection errors only (API restarting, cold start)
+const RETRYABLE = new Set(["ECONNREFUSED", "ECONNRESET", "ENOTFOUND", "EAI_AGAIN", "ETIMEDOUT", "UND_ERR_SOCKET"]);
 
 function publicOrigin(req: NextRequest): string {
   const proto = req.headers.get("x-forwarded-proto")?.split(",")[0].trim() || "http";
@@ -28,9 +29,17 @@ function publicOrigin(req: NextRequest): string {
   return `${proto}://${host}`;
 }
 
+function errorCode(err: unknown): string {
+  const cause = (err as { cause?: { code?: string; message?: string } })?.cause;
+  return cause?.code ?? cause?.message ?? (err instanceof Error ? err.message : String(err));
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }): Promise<Response> {
   const { path } = await ctx.params;
-  const target = `${upstream()}/${path.map(encodeURIComponent).join("/")}${req.nextUrl.search}`;
+  const base = upstreamUrl(process.env.API_URL);
+  const target = `${base}/${path.map(encodeURIComponent).join("/")}${req.nextUrl.search}`;
 
   const headers = new Headers();
   req.headers.forEach((value, key) => {
@@ -40,33 +49,49 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
   headers.set("x-tamis-proxy-key", process.env.PROXY_KEY ?? process.env.SECRET_KEY ?? "dev-secret-change-me");
   headers.set("x-forwarded-host", req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "");
 
+  // Small bodies are buffered (retryable); large ones (PDF uploads) are streamed once.
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
-  let res: Response;
-  try {
-    res = await fetch(target, {
-      method: req.method,
-      headers,
-      body: hasBody ? req.body : undefined,
-      redirect: "manual",
-      cache: "no-store",
-      // Node needs this to stream a request body
-      ...({ duplex: "half" } as Record<string, unknown>),
-    });
-  } catch (err) {
-    console.error(`[api proxy] ${req.method} ${target}:`, err);
-    return Response.json({ detail: "The API is not reachable" }, { status: 502 });
+  const declared = Number(req.headers.get("content-length") ?? "0");
+  let body: BodyInit | null = null;
+  let retryable = true;
+  if (hasBody) {
+    if (declared && declared <= BUFFER_LIMIT) body = await req.arrayBuffer();
+    else { body = req.body; retryable = false; }
   }
 
-  const out = new Headers();
-  res.headers.forEach((value, key) => {
-    if (!HOP.has(key) && key !== "set-cookie") out.set(key, value);
-  });
-  for (const cookie of res.headers.getSetCookie()) out.append("set-cookie", cookie);
-  return new Response(res.status === 204 || res.status === 304 ? null : res.body, {
-    status: res.status,
-    statusText: res.statusText,
-    headers: out,
-  });
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      const res = await fetch(target, {
+        method: req.method,
+        headers,
+        body,
+        redirect: "manual",
+        cache: "no-store",
+        ...({ duplex: "half" } as Record<string, unknown>),   // Node needs this to stream a request body
+      });
+      const out = new Headers();
+      res.headers.forEach((value, key) => {
+        if (!HOP.has(key) && key !== "set-cookie") out.set(key, value);
+      });
+      for (const cookie of res.headers.getSetCookie()) out.append("set-cookie", cookie);
+      return new Response(res.status === 204 || res.status === 304 ? null : res.body, {
+        status: res.status,
+        statusText: res.statusText,
+        headers: out,
+      });
+    } catch (err) {
+      lastError = err;
+      const code = errorCode(err);
+      console.error(`[api proxy] ${req.method} ${target} -> ${code}${attempt < RETRY_DELAYS_MS.length && retryable ? " (retrying)" : ""}`);
+      if (!retryable || !RETRYABLE.has(code) || attempt === RETRY_DELAYS_MS.length) break;
+      await sleep(RETRY_DELAYS_MS[attempt]);
+    }
+  }
+  return Response.json(
+    { detail: "The API is not reachable", target: new URL(base).host, code: errorCode(lastError) },
+    { status: 502 },
+  );
 }
 
 export { proxy as GET, proxy as POST, proxy as PUT, proxy as PATCH, proxy as DELETE, proxy as HEAD, proxy as OPTIONS };
