@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tamis-api"
+version = "0.1.0"
+description = "Tamis API: accounts, reviews, imports, deduplication, screening, extraction, PRISMA"
+license = "AGPL-3.0-only"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115", "uvicorn[standard]>=0.30", "sqlalchemy>=2.0", "alembic>=1.13",
+  "psycopg[binary]>=3.1", "pydantic>=2.5", "email-validator>=2.0", "python-multipart>=0.0.9",
+  "argon2-cffi>=23", "cryptography>=42", "httpx>=0.27", "boto3>=1.34", "pymupdf>=1.24",
+  "tamis-core",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[tool.setuptools.packages.find]
+include = ["tamis_api*"]
