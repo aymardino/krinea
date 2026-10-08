@@ -42,8 +42,23 @@
     "features": "Features",
     "pricing": "Pricing",
     "docs": "Docs",
-    "github": "Source",
-    "app": "Open the app"
+    "github": "Source code on GitHub",
+    "app": "Open the app",
+    "about": "About",
+    "menu": "Menu",
+    "footer": {
+      "product": "Product",
+      "project": "Project",
+      "legal": "Legal",
+      "selfHost": "Self-hosting",
+      "releases": "Releases",
+      "contact": "Contact",
+      "privacy": "Privacy policy",
+      "terms": "Terms of service",
+      "legalNotice": "Legal notice",
+      "independence": "An independent open-source project, not affiliated with or endorsed by any institution. Hosted in Frankfurt (EU).",
+      "licences": "Application AGPL-3.0, core engine MIT · PRISMA 2020 templates reproduced under CC BY 4.0 (prisma-statement.org)"
+    }
   },
   "marketing": {
     "heroEyebrow": "Open source · PRISMA 2020 · AI you verify",
@@ -51,7 +66,7 @@
     "heroText": "Import your searches, remove duplicates, screen with your team, extract data with an AI that quotes its sources, and report with the official PRISMA flow. Free to self-host, ready to use online.",
     "ctaPrimary": "Start a review",
     "ctaSecondary": "See how it works",
-    "trust": "Built with and for research teams in Africa and Europe. AGPL-3.0 licensed.",
+    "trust": "Built by researchers, for research teams in Africa and Europe. AGPL-3.0 licensed.",
     "stepsTitle": "From search export to PRISMA diagram",
     "steps": {
       "import": {
@@ -81,7 +96,26 @@
     "teamText": "Invite reviewers by email, choose single or double screening, hide decisions in blind mode, resolve conflicts, follow each reviewer's progress and time.",
     "openTitle": "Open source, yours to host",
     "openText": "The whole application is AGPL-3.0; the parsing and deduplication engine is MIT. Run it on your laptop, your lab server or our hosted service.",
-    "footer": "Made for evidence synthesis. © {year} Tamis."
+    "footer": "Made for evidence synthesis. © {year} Tamis.",
+    "trustStrip": {
+      "eu": "Hosted in Frankfurt (EU)",
+      "oss": "AGPL-3.0 · self-host for free",
+      "prisma": "PRISMA 2020 official template",
+      "export": "Export everything, any time"
+    },
+    "stepsLede": "Five stages, one workspace, and nothing you cannot export.",
+    "pricingTeaser": {
+      "title": "Self-host for free, forever.",
+      "text": "The hosted Free plan is open today. Pro and Institution plans open once billing and the legal documents are ready.",
+      "cta": "See pricing"
+    },
+    "closingTitle": "Free to try, free to leave.",
+    "closingText": "Everything you build in Tamis exports as RIS, CSV, Excel and a PRISMA 2020 diagram. The code is AGPL-3.0: if we ever stop, you can host it yourself.",
+    "preview": {
+      "stage": "Title & abstract",
+      "aiSuggests": "AI suggests",
+      "aiReason": "cost outcomes for a solar mini-grid in sub-Saharan Africa"
+    }
   },
   "pricing": {
     "title": "Simple pricing, open code",
@@ -112,7 +146,7 @@
           "Blind double screening and conflicts",
           "Priority support"
         ],
-        "cta": "Choose Pro"
+        "cta": "Join the waitlist"
       },
       "institution": {
         "name": "Institution",
@@ -129,7 +163,9 @@
       }
     },
     "selfhost": "Prefer your own server? The Docker image and Render blueprint are in the repository.",
-    "lowIncome": "Free Pro access for reviewers at institutions in low-income countries. Write to us."
+    "lowIncome": "Free Pro access for reviewers at institutions in low-income countries.",
+    "paidSoon": "Paid plans open once our terms, privacy policy and data processing agreement are published. Nothing is charged before you explicitly subscribe.",
+    "lowIncomeCta": "Write to us."
   },
   "auth": {
     "signInTitle": "Welcome back",
@@ -151,7 +187,8 @@
     "inviteNeedAccount": "Sign in or create an account with {email} to accept.",
     "google": "Continue with Google",
     "googleError": "Google sign-in failed. Try again or use your e-mail.",
-    "or": "or"
+    "or": "or",
+    "consent": "By creating an account you accept the <terms>terms of service</terms> and the <privacy>privacy policy</privacy>."
   },
   "reviews": {
     "title": "Your reviews",
@@ -398,5 +435,48 @@
     "tokens": "{n} tokens",
     "plan": "Plan",
     "newPassword": "New password"
+  },
+  "pages": {
+    "about": {
+      "title": "About Tamis",
+      "description": "Why this workbench exists, who builds it and how it stays open."
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "description": "What we store, where, why, and what you can do about it."
+    },
+    "terms": {
+      "title": "Terms of service",
+      "description": "The rules of the hosted edition, in plain language."
+    },
+    "legal": {
+      "title": "Legal notice",
+      "description": "Publisher, host and intellectual property."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Institutions, free access requests, support and bugs."
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "lede": "A real person reads every message, in English or French. Bugs and feature requests move fastest through GitHub; institutional questions, free-access requests and anything private go by e-mail.",
+    "institutions": {
+      "title": "Institutions",
+      "text": "Single sign-on, admin console, invoicing and a data processing agreement for universities and organisations. Tell us the number of reviewers, the review types and your data requirements."
+    },
+    "lowIncome": {
+      "title": "Free Pro access",
+      "text": "Reviewers at institutions in low-income countries get the Pro plan for free. Write from your institutional e-mail address with your name and department."
+    },
+    "support": {
+      "title": "Support and bugs",
+      "text": "The issue tracker is public: search it first, then open an issue with what you did, what you expected and what happened. Questions and ideas go to Discussions.",
+      "issues": "Open an issue on GitHub",
+      "discussions": "Ask in GitHub Discussions"
+    },
+    "email": "For private matters, write to",
+    "emailSoon": "A private e-mail address will be published here once our domain is set up. Until then, use GitHub or reply to the e-mail you received from us.",
+    "response": "We answer within five working days; there is no phone line or live chat."
   }
 }

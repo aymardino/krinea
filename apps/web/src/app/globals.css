@@ -92,12 +92,41 @@
 
 @layer utilities {
   .font-display { font-family: var(--font-display); }
-  .mesh-bg {
+  /* Faint grid behind a section. Drawn on a pseudo-element so the fade-out mask never
+     touches the section's own content. */
+  .mesh-bg { position: relative; isolation: isolate; }
+  .mesh-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
-      linear-gradient(to right, rgb(22 112 95 / 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(22 112 95 / 0.07) 1px, transparent 1px);
+      linear-gradient(to right, rgb(22 112 95 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(22 112 95 / 0.06) 1px, transparent 1px);
     background-size: 28px 28px;
+    mask-image: radial-gradient(120% 90% at 40% 0%, #000 35%, transparent 100%);
   }
   .text-balance { text-wrap: balance; }
   .scrollbar-thin { scrollbar-width: thin; }
 }
+
+/* ── Reading pages (about, privacy, terms, legal notice) ──────────────────────── */
+.prose-tamis { @apply text-[15px] leading-7 text-foreground; }
+.prose-tamis > :first-child { @apply mt-0; }
+.prose-tamis h2 { @apply font-display mt-10 text-2xl font-semibold tracking-tight; }
+.prose-tamis h3 { @apply mt-7 text-lg font-semibold; }
+.prose-tamis h4 { @apply mt-5 text-base font-semibold; }
+.prose-tamis p { @apply mt-4; }
+.prose-tamis ul { @apply mt-4 list-disc space-y-1.5 pl-6; }
+.prose-tamis ol { @apply mt-4 list-decimal space-y-1.5 pl-6; }
+.prose-tamis li > p { @apply mt-1; }
+.prose-tamis a { @apply font-medium text-primary underline underline-offset-4; }
+.prose-tamis strong { @apply font-semibold; }
+.prose-tamis blockquote { @apply mt-4 border-l-4 border-brand-300 bg-brand-50 px-4 py-3 text-foreground dark:bg-brand-950; }
+.prose-tamis hr { @apply my-8 border-border; }
+.prose-tamis code { @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[13px]; }
+.prose-tamis table { @apply mt-4 w-full border-collapse text-sm; }
+.prose-tamis th { @apply border-b border-border py-2 pr-4 text-left font-semibold; }
+.prose-tamis td { @apply border-b border-border py-2 pr-4 align-top; }
+.prose-tamis h2 + p, .prose-tamis h3 + p { @apply mt-3; }

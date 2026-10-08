@@ -20,8 +20,11 @@ const HOP = new Set([
   "content-length", "content-encoding", "proxy-authorization", "proxy-authenticate", "expect",
 ]);
 const BUFFER_LIMIT = 2 * 1024 * 1024;        // bodies up to 2 MB are buffered so a request can be retried
-const RETRY_DELAYS_MS = [400, 1200];         // connection errors only (API restarting, cold start)
-const RETRYABLE = new Set(["ECONNREFUSED", "ECONNRESET", "ENOTFOUND", "EAI_AGAIN", "ETIMEDOUT", "UND_ERR_SOCKET"]);
+const RETRY_DELAYS_MS = [500, 1000, 2000, 4000];   // ~7.5 s of connection errors (API restarting, cold start)
+const TIMEOUT_MS = 20_000;                   // per attempt, buffered requests
+const STREAM_TIMEOUT_MS = 10 * 60_000;       // streamed uploads
+const RETRYABLE = new Set(["ECONNREFUSED", "ECONNRESET", "ENOTFOUND", "EAI_AGAIN", "ETIMEDOUT", "EHOSTUNREACH", "ENETUNREACH",
+  "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT"]);
 
 function publicOrigin(req: NextRequest): string {
   const proto = req.headers.get("x-forwarded-proto")?.split(",")[0].trim() || "http";
@@ -30,8 +33,10 @@ function publicOrigin(req: NextRequest): string {
 }
 
 function errorCode(err: unknown): string {
-  const cause = (err as { cause?: { code?: string; message?: string } })?.cause;
-  return cause?.code ?? cause?.message ?? (err instanceof Error ? err.message : String(err));
+  const e = err as { name?: string; message?: string; cause?: { code?: string; message?: string; errors?: { code?: string }[] } };
+  if (e?.name === "TimeoutError" || e?.name === "AbortError") return "ETIMEDOUT";
+  const cause = e?.cause;
+  return cause?.code || cause?.errors?.find((x) => x?.code)?.code || cause?.message || e?.message || String(err);
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -68,6 +73,7 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
         body,
         redirect: "manual",
         cache: "no-store",
+        signal: AbortSignal.timeout(retryable ? TIMEOUT_MS : STREAM_TIMEOUT_MS),
         ...({ duplex: "half" } as Record<string, unknown>),   // Node needs this to stream a request body
       });
       const out = new Headers();
@@ -88,9 +94,10 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
       await sleep(RETRY_DELAYS_MS[attempt]);
     }
   }
+  const code = errorCode(lastError);
   return Response.json(
-    { detail: "The API is not reachable", target: new URL(base).host, code: errorCode(lastError) },
-    { status: 502 },
+    { detail: "The API is not reachable", target: new URL(base).host, code },
+    { status: RETRYABLE.has(code) ? 503 : 502, headers: { "retry-after": "10" } },
   );
 }
 

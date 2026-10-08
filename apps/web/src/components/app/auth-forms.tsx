@@ -89,6 +89,14 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
           {mode === "sign-up" && <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>}
         </div>
         <Button type="submit" className="w-full" disabled={busy}>{mode === "sign-in" ? c("signIn") : c("signUp")}</Button>
+        {mode === "sign-up" && (
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {t.rich("consent", {
+              terms: (chunks) => <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">{chunks}</Link>,
+              privacy: (chunks) => <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground">{chunks}</Link>,
+            })}
+          </p>
+        )}
       </form>
       <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground"><Separator className="flex-1" />{t("magicTitle")}<Separator className="flex-1" /></div>
       {magicSent === null ? (

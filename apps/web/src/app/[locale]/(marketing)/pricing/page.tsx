@@ -33,15 +33,16 @@ function Pricing() {
               </ul>
               <div className="mt-8">
                 <Button className="w-full" variant={highlight ? "default" : "outline"} asChild>
-                  <Link href={p === "institution" ? "mailto:hello@tamis.app" : "/sign-up"}>{t(`plans.${p}.cta`)}</Link>
+                  <Link href={p === "free" ? "/sign-up" : "/contact"}>{t(`plans.${p}.cta`)}</Link>
                 </Button>
               </div>
             </div>
           );
         })}
       </div>
-      <p className="mt-10 text-center text-sm text-muted-foreground">{t("selfhost")}</p>
-      <p className="mt-2 text-center text-sm text-muted-foreground">{t("lowIncome")}</p>
+      <p className="mt-8 text-center text-sm text-muted-foreground">{t("paidSoon")}</p>
+      <p className="mt-6 text-center text-sm text-muted-foreground">{t("selfhost")}</p>
+      <p className="mt-2 text-center text-sm text-muted-foreground">{t("lowIncome")} <Link href="/contact" className="font-medium text-primary underline-offset-4 hover:underline">{t("lowIncomeCta")}</Link></p>
     </section>
   );
 }

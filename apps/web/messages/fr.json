@@ -42,8 +42,23 @@
     "features": "Fonctionnalités",
     "pricing": "Tarifs",
     "docs": "Documentation",
-    "github": "Code source",
-    "app": "Ouvrir l'application"
+    "github": "Code source sur GitHub",
+    "app": "Ouvrir l'application",
+    "about": "À propos",
+    "menu": "Menu",
+    "footer": {
+      "product": "Produit",
+      "project": "Projet",
+      "legal": "Légal",
+      "selfHost": "Auto-hébergement",
+      "releases": "Versions",
+      "contact": "Contact",
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions d'utilisation",
+      "legalNotice": "Mentions légales",
+      "independence": "Un projet open source indépendant, sans affiliation ni soutien d'aucune institution. Hébergé à Francfort (UE).",
+      "licences": "Application AGPL-3.0, moteur MIT · Modèles PRISMA 2020 reproduits sous CC BY 4.0 (prisma-statement.org)"
+    }
   },
   "marketing": {
     "heroEyebrow": "Open source · PRISMA 2020 · une IA que vous vérifiez",
@@ -51,7 +66,7 @@
     "heroText": "Importez vos recherches, retirez les doublons, triez en équipe, extrayez les données avec une IA qui cite ses sources, et rapportez avec le diagramme PRISMA officiel. Gratuit à auto-héberger, prêt à l'emploi en ligne.",
     "ctaPrimary": "Démarrer une revue",
     "ctaSecondary": "Voir comment ça marche",
-    "trust": "Conçu avec et pour des équipes de recherche en Afrique et en Europe. Licence AGPL-3.0.",
+    "trust": "Conçu par des chercheurs, pour des équipes de recherche en Afrique et en Europe. Licence AGPL-3.0.",
     "stepsTitle": "De l'export de recherche au diagramme PRISMA",
     "steps": {
       "import": {
@@ -81,7 +96,26 @@
     "teamText": "Invitez des relecteurs par e-mail, choisissez simple ou double lecture, masquez les décisions en mode aveugle, résolvez les conflits, suivez la progression et le temps de chacun.",
     "openTitle": "Open source, à héberger chez vous",
     "openText": "L'application entière est sous AGPL-3.0 ; le moteur d'analyse et de dédoublonnage sous MIT. Sur votre portable, le serveur du labo ou notre service hébergé.",
-    "footer": "Conçu pour la synthèse des preuves. © {year} Tamis."
+    "footer": "Conçu pour la synthèse des preuves. © {year} Tamis.",
+    "trustStrip": {
+      "eu": "Hébergé à Francfort (UE)",
+      "oss": "AGPL-3.0 · auto-hébergement gratuit",
+      "prisma": "Modèle PRISMA 2020 officiel",
+      "export": "Tout exporter, à tout moment"
+    },
+    "stepsLede": "Cinq étapes, un seul espace de travail, et rien que vous ne puissiez exporter.",
+    "pricingTeaser": {
+      "title": "Auto-hébergement gratuit, pour toujours.",
+      "text": "L'offre Gratuit hébergée est ouverte dès aujourd'hui. Les offres Pro et Institution ouvriront quand la facturation et les documents juridiques seront prêts.",
+      "cta": "Voir les tarifs"
+    },
+    "closingTitle": "Libre d'essayer, libre de partir.",
+    "closingText": "Tout ce que vous construisez dans Tamis s'exporte en RIS, CSV, Excel et en diagramme PRISMA 2020. Le code est sous AGPL-3.0 : si nous arrêtons un jour, vous pouvez l'héberger vous-même.",
+    "preview": {
+      "stage": "Titre et résumé",
+      "aiSuggests": "L'IA suggère",
+      "aiReason": "résultats de coût pour un mini-réseau solaire en Afrique subsaharienne"
+    }
   },
   "pricing": {
     "title": "Des tarifs simples, un code ouvert",
@@ -112,7 +146,7 @@
           "Double lecture en aveugle et conflits",
           "Support prioritaire"
         ],
-        "cta": "Choisir Pro"
+        "cta": "Rejoindre la liste d'attente"
       },
       "institution": {
         "name": "Institution",
@@ -129,7 +163,9 @@
       }
     },
     "selfhost": "Vous préférez votre serveur ? L'image Docker et le blueprint Render sont dans le dépôt.",
-    "lowIncome": "Accès Pro gratuit pour les relecteurs d'institutions de pays à faible revenu. Écrivez-nous."
+    "lowIncome": "Accès Pro gratuit pour les relecteurs d'institutions situées dans des pays à faible revenu.",
+    "paidSoon": "Les offres payantes ouvriront quand nos conditions, notre politique de confidentialité et notre accord de traitement des données seront publiés. Rien n'est facturé sans abonnement explicite de votre part.",
+    "lowIncomeCta": "Écrivez-nous."
   },
   "auth": {
     "signInTitle": "Bon retour",
@@ -151,7 +187,8 @@
     "inviteNeedAccount": "Connectez-vous ou créez un compte avec {email} pour accepter.",
     "google": "Continuer avec Google",
     "googleError": "La connexion Google a échoué. Réessayez ou utilisez votre e-mail.",
-    "or": "ou"
+    "or": "ou",
+    "consent": "En créant un compte, vous acceptez les <terms>conditions d'utilisation</terms> et la <privacy>politique de confidentialité</privacy>."
   },
   "reviews": {
     "title": "Vos revues",
@@ -398,5 +435,48 @@
     "tokens": "{n} jetons",
     "plan": "Offre",
     "newPassword": "Nouveau mot de passe"
+  },
+  "pages": {
+    "about": {
+      "title": "À propos de Tamis",
+      "description": "Pourquoi cet atelier existe, qui le construit et comment il reste ouvert."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "description": "Ce que nous stockons, où, pourquoi, et ce que vous pouvez en faire."
+    },
+    "terms": {
+      "title": "Conditions d'utilisation",
+      "description": "Les règles de l'édition hébergée, en langage clair."
+    },
+    "legal": {
+      "title": "Mentions légales",
+      "description": "Éditeur, hébergeur et propriété intellectuelle."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Institutions, demandes d'accès gratuit, support et bugs."
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "lede": "Une vraie personne lit chaque message, en français ou en anglais. Les bugs et les demandes de fonctionnalités avancent plus vite sur GitHub ; les questions institutionnelles, les demandes d'accès gratuit et tout ce qui est privé passent par e-mail.",
+    "institutions": {
+      "title": "Institutions",
+      "text": "Authentification unique, console d'administration, facturation et accord de traitement des données pour les universités et organisations. Indiquez le nombre de relecteurs, les types de revues et vos exigences sur les données."
+    },
+    "lowIncome": {
+      "title": "Accès Pro gratuit",
+      "text": "Les relecteurs d'institutions situées dans des pays à faible revenu obtiennent l'offre Pro gratuitement. Écrivez depuis votre adresse institutionnelle avec votre nom et votre service."
+    },
+    "support": {
+      "title": "Support et bugs",
+      "text": "Le suivi des problèmes est public : cherchez d'abord, puis ouvrez un ticket avec ce que vous avez fait, ce que vous attendiez et ce qui s'est passé. Questions et idées vont dans les Discussions.",
+      "issues": "Ouvrir un ticket sur GitHub",
+      "discussions": "Poser une question dans les Discussions"
+    },
+    "email": "Pour les sujets privés, écrivez à",
+    "emailSoon": "Une adresse e-mail privée sera publiée ici dès que notre domaine sera configuré. D'ici là, utilisez GitHub ou répondez à l'e-mail que vous avez reçu de nous.",
+    "response": "Nous répondons sous cinq jours ouvrés ; il n'y a ni ligne téléphonique ni chat en direct."
   }
 }
