@@ -295,6 +295,22 @@ before public launch.
 
 P-01 to P-05 were decided on 2026-10-08 (see D-13 to D-18).
 
+## D-22 · 2026-10-08 · decided · Sign in with Google (OpenID Connect)
+
+**Decision.** Google sign-in uses the authorization-code flow handled entirely
+by the API (`/auth/google/start`, `/auth/google/callback`): signed state and
+nonce in a short-lived cookie, local verification of the ID token against
+Google's keys, accounts matched by verified e-mail and stored as external
+identities (`oauth_accounts`), so ORCID can follow the same path. The web app
+only shows the button when the API reports the provider as configured.
+
+**Why.** Researchers already have Google accounts; keeping the flow in the API
+means one session mechanism (the same cookie) for every sign-in method and no
+secrets in the browser.
+
+**Consequences.** Needs an OAuth client in Google Cloud Console per
+environment and `API_URL` set to the public API address.
+
 ### P-06 · PRISMA 2020
 
 Recommendation: reproduce the official PRISMA 2020 template exactly (three

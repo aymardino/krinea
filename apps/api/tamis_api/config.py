@@ -44,6 +44,8 @@ class Settings:
         self.free_ai_tokens_per_month = int(os.environ.get("FREE_AI_TOKENS_PER_MONTH", "0"))
         self.pro_ai_tokens_per_month = int(os.environ.get("PRO_AI_TOKENS_PER_MONTH", "5000000"))
         self.max_upload_mb = int(os.environ.get("MAX_UPLOAD_MB", "200"))
+        self.google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+        self.google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 
     @property
     def is_test(self) -> bool:

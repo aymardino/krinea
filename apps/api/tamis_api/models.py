@@ -69,6 +69,18 @@ class ProviderKey(Base):
     __table_args__ = (UniqueConstraint("user_id", "provider"),)
 
 
+class OAuthAccount(Base):
+    """An external identity (Google today, ORCID next) linked to a user."""
+    __tablename__ = "oauth_accounts"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    provider: Mapped[str] = mapped_column(String(20))
+    subject: Mapped[str] = mapped_column(String(200))
+    email: Mapped[str] = mapped_column(String(320), default="")
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now)
+    __table_args__ = (UniqueConstraint("provider", "subject"),)
+
+
 class Review(Base):
     __tablename__ = "reviews"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)

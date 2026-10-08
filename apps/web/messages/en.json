@@ -24,10 +24,27 @@
     "language": "Language",
     "settings": "Settings",
     "reviews": "Reviews",
-    "role": {"owner": "Owner", "admin": "Admin", "reviewer": "Reviewer", "viewer": "Viewer"},
-    "decision": {"include": "Include", "maybe": "Maybe", "exclude": "Exclude", "conflict": "Conflict", "pending": "Pending"}
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "reviewer": "Reviewer",
+      "viewer": "Viewer"
+    },
+    "decision": {
+      "include": "Include",
+      "maybe": "Maybe",
+      "exclude": "Exclude",
+      "conflict": "Conflict",
+      "pending": "Pending"
+    }
   },
-  "nav": {"features": "Features", "pricing": "Pricing", "docs": "Docs", "github": "Source", "app": "Open the app"},
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Docs",
+    "github": "Source",
+    "app": "Open the app"
+  },
   "marketing": {
     "heroEyebrow": "Open source · PRISMA 2020 · AI you verify",
     "heroTitle": "The systematic review workbench that keeps you in control",
@@ -37,11 +54,26 @@
     "trust": "Built with and for research teams in Africa and Europe. AGPL-3.0 licensed.",
     "stepsTitle": "From search export to PRISMA diagram",
     "steps": {
-      "import": {"title": "Import", "text": "RIS, BibTeX, PubMed, Web of Science, Scopus CSV, Excel. Format detected automatically, every file kept as a batch."},
-      "dedup": {"title": "Deduplicate", "text": "DOI and title matches merge on their own. Near matches wait for your call, with the evidence side by side."},
-      "screen": {"title": "Screen", "text": "Title and abstract, then full text. Blind double screening, conflicts, keyboard shortcuts, highlighted keywords."},
-      "extract": {"title": "Extract", "text": "You design the form. The AI fills it from each PDF with a verbatim quote per field. You verify, next to the paper."},
-      "report": {"title": "Report", "text": "PRISMA 2020 counts and diagram, exactly as the official template, plus RIS, CSV and Excel exports."}
+      "import": {
+        "title": "Import",
+        "text": "RIS, BibTeX, PubMed, Web of Science, Scopus CSV, Excel. Format detected automatically, every file kept as a batch."
+      },
+      "dedup": {
+        "title": "Deduplicate",
+        "text": "DOI and title matches merge on their own. Near matches wait for your call, with the evidence side by side."
+      },
+      "screen": {
+        "title": "Screen",
+        "text": "Title and abstract, then full text. Blind double screening, conflicts, keyboard shortcuts, highlighted keywords."
+      },
+      "extract": {
+        "title": "Extract",
+        "text": "You design the form. The AI fills it from each PDF with a verbatim quote per field. You verify, next to the paper."
+      },
+      "report": {
+        "title": "Report",
+        "text": "PRISMA 2020 counts and diagram, exactly as the official template, plus RIS, CSV and Excel exports."
+      }
     },
     "aiTitle": "AI that suggests, never decides",
     "aiText": "Suggestions are stored apart from decisions and always need a human click. Bring your own API key, or use the credits included in paid plans.",
@@ -56,9 +88,45 @@
     "subtitle": "Self-host for free, forever. Or let us host it and keep your reviewers moving.",
     "monthly": "per month, billed yearly",
     "plans": {
-      "free": {"name": "Free", "price": "€0", "tagline": "For a single reviewer getting started", "features": ["1 active review", "Up to 2 collaborators", "Unlimited records", "Bring your own AI key", "PRISMA 2020 exports"], "cta": "Start free"},
-      "pro": {"name": "Pro", "price": "€9", "tagline": "For research teams", "features": ["Unlimited reviews", "Unlimited collaborators", "Included AI credits each month", "Blind double screening and conflicts", "Priority support"], "cta": "Choose Pro"},
-      "institution": {"name": "Institution", "price": "Custom", "tagline": "For universities and organisations", "features": ["Single sign-on", "Admin console and invoicing", "Data residency options", "Onboarding for librarians", "Service agreement"], "cta": "Talk to us"}
+      "free": {
+        "name": "Free",
+        "price": "€0",
+        "tagline": "For a single reviewer getting started",
+        "features": [
+          "1 active review",
+          "Up to 2 collaborators",
+          "Unlimited records",
+          "Bring your own AI key",
+          "PRISMA 2020 exports"
+        ],
+        "cta": "Start free"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "€9",
+        "tagline": "For research teams",
+        "features": [
+          "Unlimited reviews",
+          "Unlimited collaborators",
+          "Included AI credits each month",
+          "Blind double screening and conflicts",
+          "Priority support"
+        ],
+        "cta": "Choose Pro"
+      },
+      "institution": {
+        "name": "Institution",
+        "price": "Custom",
+        "tagline": "For universities and organisations",
+        "features": [
+          "Single sign-on",
+          "Admin console and invoicing",
+          "Data residency options",
+          "Onboarding for librarians",
+          "Service agreement"
+        ],
+        "cta": "Talk to us"
+      }
     },
     "selfhost": "Prefer your own server? The Docker image and Render blueprint are in the repository.",
     "lowIncome": "Free Pro access for reviewers at institutions in low-income countries. Write to us."
@@ -80,7 +148,10 @@
     "inviteTitle": "You are invited",
     "inviteText": "{inviter} invites you to join “{title}” as {role}.",
     "inviteAccept": "Accept and open the review",
-    "inviteNeedAccount": "Sign in or create an account with {email} to accept."
+    "inviteNeedAccount": "Sign in or create an account with {email} to accept.",
+    "google": "Continue with Google",
+    "googleError": "Google sign-in failed. Try again or use your e-mail.",
+    "or": "or"
   },
   "reviews": {
     "title": "Your reviews",
@@ -91,12 +162,31 @@
     "progress": "{p}% screened by you",
     "createTitle": "Create a review",
     "createText": "You can change everything later in the review settings.",
-    "fields": {"title": "Title", "question": "Research question", "description": "Description", "type": "Type"},
-    "types": {"systematic": "Systematic review", "scoping": "Scoping review", "rapid": "Rapid review", "umbrella": "Umbrella review", "other": "Other"},
+    "fields": {
+      "title": "Title",
+      "question": "Research question",
+      "description": "Description",
+      "type": "Type"
+    },
+    "types": {
+      "systematic": "Systematic review",
+      "scoping": "Scoping review",
+      "rapid": "Rapid review",
+      "umbrella": "Umbrella review",
+      "other": "Other"
+    },
     "create": "Create"
   },
   "review": {
-    "tabs": {"overview": "Overview", "data": "Data", "screening": "Screening", "fulltext": "Full text", "extraction": "Extraction", "prisma": "PRISMA", "settings": "Settings"},
+    "tabs": {
+      "overview": "Overview",
+      "data": "Data",
+      "screening": "Screening",
+      "fulltext": "Full text",
+      "extraction": "Extraction",
+      "prisma": "PRISMA",
+      "settings": "Settings"
+    },
     "overview": {
       "title": "Overview",
       "identified": "Records identified",
@@ -113,7 +203,10 @@
       "throughput": "Decisions per day",
       "noActivity": "Nothing yet. Start by importing search results.",
       "conflicts": "{n} conflicts to resolve",
-      "stage": {"ta": "Title & abstract", "ft": "Full text"}
+      "stage": {
+        "ta": "Title & abstract",
+        "ft": "Full text"
+      }
     },
     "data": {
       "title": "Data",
@@ -139,10 +232,26 @@
       "restore": "Restore",
       "keptAs": "kept as #{id}",
       "records": "All records",
-      "columns": {"title": "Title", "year": "Year", "source": "Source", "status": "Status", "pdf": "PDF"}
+      "columns": {
+        "title": "Title",
+        "year": "Year",
+        "source": "Source",
+        "status": "Status",
+        "pdf": "PDF"
+      }
     },
     "screening": {
-      "views": {"todo": "To screen", "mine_include": "Included by me", "mine_maybe": "Maybe", "mine_exclude": "Excluded by me", "conflict": "Conflicts", "include": "Included", "exclude": "Excluded", "pending": "Pending", "all": "All"},
+      "views": {
+        "todo": "To screen",
+        "mine_include": "Included by me",
+        "mine_maybe": "Maybe",
+        "mine_exclude": "Excluded by me",
+        "conflict": "Conflicts",
+        "include": "Included",
+        "exclude": "Excluded",
+        "pending": "Pending",
+        "all": "All"
+      },
       "search": "Search title, authors, abstract…",
       "empty": "Nothing in this view.",
       "allDone": "You screened everything in this stage.",
@@ -184,7 +293,12 @@
       "text": "Studies included at full text. The AI fills your form from each PDF with a quote per field; you verify next to the paper.",
       "run": "Extract with AI",
       "runHint": "{n} studies with a PDF and no draft",
-      "status": {"none": "Not started", "draft": "Draft", "verified": "Verified", "failed": "Failed"},
+      "status": {
+        "none": "Not started",
+        "draft": "Draft",
+        "verified": "Verified",
+        "failed": "Failed"
+      },
       "verify": "Verify",
       "saveVerified": "Save as verified",
       "reExtract": "Run AI again",
@@ -201,7 +315,12 @@
       "title": "PRISMA 2020",
       "text": "Counts and diagram follow the official PRISMA 2020 template (CC BY 4.0).",
       "variant": "Template",
-      "variants": {"new_v1": "New review, databases and registers", "new_v2": "New review, with other methods", "updated_v1": "Updated review, databases and registers", "updated_v2": "Updated review, with other methods"},
+      "variants": {
+        "new_v1": "New review, databases and registers",
+        "new_v2": "New review, with other methods",
+        "updated_v1": "Updated review, databases and registers",
+        "updated_v2": "Updated review, with other methods"
+      },
       "downloadSvg": "Download SVG",
       "exports": "Exports",
       "included": "Included studies",
@@ -243,7 +362,14 @@
       "archive": "Archive this review",
       "deleteReview": "Delete this review",
       "deleteConfirm": "Type the review title to confirm",
-      "field": {"name": "Key", "label": "Label", "kind": "Kind", "options": "Options (a | b | c)", "hint": "Instruction for the AI", "required": "Required"}
+      "field": {
+        "name": "Key",
+        "label": "Label",
+        "kind": "Kind",
+        "options": "Options (a | b | c)",
+        "hint": "Instruction for the AI",
+        "required": "Required"
+      }
     }
   },
   "userSettings": {

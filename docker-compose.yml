@@ -31,6 +31,9 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       UNPAYWALL_EMAIL: ${UNPAYWALL_EMAIL:-}
+      API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - pdfs:/data
     ports:

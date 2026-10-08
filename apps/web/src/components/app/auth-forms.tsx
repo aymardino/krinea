@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,6 +12,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/misc";
+
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+      <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8z" />
+      <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.3 7.3 24 12 24z" />
+      <path fill="#FBBC05" d="M5.3 14.3c-.3-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3V6.6H1.3C.5 8.2 0 10 0 12s.5 3.8 1.3 5.4l4-3.1z" />
+      <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C18 1.2 15.2 0 12 0 7.3 0 3.3 2.7 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z" />
+    </svg>
+  );
+}
 
 export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up"; next?: string }) {
   const t = useTranslations("auth");
@@ -22,6 +35,9 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [magicSent, setMagicSent] = useState<string | null>(null);
+  const params = useSearchParams();
+  const providers = useQuery<{ google: boolean }>({ queryKey: ["providers"], queryFn: () => api.get("/auth/providers"), staleTime: 300_000 });
+  useEffect(() => { if (params.get("error") === "google") toast.error(t("googleError")); }, [params, t]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +70,15 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
   return (
     <div>
       <h1 className="font-display text-2xl font-semibold">{mode === "sign-in" ? t("signInTitle") : t("signUpTitle")}</h1>
-      <form onSubmit={submit} className="mt-6 space-y-4">
+      {providers.data?.google && (
+        <>
+          <Button type="button" variant="outline" className="mt-6 w-full" asChild>
+            <a href={api.url(`/auth/google/start?next=${encodeURIComponent(next)}&locale=${locale}`)}><GoogleMark />{t("google")}</a>
+          </Button>
+          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground"><Separator className="flex-1" />{t("or")}<Separator className="flex-1" /></div>
+        </>
+      )}
+      <form onSubmit={submit} className={providers.data?.google ? "space-y-4" : "mt-6 space-y-4"}>
         {mode === "sign-up" && (
           <div className="space-y-1.5"><Label htmlFor="name">{t("name")}</Label><Input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></div>
         )}

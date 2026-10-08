@@ -36,6 +36,19 @@ settings (PostgreSQL, S3-compatible bucket, Resend, included AI credits).
 Full stack with Docker: `cp .env.example .env && docker compose up --build`.
 Render: `render.yaml` blueprint, see `docs/deploy-render.md`.
 
+## Sign in with Google
+
+Optional. In Google Cloud Console create a project, configure the OAuth
+consent screen (external, scopes `openid`, `email`, `profile`), then
+**Credentials → Create credentials → OAuth client ID → Web application** with
+the authorised redirect URI `https://api.<your-domain>/auth/google/callback`
+(and `http://localhost:8000/auth/google/callback` for development). Put the
+client id and secret in `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` of the API
+and make sure `API_URL` is the public URL of the API. The "Continue with
+Google" button appears on the sign-in and sign-up pages as soon as both
+variables are set; accounts are matched by verified e-mail, so a Google
+sign-in attaches to an existing password account with the same address.
+
 ## Tests
 
 ```bash

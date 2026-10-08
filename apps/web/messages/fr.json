@@ -24,10 +24,27 @@
     "language": "Langue",
     "settings": "Paramètres",
     "reviews": "Revues",
-    "role": {"owner": "Propriétaire", "admin": "Admin", "reviewer": "Relecteur", "viewer": "Lecteur"},
-    "decision": {"include": "Inclure", "maybe": "Peut-être", "exclude": "Exclure", "conflict": "Conflit", "pending": "En attente"}
+    "role": {
+      "owner": "Propriétaire",
+      "admin": "Admin",
+      "reviewer": "Relecteur",
+      "viewer": "Lecteur"
+    },
+    "decision": {
+      "include": "Inclure",
+      "maybe": "Peut-être",
+      "exclude": "Exclure",
+      "conflict": "Conflit",
+      "pending": "En attente"
+    }
   },
-  "nav": {"features": "Fonctionnalités", "pricing": "Tarifs", "docs": "Documentation", "github": "Code source", "app": "Ouvrir l'application"},
+  "nav": {
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "docs": "Documentation",
+    "github": "Code source",
+    "app": "Ouvrir l'application"
+  },
   "marketing": {
     "heroEyebrow": "Open source · PRISMA 2020 · une IA que vous vérifiez",
     "heroTitle": "L'atelier de revue systématique qui vous laisse aux commandes",
@@ -37,11 +54,26 @@
     "trust": "Conçu avec et pour des équipes de recherche en Afrique et en Europe. Licence AGPL-3.0.",
     "stepsTitle": "De l'export de recherche au diagramme PRISMA",
     "steps": {
-      "import": {"title": "Importer", "text": "RIS, BibTeX, PubMed, Web of Science, CSV Scopus, Excel. Format détecté automatiquement, chaque fichier conservé comme un lot."},
-      "dedup": {"title": "Dédoublonner", "text": "Les DOI et titres identiques fusionnent seuls. Les cas proches attendent votre décision, preuves côte à côte."},
-      "screen": {"title": "Trier", "text": "Titre et résumé, puis texte intégral. Double lecture en aveugle, conflits, raccourcis clavier, mots-clés surlignés."},
-      "extract": {"title": "Extraire", "text": "Vous dessinez la grille. L'IA la remplit depuis chaque PDF avec une citation par champ. Vous vérifiez, à côté de l'article."},
-      "report": {"title": "Rapporter", "text": "Comptages et diagramme PRISMA 2020 conformes au gabarit officiel, plus exports RIS, CSV et Excel."}
+      "import": {
+        "title": "Importer",
+        "text": "RIS, BibTeX, PubMed, Web of Science, CSV Scopus, Excel. Format détecté automatiquement, chaque fichier conservé comme un lot."
+      },
+      "dedup": {
+        "title": "Dédoublonner",
+        "text": "Les DOI et titres identiques fusionnent seuls. Les cas proches attendent votre décision, preuves côte à côte."
+      },
+      "screen": {
+        "title": "Trier",
+        "text": "Titre et résumé, puis texte intégral. Double lecture en aveugle, conflits, raccourcis clavier, mots-clés surlignés."
+      },
+      "extract": {
+        "title": "Extraire",
+        "text": "Vous dessinez la grille. L'IA la remplit depuis chaque PDF avec une citation par champ. Vous vérifiez, à côté de l'article."
+      },
+      "report": {
+        "title": "Rapporter",
+        "text": "Comptages et diagramme PRISMA 2020 conformes au gabarit officiel, plus exports RIS, CSV et Excel."
+      }
     },
     "aiTitle": "Une IA qui suggère, jamais ne décide",
     "aiText": "Les suggestions sont stockées à part des décisions et exigent toujours un clic humain. Apportez votre clé API, ou utilisez les crédits inclus dans les offres payantes.",
@@ -56,9 +88,45 @@
     "subtitle": "Auto-hébergez gratuitement, pour toujours. Ou laissez-nous héberger pour que vos relecteurs avancent.",
     "monthly": "par mois, facturé à l'année",
     "plans": {
-      "free": {"name": "Gratuit", "price": "0 €", "tagline": "Pour un relecteur qui démarre", "features": ["1 revue active", "Jusqu'à 2 collaborateurs", "Notices illimitées", "Votre propre clé IA", "Exports PRISMA 2020"], "cta": "Commencer gratuitement"},
-      "pro": {"name": "Pro", "price": "9 €", "tagline": "Pour les équipes de recherche", "features": ["Revues illimitées", "Collaborateurs illimités", "Crédits IA inclus chaque mois", "Double lecture en aveugle et conflits", "Support prioritaire"], "cta": "Choisir Pro"},
-      "institution": {"name": "Institution", "price": "Sur devis", "tagline": "Pour les universités et organisations", "features": ["Authentification unique (SSO)", "Console d'administration et facturation", "Options de résidence des données", "Formation des bibliothécaires", "Contrat de service"], "cta": "Nous contacter"}
+      "free": {
+        "name": "Gratuit",
+        "price": "0 €",
+        "tagline": "Pour un relecteur qui démarre",
+        "features": [
+          "1 revue active",
+          "Jusqu'à 2 collaborateurs",
+          "Notices illimitées",
+          "Votre propre clé IA",
+          "Exports PRISMA 2020"
+        ],
+        "cta": "Commencer gratuitement"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9 €",
+        "tagline": "Pour les équipes de recherche",
+        "features": [
+          "Revues illimitées",
+          "Collaborateurs illimités",
+          "Crédits IA inclus chaque mois",
+          "Double lecture en aveugle et conflits",
+          "Support prioritaire"
+        ],
+        "cta": "Choisir Pro"
+      },
+      "institution": {
+        "name": "Institution",
+        "price": "Sur devis",
+        "tagline": "Pour les universités et organisations",
+        "features": [
+          "Authentification unique (SSO)",
+          "Console d'administration et facturation",
+          "Options de résidence des données",
+          "Formation des bibliothécaires",
+          "Contrat de service"
+        ],
+        "cta": "Nous contacter"
+      }
     },
     "selfhost": "Vous préférez votre serveur ? L'image Docker et le blueprint Render sont dans le dépôt.",
     "lowIncome": "Accès Pro gratuit pour les relecteurs d'institutions de pays à faible revenu. Écrivez-nous."
@@ -80,7 +148,10 @@
     "inviteTitle": "Vous êtes invité·e",
     "inviteText": "{inviter} vous invite à rejoindre « {title} » en tant que {role}.",
     "inviteAccept": "Accepter et ouvrir la revue",
-    "inviteNeedAccount": "Connectez-vous ou créez un compte avec {email} pour accepter."
+    "inviteNeedAccount": "Connectez-vous ou créez un compte avec {email} pour accepter.",
+    "google": "Continuer avec Google",
+    "googleError": "La connexion Google a échoué. Réessayez ou utilisez votre e-mail.",
+    "or": "ou"
   },
   "reviews": {
     "title": "Vos revues",
@@ -91,12 +162,31 @@
     "progress": "{p} % triés par vous",
     "createTitle": "Créer une revue",
     "createText": "Tout reste modifiable ensuite dans les paramètres de la revue.",
-    "fields": {"title": "Titre", "question": "Question de recherche", "description": "Description", "type": "Type"},
-    "types": {"systematic": "Revue systématique", "scoping": "Revue de portée", "rapid": "Revue rapide", "umbrella": "Revue parapluie", "other": "Autre"},
+    "fields": {
+      "title": "Titre",
+      "question": "Question de recherche",
+      "description": "Description",
+      "type": "Type"
+    },
+    "types": {
+      "systematic": "Revue systématique",
+      "scoping": "Revue de portée",
+      "rapid": "Revue rapide",
+      "umbrella": "Revue parapluie",
+      "other": "Autre"
+    },
     "create": "Créer"
   },
   "review": {
-    "tabs": {"overview": "Aperçu", "data": "Données", "screening": "Tri", "fulltext": "Texte intégral", "extraction": "Extraction", "prisma": "PRISMA", "settings": "Paramètres"},
+    "tabs": {
+      "overview": "Aperçu",
+      "data": "Données",
+      "screening": "Tri",
+      "fulltext": "Texte intégral",
+      "extraction": "Extraction",
+      "prisma": "PRISMA",
+      "settings": "Paramètres"
+    },
     "overview": {
       "title": "Aperçu",
       "identified": "Notices identifiées",
@@ -113,7 +203,10 @@
       "throughput": "Décisions par jour",
       "noActivity": "Rien pour l'instant. Commencez par importer des résultats de recherche.",
       "conflicts": "{n} conflits à résoudre",
-      "stage": {"ta": "Titre & résumé", "ft": "Texte intégral"}
+      "stage": {
+        "ta": "Titre & résumé",
+        "ft": "Texte intégral"
+      }
     },
     "data": {
       "title": "Données",
@@ -139,10 +232,26 @@
       "restore": "Restaurer",
       "keptAs": "conservée sous #{id}",
       "records": "Toutes les notices",
-      "columns": {"title": "Titre", "year": "Année", "source": "Source", "status": "Statut", "pdf": "PDF"}
+      "columns": {
+        "title": "Titre",
+        "year": "Année",
+        "source": "Source",
+        "status": "Statut",
+        "pdf": "PDF"
+      }
     },
     "screening": {
-      "views": {"todo": "À trier", "mine_include": "Incluses par moi", "mine_maybe": "Peut-être", "mine_exclude": "Exclues par moi", "conflict": "Conflits", "include": "Incluses", "exclude": "Exclues", "pending": "En attente", "all": "Toutes"},
+      "views": {
+        "todo": "À trier",
+        "mine_include": "Incluses par moi",
+        "mine_maybe": "Peut-être",
+        "mine_exclude": "Exclues par moi",
+        "conflict": "Conflits",
+        "include": "Incluses",
+        "exclude": "Exclues",
+        "pending": "En attente",
+        "all": "Toutes"
+      },
       "search": "Titre, auteurs, résumé…",
       "empty": "Rien dans cette vue.",
       "allDone": "Vous avez tout trié à cette étape.",
@@ -184,7 +293,12 @@
       "text": "Études incluses au texte intégral. L'IA remplit votre grille depuis chaque PDF avec une citation par champ ; vous vérifiez à côté de l'article.",
       "run": "Extraire avec l'IA",
       "runHint": "{n} études avec PDF et sans brouillon",
-      "status": {"none": "Non commencée", "draft": "Brouillon", "verified": "Vérifiée", "failed": "Échec"},
+      "status": {
+        "none": "Non commencée",
+        "draft": "Brouillon",
+        "verified": "Vérifiée",
+        "failed": "Échec"
+      },
       "verify": "Vérifier",
       "saveVerified": "Enregistrer comme vérifiée",
       "reExtract": "Relancer l'IA",
@@ -201,7 +315,12 @@
       "title": "PRISMA 2020",
       "text": "Les comptages et le diagramme suivent le gabarit officiel PRISMA 2020 (CC BY 4.0).",
       "variant": "Gabarit",
-      "variants": {"new_v1": "Nouvelle revue, bases et registres", "new_v2": "Nouvelle revue, avec autres méthodes", "updated_v1": "Revue mise à jour, bases et registres", "updated_v2": "Revue mise à jour, avec autres méthodes"},
+      "variants": {
+        "new_v1": "Nouvelle revue, bases et registres",
+        "new_v2": "Nouvelle revue, avec autres méthodes",
+        "updated_v1": "Revue mise à jour, bases et registres",
+        "updated_v2": "Revue mise à jour, avec autres méthodes"
+      },
       "downloadSvg": "Télécharger le SVG",
       "exports": "Exports",
       "included": "Études incluses",
@@ -243,7 +362,14 @@
       "archive": "Archiver cette revue",
       "deleteReview": "Supprimer cette revue",
       "deleteConfirm": "Saisissez le titre de la revue pour confirmer",
-      "field": {"name": "Clé", "label": "Libellé", "kind": "Type", "options": "Options (a | b | c)", "hint": "Consigne pour l'IA", "required": "Obligatoire"}
+      "field": {
+        "name": "Clé",
+        "label": "Libellé",
+        "kind": "Type",
+        "options": "Options (a | b | c)",
+        "hint": "Consigne pour l'IA",
+        "required": "Obligatoire"
+      }
     }
   },
   "userSettings": {

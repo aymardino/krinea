@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session as DBSession
 
@@ -15,6 +16,7 @@ from tamis_api.security import (decrypt_secret, encrypt_secret, expires_in, hash
                                 new_token, token_hash, verify_password)
 from tamis_api.services import ai as ai_service
 from tamis_api.services import email as email_service
+from tamis_api.services import oauth
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -156,3 +158,67 @@ def delete_key(provider: str, user: models.User = Depends(current_user), db: DBS
 @router.get("/usage")
 def usage(user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     return ai_service.usage_summary(db, user)
+
+
+# ── Sign in with Google ──────────────────────────────────────────────────────────
+@router.get("/providers")
+def providers():
+    """Which external sign-in methods are configured (the web app shows the buttons)."""
+    return {"google": oauth.enabled()}
+
+
+@router.get("/google/start")
+def google_start(next: str = "/app", locale: str = "en"):
+    if not oauth.enabled():
+        raise HTTPException(404, "Google sign-in is not configured")
+    state, nonce = new_token(16), new_token(16)
+    payload = {"state": state, "nonce": nonce, "next": oauth.safe_next(next),
+               "locale": locale if locale in ("en", "fr") else "en"}
+    resp = RedirectResponse(oauth.authorization_url(state, nonce), status_code=302)
+    resp.set_cookie(oauth.STATE_COOKIE, oauth.sign_state(payload), max_age=oauth.STATE_MAX_AGE, httponly=True,
+                    samesite="lax", secure=get_settings().cookie_secure, path="/auth/google")
+    return resp
+
+
+@router.get("/google/callback")
+def google_callback(request: Request, code: str = "", state: str = "", error: str = "",
+                    db: DBSession = Depends(get_db)):
+    s = get_settings()
+    try:
+        saved = oauth.load_state(request.cookies.get(oauth.STATE_COOKIE, ""))
+    except oauth.OAuthError:
+        saved = {}
+    locale = saved.get("locale", "en")
+    prefix = "" if locale == "en" else f"/{locale}"
+    failure = RedirectResponse(f"{s.base_url}{prefix}/sign-in?error=google", status_code=302)
+    failure.delete_cookie(oauth.STATE_COOKIE, path="/auth/google")
+    if error or not code or not saved or saved.get("state") != state:
+        return failure
+    try:
+        tokens = oauth.exchange_code(code)
+        claims = oauth.verify_id_token(tokens.get("id_token", ""), saved.get("nonce"))
+    except oauth.OAuthError:
+        return failure
+    email = str(claims["email"]).lower().strip()
+    account = db.scalar(select(models.OAuthAccount).where(models.OAuthAccount.provider == "google",
+                                                          models.OAuthAccount.subject == str(claims["sub"])))
+    if account:
+        user = db.get(models.User, account.user_id)
+    else:
+        user = db.scalar(select(models.User).where(models.User.email == email))
+        if not user:
+            user = models.User(email=email, name=str(claims.get("name") or "").strip()[:200], password_hash=None,
+                               locale=locale)
+            db.add(user)
+            db.flush()
+        db.add(models.OAuthAccount(user_id=user.id, provider="google", subject=str(claims["sub"]), email=email))
+    if not user or not user.is_active:
+        return failure
+    if not user.email_verified_at:
+        user.email_verified_at = models.now()
+    if not user.name and claims.get("name"):
+        user.name = str(claims["name"]).strip()[:200]
+    resp = RedirectResponse(f"{s.base_url}{prefix}{saved.get('next', '/app')}", status_code=302)
+    resp.delete_cookie(oauth.STATE_COOKIE, path="/auth/google")
+    start_session(db, user, request, resp)
+    return resp
