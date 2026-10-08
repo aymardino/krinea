@@ -33,7 +33,7 @@ Le code source est disponible sur [github.com/aymardino/systematic_review](https
 
 ## L'édition hébergée
 
-Une édition hébergée existe pour que vous puissiez essayer Tamis sans rien installer. Il s'agit d'une bêta, servie pour l'instant depuis une adresse en .onrender.com ; un vrai nom de domaine suivra. L'application web, l'API, le worker d'arrière-plan et la base de données tournent chez Render, à Francfort (Allemagne), dans l'Union européenne.
+Une édition hébergée existe pour que vous puissiez essayer Tamis sans rien installer. Il s'agit d'une bêta, servie pour l'instant depuis une adresse en .onrender.com ; un vrai nom de domaine suivra. L'application web, l'API, le processus de tâches en arrière-plan et la base de données tournent chez Render, à Francfort (Allemagne), dans l'Union européenne.
 
 L'édition hébergée est exploitée par le mainteneur en tant que personne physique. Elle est non commerciale pour l'instant et fournie en l'état, au mieux des possibilités, sans garantie de disponibilité. Aucune offre payante n'est vendue à ce jour. Les offres Pro et Institution sont annoncées sur la page [tarifs](/pricing) et n'ouvriront qu'une fois la facturation et les documents juridiques prêts. Elles financeront alors l'hébergement et le temps du mainteneur. Quoi qu'il advienne de l'édition hébergée, le code reste libre sous AGPL-3.0.
 
@@ -45,7 +45,7 @@ Tamis est un projet indépendant, porté par un développeur-chercheur basé en 
 
 ## Comment citer Tamis
 
-Citez le numéro de version affiché dans l'application et l'adresse du dépôt. Un DOI accompagnera la première version taguée.
+Citez le numéro de version affiché dans l'application et l'adresse du dépôt.
 
 > Tamis, version X.Y.Z. https://github.com/aymardino/systematic_review
 

@@ -16,7 +16,7 @@ Le mainteneur du projet.
 
 Render, Inc., 525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis (adresse telle que publiée sur [render.com](https://render.com)).
 
-L'application web, l'API, le processus de fond et la base de données PostgreSQL sont exécutés dans la région de Francfort de Render (Allemagne, Union européenne).
+L'application web, l'API, le processus de tâches en arrière-plan et la base de données PostgreSQL sont exécutés dans la région de Francfort de Render (Allemagne, Union européenne).
 
 ## Propriété intellectuelle
 
@@ -24,7 +24,7 @@ Le nom « Tamis » et le logo en forme de tamis identifient le projet. Merci de 
 
 Le logiciel est libre. L'application est publiée sous licence AGPL-3.0. Son moteur, le paquet Python `tamis_core` (lecture des formats de références, dédoublonnage, règles de sélection, schéma d'extraction), est publié sous licence MIT. Code source : [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Chacun peut l'héberger lui-même.
 
-Les modèles de diagramme de flux et de liste de contrôle PRISMA 2020 sont reproduits sous licence CC BY 4.0 depuis prisma-statement.org. Si vous les utilisez, citez : Page MJ et al., BMJ 2021;372:n71.
+Les modèles de diagramme de flux PRISMA 2020 sont reproduits sous licence CC BY 4.0 depuis prisma-statement.org. Si vous les utilisez, citez : Page MJ et al., BMJ 2021;372:n71.
 
 Vous pouvez citer les textes de ce site en indiquant un lien vers leur source. Le contenu de vos revues vous appartient.
 

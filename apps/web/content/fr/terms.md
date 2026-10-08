@@ -53,7 +53,7 @@ Les suggestions de l'IA sont conservées à part des décisions humaines et ne v
 
 ## Fonctions IA
 
-Rien n'est envoyé à un fournisseur d'IA tant qu'un utilisateur disposant des droits de lecteur ne déclenche pas une suggestion ou une extraction dans une revue. Le titre et le résumé (sélection) ou le texte du PDF (extraction), avec les critères ou le formulaire de la revue, sont alors transmis au fournisseur configuré pour cette revue : Anthropic (Claude), Google (Gemini) ou DeepSeek.
+Rien n'est envoyé à un fournisseur d'IA tant qu'un utilisateur disposant des droits de relecteur ne déclenche pas une suggestion ou une extraction dans une revue. Le titre et le résumé (sélection) ou le texte du PDF (extraction), avec les critères ou le formulaire de la revue, sont alors transmis au fournisseur configuré pour cette revue : Anthropic (Claude), Google (Gemini) ou DeepSeek.
 
 Aujourd'hui, les fonctions IA utilisent votre propre clé d'API. Elle est chiffrée au repos, jamais écrite dans les journaux, et vous pouvez la retirer à tout moment. Vous êtes responsable de cette clé, des coûts que le fournisseur vous facture et du respect de ses conditions. Nous conservons des compteurs d'usage (nombre de jetons, jamais les textes). Sur les offres payantes, lorsqu'elles ouvriront, des clés détenues par le service pourront être utilisées à la place.
 

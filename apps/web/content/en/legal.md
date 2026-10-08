@@ -24,13 +24,13 @@ The name "Tamis" and the sieve logo identify the project. Please do not use them
 
 The software is free and open source. The application is released under the AGPL-3.0 licence. The core engine, the Python package `tamis_core` (parsers, deduplication, screening rules, extraction schema), is released under the MIT licence. Source code: [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone may self-host it.
 
-The PRISMA 2020 flow diagram and checklist templates are reproduced under the CC BY 4.0 licence from prisma-statement.org. If you use them, cite: Page MJ et al., BMJ 2021;372:n71.
+The PRISMA 2020 flow diagram templates are reproduced under the CC BY 4.0 licence from prisma-statement.org. If you use them, cite: Page MJ et al., BMJ 2021;372:n71.
 
 You may quote the text of this site with a link to its source. The content of your reviews remains yours.
 
 ## Personal data
 
-How we handle your data, which cookies we use and what your rights are is explained in the [privacy policy](/privacy). The rules of the hosted edition are in the [terms of service](/terms).
+How we handle your data, which cookies we use and what your rights are is explained in the [privacy policy](/privacy). The rules of the hosted edition are in the [terms of use](/terms).
 
 ## Credits
 

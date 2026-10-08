@@ -45,7 +45,7 @@ Tamis is an independent project by an individual developer-researcher based in F
 
 ## How to cite
 
-Cite the version number shown in the app and the repository URL. A DOI will come with the first tagged release.
+Cite the version number shown in the app and the repository URL.
 
 > Tamis, version X.Y.Z. https://github.com/aymardino/systematic_review
 
