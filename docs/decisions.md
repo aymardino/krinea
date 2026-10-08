@@ -399,6 +399,45 @@ only for calling a separately hosted API directly (CORS then applies, with
 unused by the product; a custom domain goes on `tamis-web` only. Large PDF uploads and
 exports stream through the Next.js server. Supersedes the DNS note in D-21.
 
+## D-24 · 2026-10-08 · decided · Settings live where they are used
+
+**Decision.** The screening rail edits the highlight keywords in place (chips with
+match counts, add with Enter, remove with ×) and the AI panel shows the review's
+provider, the key on file or the included credits, and otherwise a field to paste the
+provider key right there. The review settings and the user settings keep the full
+forms; the rail saves to the same endpoints.
+
+**Why.** Founder feedback on the hosted beta: keywords and the AI key were "too far"
+(two pages away) from the screen where they matter, so reviewers did not use them.
+
+**Consequences.** Admin-only for keywords (same rule as the settings page); any
+reviewer can add their own key. The run button stays disabled until a key or credits
+exist, which replaces the 402 error path for most users.
+
+## D-25 · 2026-10-08 · decided · Marketing site structure and the pages a hosted service needs
+
+**Decision.** Header: Features · Pricing · About, the repository as an icon and a
+footer link (no star counter), a menu on phones. Hero in two columns from 1024 px with
+the screening preview beside the text. Trust strip with four verifiable facts, pricing
+teaser, closing section "Free to try, free to leave". Footer in four columns. New pages
+now: /about, /contact, /privacy, /terms, /legal (Markdown under
+`apps/web/content/<locale>`, version 0.1 "under legal review"); later: /docs,
+/security, /cite, /dpa, /changelog, /accessibility. Pro is a waitlist and the
+Institution plan points to /contact until billing and the legal documents exist. No
+e-mail address is published until a domain with working mail exists
+(`NEXT_PUBLIC_CONTACT_EMAIL`).
+
+**Why.** Three critiques (information architecture, density at 100 % zoom, content and
+trust) converged: the source link outweighed the product, the single-column hero left
+half the viewport empty and pushed the product below the fold, and accounts already
+exist, so GDPR article 13 and LCEN information are due now, not later.
+
+**Consequences.** The legal texts must be read by a lawyer before any paid plan (P-09);
+the publisher identity in /legal is withheld under LCEN 6-III as a non-professional
+publisher until a legal entity exists. The repository root still carries files of the
+original extraction project; moving them to `legacy/` is pending (see the cleanup
+proposal of 2026-10-08).
+
 ### P-09 · Legal vehicle operating the hosted service
 
 Open-source publication needs no legal entity. Taking payments does. Options
