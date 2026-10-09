@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { KrineaWordmark } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/marketing/site-header";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

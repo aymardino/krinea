@@ -12,7 +12,7 @@ const GROUPS: { key: "product" | "project" | "legal"; links: FooterLink[] }[] = 
     { key: "selfHost", href: `${REPO_URL}#readme`, external: true }, { key: "releases", href: `${REPO_URL}/releases`, external: true },
   ] },
   { key: "project", links: [
-    { key: "about", href: "/about" }, { key: "contact", href: "/contact" }, { key: "github", href: REPO_URL, external: true },
+    { key: "about", href: "/about" }, { key: "security", href: "/security" }, { key: "contact", href: "/contact" }, { key: "github", href: REPO_URL, external: true },
   ] },
   { key: "legal", links: [
     { key: "privacy", href: "/privacy" }, { key: "terms", href: "/terms" }, { key: "legalNotice", href: "/legal" },

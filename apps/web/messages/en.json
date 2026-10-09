@@ -57,7 +57,8 @@
       "terms": "Terms of service",
       "legalNotice": "Legal notice",
       "independence": "An independent open-source project, not affiliated with or endorsed by any institution. Hosted in Frankfurt (EU).",
-      "licences": "Application AGPL-3.0, core engine MIT · PRISMA 2020 templates reproduced under CC BY 4.0 (prisma-statement.org)"
+      "licences": "Application AGPL-3.0, core engine MIT · PRISMA 2020 templates reproduced under CC BY 4.0 (prisma-statement.org)",
+      "security": "Security"
     }
   },
   "marketing": {
@@ -337,7 +338,8 @@
       "aiKeySaved": "Key saved. It is encrypted and never shown again.",
       "aiKeyStored": "Encrypted at rest, never logged, removable at any time.",
       "aiRemoveKey": "remove",
-      "aiCredits": "Included credits: {n} tokens left this month."
+      "aiCredits": "Included credits: {n} tokens left this month.",
+      "aiKeyMore": "How keys are protected"
     },
     "extraction": {
       "title": "Data extraction",
@@ -457,6 +459,10 @@
     "contact": {
       "title": "Contact",
       "description": "Institutions, free access requests, support and bugs."
+    },
+    "security": {
+      "title": "Security and data",
+      "description": "Where your data lives, how your AI keys are protected, and what is not in place yet."
     }
   },
   "contact": {
@@ -479,5 +485,9 @@
     "email": "For private matters, write to",
     "emailSoon": "A private e-mail address will be published here once our domain is set up. Until then, use GitHub or reply to the e-mail you received from us.",
     "response": "We answer within five working days; there is no phone line or live chat."
+  },
+  "seo": {
+    "title": "Krinea — open-source systematic review software",
+    "description": "Import references, remove duplicates, screen titles and abstracts with your team, extract data with an AI that quotes its sources, and report with the official PRISMA 2020 diagram. Free to self-host, hosted in the EU."
   }
 }

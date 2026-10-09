@@ -8,7 +8,7 @@ import { Markdown, ProseLayout } from "@/components/marketing/prose";
 
 /** Markdown pages, one file per language under apps/web/content/<locale>/<slug>.md,
  *  rendered at build time. Legal texts stay editable without touching the code. */
-const SLUGS = ["about", "privacy", "terms", "legal"] as const;
+const SLUGS = ["about", "privacy", "terms", "legal", "security"] as const;
 type Slug = (typeof SLUGS)[number];
 
 export const dynamic = "force-static";

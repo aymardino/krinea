@@ -51,7 +51,7 @@ export function AiCard({ review, onRun, running, label }: { review: Review; onRu
           <p className="text-xs text-muted-foreground">{t("aiNoKey", { provider: name })}</p>
           <Input type="password" autoComplete="off" className="h-8 text-xs" placeholder={t("aiKeyPlaceholder")} value={draft} onChange={(e) => setDraft(e.target.value)} />
           <Button type="submit" size="sm" className="w-full" disabled={draft.trim().length < 8 || saveKey.isPending}>{t("aiKeySave")}</Button>
-          <p className="text-[11px] text-muted-foreground">{t("aiKeyStored")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("aiKeyStored")} <Link href="/security" target="_blank" className="underline underline-offset-2 hover:text-foreground">{t("aiKeyMore")}</Link></p>
         </form>
       ))}
       <Button className="mt-3 w-full" size="sm" variant={ready ? "default" : "outline"} onClick={onRun} disabled={running || (keys.isSuccess && !ready)}>{label}</Button>

@@ -4,6 +4,21 @@ import { ArrowRight, Bot, Download, FileCheck, FileSearch, GitMerge, ListChecks,
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { StagePreview } from "@/components/marketing/stage-preview";
+import { REPO_URL, SITE_URL } from "@/lib/site";
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Krinea",
+  applicationCategory: "Research software",
+  operatingSystem: "Web",
+  url: SITE_URL,
+  description: "Open-source workbench for systematic reviews: import references, remove duplicates, screen with your team, extract data with AI you verify, report with the PRISMA 2020 diagram.",
+  license: "https://www.gnu.org/licenses/agpl-3.0.html",
+  isAccessibleForFree: true,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+  sameAs: [REPO_URL],
+};
 
 export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -29,6 +44,7 @@ function Landing() {
   ] as const;
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
       {/* Hero: text left, product right from lg up */}
       <section className="mesh-bg relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
