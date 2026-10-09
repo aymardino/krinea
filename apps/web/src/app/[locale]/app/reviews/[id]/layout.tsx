@@ -13,7 +13,7 @@ export default function ReviewLayout({ children, params }: { children: React.Rea
   const t = useTranslations("review.tabs");
   const pathname = usePathname();
   const { data: review, isLoading, error } = useReviewQuery(id);
-  if (isLoading) return <div className="mx-auto max-w-7xl p-6"><Skeleton className="h-9 w-80" /><Skeleton className="mt-6 h-64" /></div>;
+  if (isLoading) return <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] p-6"><Skeleton className="h-9 w-80" /><Skeleton className="mt-6 h-64" /></div>;
   if (error || !review) return <div className="p-10 text-center text-exclude">{String(error ?? "Not found")}</div>;
   const s = review.counts;
   const base = `/app/reviews/${id}`;
@@ -29,7 +29,7 @@ export default function ReviewLayout({ children, params }: { children: React.Rea
   return (
     <ReviewProvider review={review}>
       <div className="border-b border-border bg-card">
-        <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-6">
+        <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] px-4 pt-5 sm:px-6">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="font-display text-2xl font-semibold tracking-tight">{review.title}</h1>
             <span className="text-xs text-muted-foreground">{review.review_type}</span>
@@ -47,7 +47,7 @@ export default function ReviewLayout({ children, params }: { children: React.Rea
           </nav>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</div>
+      <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] px-4 py-6 sm:px-6">{children}</div>
     </ReviewProvider>
   );
 }

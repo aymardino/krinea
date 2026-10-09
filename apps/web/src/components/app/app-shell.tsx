@@ -23,13 +23,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isLoading || !me) {
     return (
-      <div className="mx-auto max-w-6xl p-6"><Skeleton className="h-8 w-48" /><Skeleton className="mt-6 h-40 w-full" /></div>
+      <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] p-6"><Skeleton className="h-8 w-48" /><Skeleton className="mt-6 h-40 w-full" /></div>
     );
   }
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-6">
             <Link href="/app"><KrineaWordmark size={24} /></Link>
             <nav className="hidden items-center gap-1 text-sm md:flex">

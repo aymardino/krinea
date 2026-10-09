@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
-@import "@fontsource-variable/source-serif-4";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -70,7 +69,7 @@
   --color-conflict: var(--conflict); --color-conflict-bg: var(--conflict-bg);
   --color-pending: var(--pending); --color-pending-bg: var(--pending-bg);
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Source Serif 4 Variable", Georgia, "Times New Roman", serif;
+  --font-display: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -91,7 +90,7 @@
 }
 
 @layer utilities {
-  .font-display { font-family: var(--font-display); }
+  .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
   /* Faint grid behind a section. Drawn on a pseudo-element so the fade-out mask never
      touches the section's own content. */
   .mesh-bg { position: relative; isolation: isolate; }

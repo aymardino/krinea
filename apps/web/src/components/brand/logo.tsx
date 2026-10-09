@@ -19,7 +19,7 @@ export function KrineaWordmark({ className, size = 28 }: { className?: string; s
   return (
     <span className={cn("inline-flex items-center gap-2 text-brand-700 dark:text-brand-300", className)}>
       <KrineaMark size={size} />
-      <span className="font-display text-[1.35em] font-semibold tracking-tight text-foreground">Krinea</span>
+      <span className="font-display text-[1.3em] font-bold tracking-tight text-foreground">Krinea</span>
     </span>
   );
 }

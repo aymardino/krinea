@@ -459,6 +459,22 @@ renamed by the owner (old URLs redirect); Render services to be renamed in the
 dashboard before the next blueprint sync; the first citation of the software must use
 the new name.
 
+## D-27 · 2026-10-09 · decided · One sans-serif family; wide-screen layouts
+
+**Decision.** Headings use the same family as the body (Inter), bold, with tighter
+letter-spacing; the serif display face of D-18 is dropped. The marketing container
+grows to 1 400 px from 1 536 px wide, the application to 1 600 px; the screening
+workbench's side columns widen on those screens.
+
+**Why.** Founder feedback on the live site: the serif headlines read as a template
+rather than as the research tools people already use, and on a 1 900 px screen the
+1 150 px column left too much empty space, in the application as well as on the
+marketing pages.
+
+**Consequences.** Brand images regenerated in the sans-serif; `font-display` remains as
+a class so no markup changed. Readability keeps a line length under about 80 characters
+in text columns (prose pages stay at 768 px).
+
 ### P-09 · Legal vehicle operating the hosted service
 
 Open-source publication needs no legal entity. Taking payments does. Options

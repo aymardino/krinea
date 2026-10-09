@@ -121,7 +121,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)_240px]">
+    <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)_240px] 2xl:grid-cols-[320px_minmax(0,1fr)_280px]">
       {/* Queue */}
       <aside className="flex max-h-[calc(100vh-14rem)] flex-col rounded-xl border border-border bg-card">
         <div className="space-y-2 border-b border-border p-3">

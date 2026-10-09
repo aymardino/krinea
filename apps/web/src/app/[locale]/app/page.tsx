@@ -16,7 +16,7 @@ export default function ReviewsPage() {
   const locale = useLocale();
   const { data, isLoading } = useQuery<ReviewSummary[]>({ queryKey: ["reviews"], queryFn: () => api.get("/reviews") });
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] px-4 py-8 sm:px-6">
       <PageHeader title={t("title")} actions={<Button asChild><Link href="/app/reviews/new"><Plus />{t("new")}</Link></Button>} />
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-40" />)}</div>

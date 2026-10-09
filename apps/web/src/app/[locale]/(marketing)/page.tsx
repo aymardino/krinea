@@ -60,7 +60,7 @@ function Landing() {
         <div className="relative mx-auto grid max-w-6xl 2xl:max-w-[1400px] gap-10 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-2 lg:items-center lg:gap-12 xl:gap-16 2xl:py-20">
           <div className="max-w-xl 2xl:max-w-2xl">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-medium text-brand-900 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-100">{t("heroEyebrow")}</p>
-            <h1 className="font-display text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl xl:text-[3.5rem] 2xl:text-[4.25rem]">{t("heroTitle")}</h1>
+            <h1 className="font-display text-balance text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl xl:text-[3.25rem] 2xl:text-[3.75rem]">{t("heroTitle")}</h1>
             <p className="mt-5 max-w-lg text-balance text-base text-muted-foreground md:text-lg 2xl:max-w-xl 2xl:text-xl">{t("heroText")}</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Button size="lg" className="w-full sm:w-auto" asChild><Link href="/sign-up">{t("ctaPrimary")}<ArrowRight /></Link></Button>
