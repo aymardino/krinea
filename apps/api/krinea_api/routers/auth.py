@@ -170,8 +170,8 @@ def usage(user: models.User = Depends(current_user), db: DBSession = Depends(get
 # ── Sign in with Google ──────────────────────────────────────────────────────────
 @router.get("/providers")
 def providers():
-    """Which external sign-in methods are configured (the web app shows the buttons)."""
-    return {"google": oauth.enabled()}
+    """Which sign-in methods are configured (the web app shows the buttons)."""
+    return {"google": oauth.enabled(), "email": email_service.available()}
 
 
 @router.get("/google/start")

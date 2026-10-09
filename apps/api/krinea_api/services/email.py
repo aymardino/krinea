@@ -36,9 +36,32 @@ def _t(locale: str, key: str, **kw) -> str:
     return _T.get(locale, _T["en"])[key].format(**kw)
 
 
+def configured() -> str:
+    """Which provider will actually deliver: "resend", "smtp", "console" (logs only) or "" (misconfigured)."""
+    s = get_settings()
+    if s.email_provider == "resend":
+        return "resend" if s.resend_api_key else ""
+    if s.email_provider == "smtp":
+        return "smtp" if s.smtp_host and s.smtp_user and s.smtp_password else ""
+    return "console"
+
+
+def available() -> bool:
+    """Can this deployment send real e-mail? (The console provider only counts in development.)"""
+    kind = configured()
+    return kind in ("resend", "smtp") or (kind == "console" and get_settings().debug)
+
+
 def send(to: str, subject: str, text: str) -> None:
     s = get_settings()
-    if s.email_provider == "resend" and s.resend_api_key:
+    kind = configured()
+    if not kind:
+        log.error("e-mail misconfigured: EMAIL_PROVIDER=%s but its settings are incomplete", s.email_provider)
+        raise EmailError("E-mail is not configured on this server (EMAIL_PROVIDER=%s)" % s.email_provider)
+    if kind == "console" and not s.debug:
+        log.error("e-mail not configured in production (EMAIL_PROVIDER=console)")
+        raise EmailError("E-mail is not configured on this server")
+    if kind == "resend":
         try:
             r = httpx.post("https://api.resend.com/emails", timeout=15,
                            headers={"Authorization": f"Bearer {s.resend_api_key}"},
@@ -48,20 +71,27 @@ def send(to: str, subject: str, text: str) -> None:
             log.error("Resend refused the message: %s", e)
             raise EmailError("The e-mail provider refused the message") from e
         return
-    if s.email_provider == "smtp" and s.smtp_host:
+    if kind == "smtp":
         msg = EmailMessage()
         msg["From"], msg["To"], msg["Subject"] = s.email_from, to, subject
         msg.set_content(text)
         try:
-            with smtplib.SMTP(s.smtp_host, s.smtp_port, timeout=20) as smtp:
-                if s.smtp_starttls:
+            # Port 465 = implicit TLS (OVH, Gmail both accept it); 587 = STARTTLS.
+            if s.smtp_port == 465 or s.smtp_tls == "ssl":
+                smtp = smtplib.SMTP_SSL(s.smtp_host, s.smtp_port, timeout=20)
+            else:
+                smtp = smtplib.SMTP(s.smtp_host, s.smtp_port, timeout=20)
+            with smtp:
+                if s.smtp_starttls and not isinstance(smtp, smtplib.SMTP_SSL):
                     smtp.starttls()
-                if s.smtp_user:
-                    smtp.login(s.smtp_user, s.smtp_password)
+                smtp.login(s.smtp_user, s.smtp_password)
                 smtp.send_message(msg)
+        except smtplib.SMTPAuthenticationError as e:
+            log.error("SMTP login refused for %s at %s:%s: %s", s.smtp_user, s.smtp_host, s.smtp_port, e)
+            raise EmailError("The mailbox refused the SMTP login (check SMTP_USER / SMTP_PASSWORD)") from e
         except (smtplib.SMTPException, OSError) as e:
-            log.error("SMTP delivery failed: %s", e)
-            raise EmailError("The e-mail could not be sent (SMTP)") from e
+            log.error("SMTP delivery failed via %s:%s: %s", s.smtp_host, s.smtp_port, e)
+            raise EmailError(f"The e-mail could not be sent (SMTP {s.smtp_host}:{s.smtp_port}: {type(e).__name__})") from e
         return
     OUTBOX.append({"to": to, "subject": subject, "text": text})
     del OUTBOX[:-50]

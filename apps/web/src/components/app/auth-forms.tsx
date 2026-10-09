@@ -36,7 +36,7 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
   const [busy, setBusy] = useState(false);
   const [magicSent, setMagicSent] = useState<string | null>(null);
   const params = useSearchParams();
-  const providers = useQuery<{ google: boolean }>({ queryKey: ["providers"], queryFn: () => api.get("/auth/providers"), staleTime: 300_000 });
+  const providers = useQuery<{ google: boolean; email?: boolean }>({ queryKey: ["providers"], queryFn: () => api.get("/auth/providers"), staleTime: 300_000 });
   useEffect(() => { if (params.get("error") === "google") toast.error(t("googleError")); }, [params, t]);
 
   async function submit(e: React.FormEvent) {
@@ -98,6 +98,7 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
           </p>
         )}
       </form>
+      {providers.data?.email !== false && (<>
       <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground"><Separator className="flex-1" />{t("magicTitle")}<Separator className="flex-1" /></div>
       {magicSent === null ? (
         <Button type="button" variant="outline" className="w-full" disabled={busy || !email} onClick={magic}>{t("magicButton")}</Button>
@@ -108,6 +109,7 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
           {" "}<button type="button" className="underline" onClick={() => setMagicSent(null)}>{t("magicAgain")}</button>
         </p>
       )}
+      </>)}
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {mode === "sign-in" ? t("noAccount") : t("haveAccount")}{" "}
         <Link href={mode === "sign-in" ? "/sign-up" : "/sign-in"} className="font-medium text-primary underline-offset-4 hover:underline">{mode === "sign-in" ? c("signUp") : c("signIn")}</Link>

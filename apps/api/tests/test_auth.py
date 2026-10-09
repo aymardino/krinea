@@ -51,11 +51,11 @@ def test_google_sign_in(client, monkeypatch):
     from krinea_api.services import oauth
 
     s = get_settings()
-    assert client.get("/auth/providers").json() == {"google": False}
+    assert client.get("/auth/providers").json() == {"google": False, "email": True}
     assert client.get("/auth/google/start").status_code == 404
     monkeypatch.setattr(s, "google_client_id", "cid.apps.googleusercontent.com")
     monkeypatch.setattr(s, "google_client_secret", "secret")
-    assert client.get("/auth/providers").json() == {"google": True}
+    assert client.get("/auth/providers").json()["google"] is True
 
     r = client.get("/auth/google/start", params={"next": "/app/reviews/x", "locale": "fr"}, follow_redirects=False)
     assert r.status_code == 302
@@ -137,6 +137,7 @@ def test_smtp_provider(client, monkeypatch):
     monkeypatch.setattr(s, "email_provider", "smtp")
     monkeypatch.setattr(s, "smtp_host", "smtp.example.org")
     monkeypatch.setattr(s, "smtp_user", "me@example.org")
+    monkeypatch.setattr(s, "smtp_password", "secret")
     monkeypatch.setattr(smtplib, "SMTP", FakeSMTP)
     assert client.post("/auth/magic-link", json={"email": "smtp@example.org"}).status_code == 200
     assert sent[0] == ("connect", "smtp.example.org", 587) and ("starttls",) in sent and ("login", "me@example.org") in sent
@@ -149,3 +150,14 @@ def test_smtp_provider(client, monkeypatch):
     r = client.post("/auth/magic-link", json={"email": "smtp@example.org"})
     assert r.status_code == 502 and "SMTP" in r.json()["detail"]
     assert email_service.EmailError
+
+
+def test_email_misconfiguration_is_visible(client, monkeypatch):
+    """EMAIL_PROVIDER=resend without a key must fail loudly, not pretend to send."""
+    from krinea_api.config import get_settings
+    s = get_settings()
+    monkeypatch.setattr(s, "email_provider", "resend")
+    monkeypatch.setattr(s, "resend_api_key", "")
+    assert client.get("/auth/providers").json()["email"] is False
+    r = client.post("/auth/magic-link", json={"email": "p@example.org"})
+    assert r.status_code == 502 and "not configured" in r.json()["detail"]

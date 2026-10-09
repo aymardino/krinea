@@ -50,6 +50,7 @@ class Settings:
         self.smtp_user = os.environ.get("SMTP_USER", "")
         self.smtp_password = os.environ.get("SMTP_PASSWORD", "")
         self.smtp_starttls = _bool(os.environ.get("SMTP_STARTTLS"), True)
+        self.smtp_tls = os.environ.get("SMTP_TLS", "").strip().lower()          # "" | ssl | starttls
         self.s3_bucket = os.environ.get("S3_BUCKET", "")
         self.s3_endpoint = os.environ.get("S3_ENDPOINT_URL", "")
         self.s3_region = os.environ.get("S3_REGION", "auto")
