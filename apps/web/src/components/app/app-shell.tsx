@@ -29,7 +29,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-7xl 2xl:max-w-[1600px] items-center justify-between px-4 sm:px-6">
+        <div className="flex h-14 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-6">
             <Link href="/app"><KrineaWordmark size={24} /></Link>
             <nav className="hidden items-center gap-1 text-sm md:flex">

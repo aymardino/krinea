@@ -55,7 +55,7 @@ export function SiteHeader() {
   );
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl 2xl:max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center"><KrineaWordmark /></Link>
         <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex" aria-label="Main">
           {NAV.map((n) => <Link key={n.key} href={n.href} className="hover:text-foreground">{t(n.key)}</Link>)}
