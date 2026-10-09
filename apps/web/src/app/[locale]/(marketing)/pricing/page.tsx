@@ -14,7 +14,7 @@ function Pricing() {
   const t = useTranslations("pricing");
   const plans = ["free", "pro", "institution"] as const;
   return (
-    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <section className="mx-auto max-w-6xl 2xl:max-w-[1400px] px-4 py-20 sm:px-6">
       <h1 className="font-display text-center text-4xl font-semibold tracking-tight md:text-5xl">{t("title")}</h1>
       <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted-foreground">{t("subtitle")}</p>
       <div className="mt-12 grid gap-6 md:grid-cols-3">

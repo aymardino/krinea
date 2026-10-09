@@ -26,8 +26,8 @@ export function StagePreview({ variant = "full", className }: { variant?: "full"
         )}
         <div className={hero ? "p-4 md:p-5" : "p-5"}>
           <div className="flex flex-wrap gap-2"><Badge variant="brand">2020</Badge><Badge variant="secondary">Renewable Energy</Badge><Badge variant="secondary">Scopus</Badge></div>
-          <h3 className={cn("mt-3 font-display font-semibold", hero ? "text-lg xl:text-xl" : "text-xl")}>Optimal sizing of a hybrid PV-diesel-battery mini-grid for a village in Nigeria</h3>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          <h3 className={cn("mt-3 font-display font-semibold", hero ? "text-lg xl:text-xl 2xl:text-2xl" : "text-xl")}>Optimal sizing of a hybrid PV-diesel-battery mini-grid for a village in Nigeria</h3>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground 2xl:text-[15px]">
             A hybrid <mark className="kw-include">solar</mark> PV-diesel-battery <mark className="kw-include">mini-grid</mark> is sized for a village of 450 households. The <mark className="kw-include">techno-economic</mark> optimisation yields an <mark className="kw-include">LCOE</mark> of 0.31 USD/kWh and a renewable fraction of 78 %, outperforming diesel-only supply and <mark className="kw-exclude">grid extension</mark> beyond 12 km.
           </p>
           <div className="mt-4 rounded-lg border border-conflict/30 bg-conflict-bg px-3 py-2 text-xs text-conflict">{t("aiSuggests")} <b>{c("include").toLowerCase()}</b> (91 %) · {t("aiReason")}</div>

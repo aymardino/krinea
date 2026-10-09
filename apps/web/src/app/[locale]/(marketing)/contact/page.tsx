@@ -27,7 +27,7 @@ function Contact() {
     { key: "support", icon: <LifeBuoy /> },
   ] as const;
   return (
-    <section className="mx-auto max-w-5xl px-4 py-14 sm:px-6 md:py-20">
+    <section className="mx-auto max-w-5xl 2xl:max-w-6xl px-4 py-14 sm:px-6 md:py-20">
       <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">{t("title")}</h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">{t("lede")}</p>
       <div className="mt-10 grid gap-6 sm:grid-cols-3">
