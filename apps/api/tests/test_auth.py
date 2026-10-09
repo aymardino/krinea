@@ -115,3 +115,37 @@ def test_public_urls_from_proxy(client, monkeypatch):
                 {**proxied, "X-Tamis-Origin": "https://evil.example/path"}):
         r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=bad)
         assert r.json()["dev_link"].startswith("http://web.test/auth/magic?token=")
+
+
+def test_smtp_provider(client, monkeypatch):
+    """The SMTP provider logs in, sends the message, and a failure becomes a 502."""
+    import smtplib
+    from tamis_api.config import get_settings
+    from tamis_api.services import email as email_service
+
+    sent = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout=0): sent.append(("connect", host, port))
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def starttls(self): sent.append(("starttls",))
+        def login(self, user, pw): sent.append(("login", user))
+        def send_message(self, msg): sent.append(("send", msg["To"], msg["Subject"]))
+
+    s = get_settings()
+    monkeypatch.setattr(s, "email_provider", "smtp")
+    monkeypatch.setattr(s, "smtp_host", "smtp.example.org")
+    monkeypatch.setattr(s, "smtp_user", "me@example.org")
+    monkeypatch.setattr(smtplib, "SMTP", FakeSMTP)
+    assert client.post("/auth/magic-link", json={"email": "smtp@example.org"}).status_code == 200
+    assert sent[0] == ("connect", "smtp.example.org", 587) and ("starttls",) in sent and ("login", "me@example.org") in sent
+    assert sent[-1][0] == "send" and sent[-1][1] == "smtp@example.org"
+
+    class BrokenSMTP(FakeSMTP):
+        def login(self, user, pw): raise smtplib.SMTPAuthenticationError(535, b"bad credentials")
+
+    monkeypatch.setattr(smtplib, "SMTP", BrokenSMTP)
+    r = client.post("/auth/magic-link", json={"email": "smtp@example.org"})
+    assert r.status_code == 502 and "SMTP" in r.json()["detail"]
+    assert email_service.EmailError

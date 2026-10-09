@@ -1,7 +1,9 @@
-"""Transactional email: console (development, tests) or Resend (production)."""
+"""Transactional email: console (development, tests), Resend, or any SMTP mailbox."""
 from __future__ import annotations
 
 import logging
+import smtplib
+from email.message import EmailMessage
 
 import httpx
 
@@ -9,6 +11,10 @@ from tamis_api.config import get_settings
 
 log = logging.getLogger("tamis.email")
 OUTBOX: list[dict] = []          # console provider keeps the last messages (tests read them)
+
+
+class EmailError(Exception):
+    """The message could not be handed to the provider (bad credentials, host down…)."""
 
 _T = {
     "en": {
@@ -33,10 +39,29 @@ def _t(locale: str, key: str, **kw) -> str:
 def send(to: str, subject: str, text: str) -> None:
     s = get_settings()
     if s.email_provider == "resend" and s.resend_api_key:
-        r = httpx.post("https://api.resend.com/emails", timeout=15,
-                       headers={"Authorization": f"Bearer {s.resend_api_key}"},
-                       json={"from": s.email_from, "to": [to], "subject": subject, "text": text})
-        r.raise_for_status()
+        try:
+            r = httpx.post("https://api.resend.com/emails", timeout=15,
+                           headers={"Authorization": f"Bearer {s.resend_api_key}"},
+                           json={"from": s.email_from, "to": [to], "subject": subject, "text": text})
+            r.raise_for_status()
+        except httpx.HTTPError as e:
+            log.error("Resend refused the message: %s", e)
+            raise EmailError("The e-mail provider refused the message") from e
+        return
+    if s.email_provider == "smtp" and s.smtp_host:
+        msg = EmailMessage()
+        msg["From"], msg["To"], msg["Subject"] = s.email_from, to, subject
+        msg.set_content(text)
+        try:
+            with smtplib.SMTP(s.smtp_host, s.smtp_port, timeout=20) as smtp:
+                if s.smtp_starttls:
+                    smtp.starttls()
+                if s.smtp_user:
+                    smtp.login(s.smtp_user, s.smtp_password)
+                smtp.send_message(msg)
+        except (smtplib.SMTPException, OSError) as e:
+            log.error("SMTP delivery failed: %s", e)
+            raise EmailError("The e-mail could not be sent (SMTP)") from e
         return
     OUTBOX.append({"to": to, "subject": subject, "text": text})
     del OUTBOX[:-50]

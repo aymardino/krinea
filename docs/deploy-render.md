@@ -74,11 +74,16 @@ and no URL to configure, and the session cookie is first-party.
   read the failing `/api/...` response. A `401` right after signing in means
   the session cookie did not come back: `COOKIE_SECURE` must be `true` only
   behind HTTPS.
-- **No e-mail arrives** (magic link, invitation): e-mails need
-  `RESEND_API_KEY` on `tamis-api` and an `EMAIL_FROM` address on a domain
-  verified in Resend. Without a domain yet, Resend lets you send from
-  `onboarding@resend.dev` to the address of your own Resend account only.
-  Password sign-up needs no e-mail.
+- **No e-mail arrives** (magic link, invitation): the API only logs e-mails
+  until a provider is configured on `tamis-api`. Without a domain, use any
+  mailbox over SMTP: `EMAIL_PROVIDER=smtp`, `SMTP_HOST=smtp.gmail.com`,
+  `SMTP_PORT=587`, `SMTP_USER=you@gmail.com`, `SMTP_PASSWORD=<16-character
+  Google app password>`, `EMAIL_FROM=Tamis <you@gmail.com>` (Google: Account →
+  Security → 2-step verification → App passwords; about 500 messages a day).
+  With a domain, prefer Resend: `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`,
+  `EMAIL_FROM` on the domain verified in Resend. A failed delivery now returns
+  a `502` with the reason instead of a silent success. Password sign-up needs
+  no e-mail.
 - **Blueprint sync errors on `fromService`**: replace the reference with a
   plain `value` (the API's public URL for `API_URL`, the API's `SECRET_KEY`
   for `PROXY_KEY`) and sync again.

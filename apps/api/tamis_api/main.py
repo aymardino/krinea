@@ -12,6 +12,7 @@ from tamis_api.config import get_settings
 from tamis_api.db import create_all
 from tamis_api.routers import ai, auth, exports, records, reviews
 from tamis_api.services.ai import AIUnavailable
+from tamis_api.services.email import EmailError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
@@ -28,6 +29,10 @@ def create_app() -> FastAPI:
     @app.exception_handler(AIUnavailable)
     async def _ai_unavailable(_: Request, exc: AIUnavailable):
         return JSONResponse({"detail": str(exc)}, status_code=402)
+
+    @app.exception_handler(EmailError)
+    async def _email_error(_: Request, exc: EmailError):
+        return JSONResponse({"detail": str(exc)}, status_code=502)
 
     @app.get("/health")
     def health():

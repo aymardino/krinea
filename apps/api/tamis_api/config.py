@@ -41,9 +41,15 @@ class Settings:
         self.cookie_secure = _bool(os.environ.get("COOKIE_SECURE"), self.env == "production")
         self.session_days = int(os.environ.get("SESSION_DAYS", "30"))
         self.magic_link_minutes = int(os.environ.get("MAGIC_LINK_MINUTES", "20"))
-        self.email_provider = os.environ.get("EMAIL_PROVIDER", "console")          # console | resend
+        self.email_provider = os.environ.get("EMAIL_PROVIDER", "console")          # console | resend | smtp
         self.email_from = os.environ.get("EMAIL_FROM", "Tamis <no-reply@tamis.app>")
         self.resend_api_key = os.environ.get("RESEND_API_KEY", "")
+        # SMTP (any mailbox, e.g. Gmail with an app password): no domain needed to get started
+        self.smtp_host = os.environ.get("SMTP_HOST", "")
+        self.smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        self.smtp_user = os.environ.get("SMTP_USER", "")
+        self.smtp_password = os.environ.get("SMTP_PASSWORD", "")
+        self.smtp_starttls = _bool(os.environ.get("SMTP_STARTTLS"), True)
         self.s3_bucket = os.environ.get("S3_BUCKET", "")
         self.s3_endpoint = os.environ.get("S3_ENDPOINT_URL", "")
         self.s3_region = os.environ.get("S3_REGION", "auto")
