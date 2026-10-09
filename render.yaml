@@ -40,12 +40,14 @@ services:
         value: "true"
       - key: INLINE_JOBS
         value: "0"
+      # E-mail: set in the dashboard (console | resend | smtp, plus RESEND_API_KEY or the
+      # SMTP_* variables); never overwritten by a sync.
       - key: EMAIL_PROVIDER
-        value: resend
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: Krinea <no-reply@example.org>
+        sync: false
       - key: S3_BUCKET
         sync: false
       - key: S3_ENDPOINT_URL

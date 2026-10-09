@@ -44,6 +44,12 @@ and no URL to configure, and the session cookie is first-party.
    `pg_dump` for off-site copies. Render's connection string (`postgres://…`)
    is accepted as is; the API rewrites it for the psycopg driver.
 
+Values you set in the dashboard are kept across Blueprint syncs only for
+variables the blueprint marks `sync: false` (all secrets, `EMAIL_PROVIDER`,
+`EMAIL_FROM`) and for variables the blueprint does not list at all (`BASE_URL`,
+`SMTP_*`, `GOOGLE_*`). A variable with a fixed `value` in `render.yaml` is reset
+to that value on every sync.
+
 ### Custom domain
 
 1. Buy the domain at a registrar (Cloudflare Registrar, Porkbun, OVH, Gandi…).
