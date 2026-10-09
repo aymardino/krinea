@@ -30,7 +30,7 @@ export function StagePreview({ variant = "full", className }: { variant?: "full"
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             A hybrid <mark className="kw-include">solar</mark> PV-diesel-battery <mark className="kw-include">mini-grid</mark> is sized for a village of 450 households. The <mark className="kw-include">techno-economic</mark> optimisation yields an <mark className="kw-include">LCOE</mark> of 0.31 USD/kWh and a renewable fraction of 78 %, outperforming diesel-only supply and <mark className="kw-exclude">grid extension</mark> beyond 12 km.
           </p>
-          <div className="mt-4 rounded-lg border border-conflict/30 bg-conflict-bg px-3 py-2 text-xs text-conflict">{t("aiSuggests")} <b>{c("include").toLowerCase()}</b> (91 %) — {t("aiReason")}</div>
+          <div className="mt-4 rounded-lg border border-conflict/30 bg-conflict-bg px-3 py-2 text-xs text-conflict">{t("aiSuggests")} <b>{c("include").toLowerCase()}</b> (91 %) · {t("aiReason")}</div>
           <div className="mt-4 flex gap-2">
             <span className="rounded-md bg-include px-3 py-1.5 text-sm font-medium text-white">{c("include")}</span>
             <span className="rounded-md border border-maybe/40 bg-maybe-bg px-3 py-1.5 text-sm font-medium text-maybe">{c("maybe")}</span>

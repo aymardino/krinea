@@ -1,4 +1,4 @@
-*Version 0.1 — en cours de relecture juridique. Dernière mise à jour : 8 octobre 2026.*
+*Version 0.1, en cours de relecture juridique. Dernière mise à jour : 8 octobre 2026.*
 
 ## En bref
 

@@ -1,4 +1,4 @@
-*Version 0.1 — under legal review. Last updated: 8 October 2026.*
+*Version 0.1, under legal review. Last updated: 8 October 2026.*
 
 ## In short
 
