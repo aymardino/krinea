@@ -10,7 +10,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet, InvalidToken
 
-from tamis_api.config import get_settings
+from krinea_api.config import get_settings
 
 _ph = PasswordHasher()
 

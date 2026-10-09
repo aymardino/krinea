@@ -1,4 +1,4 @@
-# Tamis — systematic reviews, sifted
+# Krinea — systematic reviews, sifted
 
 Open-source workbench for systematic reviews, in the spirit of Rayyan or
 Covidence but yours to host: import search exports, remove duplicates, screen
@@ -12,7 +12,7 @@ English and French interface. AGPL-3.0 application, MIT core engine.
 apps/web        Next.js 16 product: marketing site + application (en/fr)
 apps/api        FastAPI + SQLAlchemy: accounts, reviews, imports, dedup, screening,
                 AI jobs, extraction, PRISMA, exports; PostgreSQL or SQLite
-packages/core   tamis_core (MIT): parsers, dedup, screening logic, extraction forms,
+packages/core   krinea_core (MIT): parsers, dedup, screening logic, extraction forms,
                 LLM calls with usage, PRISMA 2020 SVG renderer
 review_app.py   the original single-user Streamlit edition (same engine)
 docs/           decision log (every choice and why) and deployment guides
@@ -23,7 +23,7 @@ docs/           decision log (every choice and why) and deployment guides
 ```bash
 # API
 pip install -e packages/core -e "apps/api[dev]"
-cd apps/api && uvicorn tamis_api.main:app --reload       # http://localhost:8000/docs
+cd apps/api && uvicorn krinea_api.main:app --reload       # http://localhost:8000/docs
 # Web
 cd apps/web && pnpm install && pnpm dev                   # http://localhost:3000
 ```

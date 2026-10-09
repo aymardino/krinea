@@ -1,11 +1,11 @@
-"""Duplicate detection for a review, on top of tamis_core.dedup."""
+"""Duplicate detection for a review, on top of krinea_core.dedup."""
 from __future__ import annotations
 
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
-from tamis_api import models
-from tamis_core import biblio, dedup as core
+from krinea_api import models
+from krinea_core import biblio, dedup as core
 
 FIELDS = biblio.RECORD_FIELDS
 

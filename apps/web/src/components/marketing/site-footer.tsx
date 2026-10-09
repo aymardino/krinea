@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { TamisWordmark } from "@/components/brand/logo";
+import { KrineaWordmark } from "@/components/brand/logo";
 import { LanguageSwitch, REPO_URL } from "@/components/marketing/site-header";
 
 type FooterLink = { key: string; href: string; external?: boolean };
@@ -29,7 +29,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="space-y-4">
-            <TamisWordmark size={24} className="text-brand-700" />
+            <KrineaWordmark size={24} className="text-brand-700" />
             <p className="text-sm text-muted-foreground">{c("tagline")}</p>
             <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">{t("footer.independence")}</p>
             <LanguageSwitch />

@@ -23,7 +23,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-from tamis_core.biblio import RECORD_FIELDS, clean_doi, clean_year
+from krinea_core.biblio import RECORD_FIELDS, clean_doi, clean_year
 
 try:
     from rapidfuzz import fuzz, process

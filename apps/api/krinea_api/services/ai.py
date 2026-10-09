@@ -7,12 +7,12 @@ import datetime as dt
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from tamis_api import models
-from tamis_api.config import get_settings
-from tamis_api.security import decrypt_secret
-from tamis_api.services import storage
-from tamis_core import extraction_schema, llm
-from tamis_core import screening as core_screening
+from krinea_api import models
+from krinea_api.config import get_settings
+from krinea_api.security import decrypt_secret
+from krinea_api.services import storage
+from krinea_core import extraction_schema, llm
+from krinea_core import screening as core_screening
 
 
 class AIUnavailable(Exception):

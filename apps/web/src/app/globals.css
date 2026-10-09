@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Tamis design tokens (decision D-18) ─────────────────────────────────────── */
+/* ── Krinea design tokens (decision D-18) ─────────────────────────────────────── */
 :root {
   --brand-50: #effcf8;  --brand-100: #d4f7ec; --brand-200: #a9eed9; --brand-300: #71dfc2;
   --brand-400: #3cc8a8; --brand-500: #1fae90; --brand-600: #178c76; --brand-700: #16705f;
@@ -112,21 +112,21 @@
 }
 
 /* ── Reading pages (about, privacy, terms, legal notice) ──────────────────────── */
-.prose-tamis { @apply text-[15px] leading-7 text-foreground; }
-.prose-tamis > :first-child { @apply mt-0; }
-.prose-tamis h2 { @apply font-display mt-10 text-2xl font-semibold tracking-tight; }
-.prose-tamis h3 { @apply mt-7 text-lg font-semibold; }
-.prose-tamis h4 { @apply mt-5 text-base font-semibold; }
-.prose-tamis p { @apply mt-4; }
-.prose-tamis ul { @apply mt-4 list-disc space-y-1.5 pl-6; }
-.prose-tamis ol { @apply mt-4 list-decimal space-y-1.5 pl-6; }
-.prose-tamis li > p { @apply mt-1; }
-.prose-tamis a { @apply font-medium text-primary underline underline-offset-4; }
-.prose-tamis strong { @apply font-semibold; }
-.prose-tamis blockquote { @apply mt-4 border-l-4 border-brand-300 bg-brand-50 px-4 py-3 text-foreground dark:bg-brand-950; }
-.prose-tamis hr { @apply my-8 border-border; }
-.prose-tamis code { @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[13px]; }
-.prose-tamis table { @apply mt-4 w-full border-collapse text-sm; }
-.prose-tamis th { @apply border-b border-border py-2 pr-4 text-left font-semibold; }
-.prose-tamis td { @apply border-b border-border py-2 pr-4 align-top; }
-.prose-tamis h2 + p, .prose-tamis h3 + p { @apply mt-3; }
+.prose-krinea { @apply text-[15px] leading-7 text-foreground; }
+.prose-krinea > :first-child { @apply mt-0; }
+.prose-krinea h2 { @apply font-display mt-10 text-2xl font-semibold tracking-tight; }
+.prose-krinea h3 { @apply mt-7 text-lg font-semibold; }
+.prose-krinea h4 { @apply mt-5 text-base font-semibold; }
+.prose-krinea p { @apply mt-4; }
+.prose-krinea ul { @apply mt-4 list-disc space-y-1.5 pl-6; }
+.prose-krinea ol { @apply mt-4 list-decimal space-y-1.5 pl-6; }
+.prose-krinea li > p { @apply mt-1; }
+.prose-krinea a { @apply font-medium text-primary underline underline-offset-4; }
+.prose-krinea strong { @apply font-semibold; }
+.prose-krinea blockquote { @apply mt-4 border-l-4 border-brand-300 bg-brand-50 px-4 py-3 text-foreground dark:bg-brand-950; }
+.prose-krinea hr { @apply my-8 border-border; }
+.prose-krinea code { @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[13px]; }
+.prose-krinea table { @apply mt-4 w-full border-collapse text-sm; }
+.prose-krinea th { @apply border-b border-border py-2 pr-4 text-left font-semibold; }
+.prose-krinea td { @apply border-b border-border py-2 pr-4 align-top; }
+.prose-krinea h2 + p, .prose-krinea h3 + p { @apply mt-3; }

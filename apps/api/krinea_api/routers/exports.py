@@ -9,12 +9,12 @@ from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from tamis_api import models
-from tamis_api.db import get_db
-from tamis_api.deps import ReviewAccess
-from tamis_api.services import prisma as prisma_service
-from tamis_api.services import screening as scr
-from tamis_core import biblio, extraction_schema, prisma as prisma_core
+from krinea_api import models
+from krinea_api.db import get_db
+from krinea_api.deps import ReviewAccess
+from krinea_api.services import prisma as prisma_service
+from krinea_api.services import screening as scr
+from krinea_core import biblio, extraction_schema, prisma as prisma_core
 
 router = APIRouter(prefix="/reviews/{review_id}", tags=["exports"])
 

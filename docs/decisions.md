@@ -438,6 +438,27 @@ publisher until a legal entity exists. The repository root still carries files o
 original extraction project; moving them to `legacy/` is pending (see the cleanup
 proposal of 2026-10-08).
 
+## D-26 · 2026-10-09 · decided · Renamed Tamis → Krinea
+
+**Decision.** The product, packages (`krinea_core`, `krinea_api`), cookie, proxy headers,
+Render service names, site copy and legal texts are renamed to **Krinea** (Greek *krinō*:
+to separate, to judge; root of *criterion*). New mark: a circle divided by a diagonal,
+two filled dots on the kept side, one hollow dot on the other. Taglines: "Systematic
+reviews, judged on the evidence." / "La revue systématique, jugée sur pièces."
+Domain: krinea.org (and .app when available).
+
+**Why.** "Tamis" is a common word in French and English (a kitchen sieve) and, worse,
+TAMIS is an established surgical acronym (transanal minimally invasive surgery) with
+many systematic reviews on PubMed: the exact audience of this tool would have found
+colorectal surgery when searching the name. Two naming rounds vetted candidates
+against the web, GitHub and the founder's INPI search; Krinea had no indexed use and no
+trademark hit.
+
+**Consequences.** Earlier entries keep the historical name. GitHub repository to be
+renamed by the owner (old URLs redirect); Render services to be renamed in the
+dashboard before the next blueprint sync; the first citation of the software must use
+the new name.
+
 ### P-09 · Legal vehicle operating the hosted service
 
 Open-source publication needs no legal entity. Taking payments does. Options

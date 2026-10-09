@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Tamis",
-    "tagline": "La revue systématique, tamisée.",
+    "appName": "Krinea",
+    "tagline": "La revue systématique, jugée sur pièces.",
     "signIn": "Se connecter",
     "signUp": "Créer un compte",
     "signOut": "Se déconnecter",
@@ -96,7 +96,7 @@
     "teamText": "Invitez des relecteurs par e-mail, choisissez simple ou double lecture, masquez les décisions en mode aveugle, résolvez les conflits, suivez la progression et le temps de chacun.",
     "openTitle": "Open source, à héberger chez vous",
     "openText": "L'application entière est sous AGPL-3.0 ; le moteur d'analyse et de dédoublonnage sous MIT. Sur votre portable, le serveur du labo ou notre service hébergé.",
-    "footer": "Conçu pour la synthèse des preuves. © {year} Tamis.",
+    "footer": "Conçu pour la synthèse des preuves. © {year} Krinea.",
     "trustStrip": {
       "eu": "Hébergé à Francfort (UE)",
       "oss": "AGPL-3.0 · auto-hébergement gratuit",
@@ -110,7 +110,7 @@
       "cta": "Voir les tarifs"
     },
     "closingTitle": "Libre d'essayer, libre de partir.",
-    "closingText": "Tout ce que vous construisez dans Tamis s'exporte en RIS, CSV, Excel et en diagramme PRISMA 2020. Le code est sous AGPL-3.0 : si nous arrêtons un jour, vous pouvez l'héberger vous-même.",
+    "closingText": "Tout ce que vous construisez dans Krinea s'exporte en RIS, CSV, Excel et en diagramme PRISMA 2020. Le code est sous AGPL-3.0 : si nous arrêtons un jour, vous pouvez l'héberger vous-même.",
     "preview": {
       "stage": "Titre et résumé",
       "aiSuggests": "L'IA suggère",
@@ -169,7 +169,7 @@
   },
   "auth": {
     "signInTitle": "Bon retour",
-    "signUpTitle": "Créez votre compte Tamis",
+    "signUpTitle": "Créez votre compte Krinea",
     "email": "E-mail",
     "password": "Mot de passe",
     "name": "Nom",
@@ -188,7 +188,8 @@
     "google": "Continuer avec Google",
     "googleError": "La connexion Google a échoué. Réessayez ou utilisez votre e-mail.",
     "or": "ou",
-    "consent": "En créant un compte, vous acceptez les <terms>conditions d'utilisation</terms> et la <privacy>politique de confidentialité</privacy>."
+    "consent": "En créant un compte, vous acceptez les <terms>conditions d'utilisation</terms> et la <privacy>politique de confidentialité</privacy>.",
+    "magicAgain": "Renvoyer un lien"
   },
   "reviews": {
     "title": "Vos revues",
@@ -438,7 +439,7 @@
   },
   "pages": {
     "about": {
-      "title": "À propos de Tamis",
+      "title": "À propos de Krinea",
       "description": "Pourquoi cet atelier existe, qui le construit et comment il reste ouvert."
     },
     "privacy": {

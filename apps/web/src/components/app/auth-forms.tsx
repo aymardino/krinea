@@ -105,6 +105,7 @@ export function AuthForm({ mode, next = "/app" }: { mode: "sign-in" | "sign-up";
         <p className="rounded-md bg-include-bg px-3 py-2 text-sm text-include">
           {t("magicSent")}
           {magicSent && <> <a className="underline" href={magicSent}>(dev link)</a></>}
+          {" "}<button type="button" className="underline" onClick={() => setMagicSent(null)}>{t("magicAgain")}</button>
         </p>
       )}
       <p className="mt-6 text-center text-sm text-muted-foreground">

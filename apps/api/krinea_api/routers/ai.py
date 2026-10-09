@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from tamis_api import models, schemas
-from tamis_api.db import get_db
-from tamis_api.deps import ReviewAccess, current_user, log_activity
-from tamis_api.services import ai as ai_service
-from tamis_api.services import jobs as job_service
-from tamis_api.services import screening as scr
-from tamis_core import extraction_schema
+from krinea_api import models, schemas
+from krinea_api.db import get_db
+from krinea_api.deps import ReviewAccess, current_user, log_activity
+from krinea_api.services import ai as ai_service
+from krinea_api.services import jobs as job_service
+from krinea_api.services import screening as scr
+from krinea_core import extraction_schema
 
 router = APIRouter(tags=["ai"])
 

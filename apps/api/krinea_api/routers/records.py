@@ -11,15 +11,15 @@ from fastapi.responses import Response
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session as DBSession
 
-from tamis_api import models, schemas
-from tamis_api.config import get_settings
-from tamis_api.db import get_db
-from tamis_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
-from tamis_api.services import dedup as dedup_service
-from tamis_api.services import imports as import_service
-from tamis_api.services import jobs as job_service
-from tamis_api.services import screening as scr
-from tamis_api.services import storage
+from krinea_api import models, schemas
+from krinea_api.config import get_settings
+from krinea_api.db import get_db
+from krinea_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
+from krinea_api.services import dedup as dedup_service
+from krinea_api.services import imports as import_service
+from krinea_api.services import jobs as job_service
+from krinea_api.services import screening as scr
+from krinea_api.services import storage
 
 router = APIRouter(prefix="/reviews/{review_id}", tags=["records"])
 
@@ -364,7 +364,7 @@ def fetch_open_access(doi: str, email: str) -> bytes:
     if "/" not in doi:
         raise ValueError("This record has no valid DOI")
     api = f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi, safe='/')}?email={email}"
-    with httpx.Client(timeout=30, follow_redirects=True, headers={"User-Agent": "Tamis/1.0 (research)"}) as c:
+    with httpx.Client(timeout=30, follow_redirects=True, headers={"User-Agent": "Krinea/1.0 (research)"}) as c:
         r = c.get(api)
         r.raise_for_status()
         data = r.json()

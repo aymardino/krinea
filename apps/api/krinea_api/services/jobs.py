@@ -9,11 +9,11 @@ import traceback
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from tamis_api import models
-from tamis_api.config import get_settings
-from tamis_api.db import session_factory
+from krinea_api import models
+from krinea_api.config import get_settings
+from krinea_api.db import session_factory
 
-log = logging.getLogger("tamis.jobs")
+log = logging.getLogger("krinea.jobs")
 
 
 def enqueue(db: Session, kind: str, payload: dict, review_id: str | None = None,
@@ -36,7 +36,7 @@ def _progress(db: Session, job: models.Job, done: int, total: int, result: dict 
 
 
 def _run_dedup(db: Session, job: models.Job) -> dict:
-    from tamis_api.services import dedup
+    from krinea_api.services import dedup
     review = db.get(models.Review, job.review_id)
     p = job.payload or {}
     return dedup.run(db, review, float(p.get("auto_threshold", 95)), float(p.get("review_threshold", 85)),
@@ -44,7 +44,7 @@ def _run_dedup(db: Session, job: models.Job) -> dict:
 
 
 def _run_ai_screen(db: Session, job: models.Job) -> dict:
-    from tamis_api.services import ai
+    from krinea_api.services import ai
     review = db.get(models.Review, job.review_id)
     user = db.get(models.User, job.user_id)
     p = job.payload or {}
@@ -67,7 +67,7 @@ def _run_ai_screen(db: Session, job: models.Job) -> dict:
 
 
 def _run_extract(db: Session, job: models.Job) -> dict:
-    from tamis_api.services import ai
+    from krinea_api.services import ai
     review = db.get(models.Review, job.review_id)
     user = db.get(models.User, job.user_id)
     p = job.payload or {}
@@ -110,7 +110,7 @@ def run_job(job_id: str) -> None:
 
 
 def worker_loop(poll_seconds: float = 2.0) -> None:
-    """`python -m tamis_api.worker` — picks queued jobs one at a time."""
+    """`python -m krinea_api.worker` — picks queued jobs one at a time."""
     log.info("worker started")
     while True:
         db: Session = session_factory()()

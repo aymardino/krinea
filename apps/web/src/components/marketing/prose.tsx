@@ -8,7 +8,7 @@ export function ProseLayout({ title, description, children }: { title: string; d
     <article className="mx-auto max-w-3xl px-4 py-14 sm:px-6 md:py-20">
       <h1 className="font-display text-4xl font-semibold tracking-tight md:text-5xl">{title}</h1>
       {description && <p className="mt-4 text-lg text-muted-foreground">{description}</p>}
-      <div className="prose-tamis mt-10">{children}</div>
+      <div className="prose-krinea mt-10">{children}</div>
     </article>
   );
 }

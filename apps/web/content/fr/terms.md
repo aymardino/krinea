@@ -2,22 +2,22 @@
 
 ## En bref
 
-- Tamis est un logiciel libre. Ces conditions ne concernent que l'édition hébergée, en bêta. Si vous l'installez chez vous, c'est la licence AGPL-3.0 qui s'applique.
+- Krinea est un logiciel libre. Ces conditions ne concernent que l'édition hébergée, en bêta. Si vous l'installez chez vous, c'est la licence AGPL-3.0 qui s'applique.
 - L'édition hébergée est gratuite aujourd'hui et exploitée par le mainteneur, une personne physique. Elle est fournie en l'état, sans garantie de disponibilité.
-- Vous restez propriétaire de tout ce que vous déposez dans Tamis. Nous ne l'utilisons que pour faire fonctionner le service. Vous pouvez tout exporter ou supprimer à tout moment.
+- Vous restez propriétaire de tout ce que vous déposez dans Krinea. Nous ne l'utilisons que pour faire fonctionner le service. Vous pouvez tout exporter ou supprimer à tout moment.
 - Les réponses de l'IA sont des suggestions. Vous restez responsable de votre revue.
 - Il faut avoir au moins 16 ans, protéger ses identifiants et respecter les droits sur les PDF déposés.
 - Le droit français s'applique. En cas de problème, on commence par en discuter.
 
 ## Le service
 
-Tamis est un établi de travail libre pour les revues systématiques : import de références, dédoublonnage, sélection en équipe, extraction de données par une IA qui cite ses sources, rapport PRISMA 2020, export. Voir la page [à propos](/about).
+Krinea est un établi de travail libre pour les revues systématiques : import de références, dédoublonnage, sélection en équipe, extraction de données par une IA qui cite ses sources, rapport PRISMA 2020, export. Voir la page [à propos](/about).
 
-L'application est publiée sous licence AGPL-3.0 ; son moteur, le paquet Python `tamis_core`, sous licence MIT. Le code source est sur [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review).
+L'application est publiée sous licence AGPL-3.0 ; son moteur, le paquet Python `krinea_core`, sous licence MIT. Le code source est sur [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review).
 
 Les présentes conditions régissent uniquement l'**édition hébergée** : l'instance bêta exploitée par le mainteneur, servie aujourd'hui depuis une adresse en .onrender.com et hébergée chez Render à Francfort (Allemagne, UE). « Nous » désigne le mainteneur, chercheur et développeur indépendant établi en France, qui exploite le service en tant que personne physique. Aucune personne morale n'existe à ce jour. Voir les [mentions légales](/legal).
 
-Si vous auto-hébergez Tamis (Docker Compose, blueprint Render), ces conditions ne s'appliquent pas : les licences régissent votre usage, et vous répondez de votre instance et de ses utilisateurs.
+Si vous auto-hébergez Krinea (Docker Compose, blueprint Render), ces conditions ne s'appliquent pas : les licences régissent votre usage, et vous répondez de votre instance et de ses utilisateurs.
 
 En créant un compte ou en utilisant l'édition hébergée, vous acceptez ces conditions.
 
@@ -43,13 +43,13 @@ Le code est public : l'auditer et signaler une faille sur GitHub est bienvenu. T
 
 ## Vos contenus
 
-Vous êtes propriétaire des références, PDF, décisions, notes, formulaires, extractions et autres contenus que vous placez dans Tamis. Nous ne revendiquons aucun droit sur eux.
+Vous êtes propriétaire des références, PDF, décisions, notes, formulaires, extractions et autres contenus que vous placez dans Krinea. Nous ne revendiquons aucun droit sur eux.
 
 Vous nous accordez une licence limitée au fonctionnement du service : stocker et sauvegarder vos contenus, les afficher aux personnes que vous invitez, les traiter quand vous le demandez (dédoublonnage, exports, fonctions IA). Elle prend fin quand vous supprimez les contenus ou votre compte, sous réserve du cycle de sauvegardes décrit dans la [politique de confidentialité](/privacy).
 
 Vous pouvez tout exporter à tout moment (RIS, CSV, Excel, PRISMA). Le propriétaire d'une revue peut la supprimer depuis sa zone de danger ; cela efface ses références, PDF, décisions et extractions. La suppression du compte se demande via la [page de contact](/contact) et intervient sous 30 jours.
 
-Les suggestions de l'IA sont conservées à part des décisions humaines et ne valent jamais décision. Vous êtes responsable de votre revue : critères, nombre de lecteurs, résolution des conflits, données extraites, résultats rapportés. Tamis est un outil, pas une autorité méthodologique.
+Les suggestions de l'IA sont conservées à part des décisions humaines et ne valent jamais décision. Vous êtes responsable de votre revue : critères, nombre de lecteurs, résolution des conflits, données extraites, résultats rapportés. Krinea est un outil, pas une autorité méthodologique.
 
 ## Fonctions IA
 

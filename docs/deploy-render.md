@@ -2,12 +2,17 @@
 
 Two editions share this repository.
 
-## A · Tamis product (web + API + worker + PostgreSQL)
+## A · Krinea product (web + API + worker + PostgreSQL)
+
+Service names in the blueprint (`tamis-*`) are internal identifiers kept from
+the first deployment so that syncs do not recreate services; rename them in
+the dashboard (Settings → Name) and in `render.yaml` together if you want them
+to match the product name.
 
 `render.yaml` at the repository root is a Render Blueprint. It declares a
 PostgreSQL database (`tamis-db`), the API web service (`tamis-api`, Docker,
 `apps/api/Dockerfile`), the background worker (`tamis-worker`, same image,
-`python -m tamis_api.worker`) and the web front end (`tamis-web`, Docker,
+`python -m krinea_api.worker`) and the web front end (`tamis-web`, Docker,
 `apps/web/Dockerfile`, Next.js standalone). Region: Frankfurt (EU).
 
 Browsers only ever talk to `tamis-web`: it proxies `/api/*` to `tamis-api`
@@ -78,7 +83,7 @@ and no URL to configure, and the session cookie is first-party.
   until a provider is configured on `tamis-api`. Without a domain, use any
   mailbox over SMTP: `EMAIL_PROVIDER=smtp`, `SMTP_HOST=smtp.gmail.com`,
   `SMTP_PORT=587`, `SMTP_USER=you@gmail.com`, `SMTP_PASSWORD=<16-character
-  Google app password>`, `EMAIL_FROM=Tamis <you@gmail.com>` (Google: Account →
+  Google app password>`, `EMAIL_FROM=Krinea <you@gmail.com>` (Google: Account →
   Security → 2-step verification → App passwords; about 500 messages a day).
   With a domain, prefer Resend: `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`,
   `EMAIL_FROM` on the domain verified in Resend. A failed delivery now returns

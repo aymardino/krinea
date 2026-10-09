@@ -1,8 +1,8 @@
 """
 llm.py — One function to call any supported LLM provider and get JSON back,
-with token usage so the application can meter it (Tamis decision D-16).
+with token usage so the application can meter it (Krinea decision D-16).
 
-    from tamis_core import llm
+    from krinea_core import llm
     data, usage = llm.call_json(prompt, provider="claude", api_key=key, model="claude-haiku-5-5")
 
 Providers: "claude" (Anthropic), "gemini" (Google), "deepseek" (OpenAI-compatible).

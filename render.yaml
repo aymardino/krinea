@@ -1,4 +1,4 @@
-# Render blueprint for Tamis (decisions D-17, D-21, D-23).
+# Render blueprint for Krinea (decisions D-17, D-21, D-23).
 #
 # Services: PostgreSQL, API, worker, web. Browsers only talk to `tamis-web`; it proxies
 # `/api/*` to the API over Render's private network, so the deployment works on the
@@ -16,8 +16,8 @@
 databases:
   - name: tamis-db
     plan: basic-256mb
-    databaseName: tamis
-    user: tamis
+    databaseName: krinea
+    user: krinea
     region: frankfurt
 
 services:
@@ -30,7 +30,7 @@ services:
     region: frankfurt
     healthCheckPath: /health
     envVars:
-      - key: TAMIS_ENV
+      - key: KRINEA_ENV
         value: production
       - key: DATABASE_URL
         fromDatabase: { name: tamis-db, property: connectionString }
@@ -45,7 +45,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        value: Tamis <no-reply@example.org>
+        value: Krinea <no-reply@example.org>
       - key: S3_BUCKET
         sync: false
       - key: S3_ENDPOINT_URL
@@ -72,11 +72,11 @@ services:
     runtime: docker
     dockerfilePath: apps/api/Dockerfile
     dockerContext: .
-    dockerCommand: python -m tamis_api.worker
+    dockerCommand: python -m krinea_api.worker
     plan: starter
     region: frankfurt
     envVars:
-      - key: TAMIS_ENV
+      - key: KRINEA_ENV
         value: production
       - key: DATABASE_URL
         fromDatabase: { name: tamis-db, property: connectionString }

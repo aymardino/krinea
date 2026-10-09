@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from tamis_api.config import get_settings
+from krinea_api.config import get_settings
 
 
 class Base(DeclarativeBase):
@@ -46,7 +46,7 @@ def reset_engine() -> None:
 
 
 def create_all() -> None:
-    from tamis_api import models  # noqa: F401  (registers the tables)
+    from krinea_api import models  # noqa: F401  (registers the tables)
     Base.metadata.create_all(get_engine())
 
 

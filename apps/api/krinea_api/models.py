@@ -9,7 +9,7 @@ from sqlalchemy import (JSON, Boolean, DateTime, Float, ForeignKey, Index, Integ
                         UniqueConstraint)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from tamis_api.db import Base
+from krinea_api.db import Base
 
 
 def new_id() -> str:

@@ -2,8 +2,8 @@
 conflict, consensus), full text, extraction, PRISMA, exports, AI job."""
 import io
 
-from tamis_api.services import email as email_service
-from tamis_core import llm
+from krinea_api.services import email as email_service
+from krinea_core import llm
 from tests.conftest import register
 
 RIS = """TY  - JOUR

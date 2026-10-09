@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { LogOut, Settings, LayoutGrid } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { TamisWordmark } from "@/components/brand/logo";
+import { KrineaWordmark } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/marketing/site-header";
 import { Avatar, Skeleton } from "@/components/ui/misc";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-6">
-            <Link href="/app"><TamisWordmark size={24} /></Link>
+            <Link href="/app"><KrineaWordmark size={24} /></Link>
             <nav className="hidden items-center gap-1 text-sm md:flex">
               <Link href="/app" className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"><LayoutGrid className="size-4" />{t("reviews")}</Link>
             </nav>

@@ -2,8 +2,8 @@
 
 The browser talks to the API through the web app's `/api` proxy (decision D-23), so the
 API often does not know its public address. Explicit BASE_URL / API_URL settings win;
-otherwise the proxy tells us the origin it was reached on (`X-Tamis-Origin`), which is
-trusted only when the request also carries the shared secret (`X-Tamis-Proxy-Key`).
+otherwise the proxy tells us the origin it was reached on (`X-Krinea-Origin`), which is
+trusted only when the request also carries the shared secret (`X-Krinea-Proxy-Key`).
 """
 from __future__ import annotations
 
@@ -11,10 +11,10 @@ import hmac
 
 from fastapi import Request
 
-from tamis_api.config import get_settings
+from krinea_api.config import get_settings
 
-ORIGIN_HEADER = "x-tamis-origin"
-KEY_HEADER = "x-tamis-proxy-key"
+ORIGIN_HEADER = "x-krinea-origin"
+KEY_HEADER = "x-krinea-proxy-key"
 
 
 def proxied_origin(request: Request | None) -> str | None:

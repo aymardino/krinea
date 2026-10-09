@@ -4,7 +4,7 @@
 
 ## En bref
 
-- Tamis conserve ce que vous lui confiez : les informations de votre compte et le contenu de vos revues (références, PDF, décisions, extractions).
+- Krinea conserve ce que vous lui confiez : les informations de votre compte et le contenu de vos revues (références, PDF, décisions, extractions).
 - Vos données sont hébergées à Francfort (Allemagne, Union européenne).
 - Nous utilisons trois cookies, aucun pour la mesure d'audience ou la publicité. Pas de pistage, pas de bandeau.
 - Rien n'est envoyé à un fournisseur d'IA tant qu'un relecteur de votre équipe ne demande pas une suggestion ou une extraction.
@@ -13,9 +13,9 @@
 
 ## Qui est responsable
 
-L'édition hébergée de Tamis (la bêta accessible à une adresse en .onrender.com) est exploitée par le mainteneur du projet, chercheur et développeur indépendant établi en France, en tant que personne physique. Au sens du RGPD, il est le responsable du traitement. Aucune personne morale n'existe à ce jour et aucune offre payante n'est vendue.
+L'édition hébergée de Krinea (la bêta accessible à une adresse en .onrender.com) est exploitée par le mainteneur du projet, chercheur et développeur indépendant établi en France, en tant que personne physique. Au sens du RGPD, il est le responsable du traitement. Aucune personne morale n'existe à ce jour et aucune offre payante n'est vendue.
 
-Si vous hébergez Tamis vous-même (code libre, licence AGPL-3.0), vous êtes responsable du traitement de votre instance ; la présente politique ne s'y applique pas.
+Si vous hébergez Krinea vous-même (code libre, licence AGPL-3.0), vous êtes responsable du traitement de votre instance ; la présente politique ne s'y applique pas.
 
 Pour joindre le responsable du traitement, passez par la [page de contact](/contact).
 
@@ -64,9 +64,9 @@ Nous n'utilisons pas vos données à des fins publicitaires, de profilage ou de 
 
 ## Cookies
 
-Tamis dépose trois cookies, tous nécessaires au fonctionnement du service :
+Krinea dépose trois cookies, tous nécessaires au fonctionnement du service :
 
-- `tamis_session` : vous maintient connecté (HttpOnly, 30 jours) ;
+- `krinea_session` : vous maintient connecté (HttpOnly, 30 jours) ;
 - un cookie d'état de courte durée pendant la connexion avec Google, qui sécurise cette étape (10 minutes) ;
 - un cookie qui mémorise la langue d'interface choisie.
 
@@ -89,7 +89,7 @@ Certaines de ces sociétés sont établies aux États-Unis. Lorsque des données
 
 ## Fournisseurs d'IA
 
-Des données ne partent vers un fournisseur d'IA que lorsqu'un utilisateur disposant des droits de relecteur déclenche, dans une revue, une suggestion (sélection) ou une extraction. Tamis transmet alors au fournisseur configuré pour cette revue :
+Des données ne partent vers un fournisseur d'IA que lorsqu'un utilisateur disposant des droits de relecteur déclenche, dans une revue, une suggestion (sélection) ou une extraction. Krinea transmet alors au fournisseur configuré pour cette revue :
 
 - pour la sélection : le titre et le résumé de la référence, avec les critères de la revue ;
 - pour l'extraction : le texte du PDF et le formulaire d'extraction conçu par les auteurs.
@@ -139,11 +139,11 @@ Pour toute autre demande, utilisez la page de contact. Nous pourrons vous demand
 - Aucun secret n'est jamais écrit dans les journaux.
 - Le code est public : chacun peut l'auditer.
 
-Tamis n'a fait l'objet d'aucun audit de sécurité externe et ne détient aucune certification. Nous le disons clairement pour que vous décidiez en connaissance de cause de ce que vous téléversez.
+Krinea n'a fait l'objet d'aucun audit de sécurité externe et ne détient aucune certification. Nous le disons clairement pour que vous décidiez en connaissance de cause de ce que vous téléversez.
 
 ## Mineurs
 
-Tamis s'adresse aux personnes âgées d'au moins 16 ans. Nous ne collectons pas sciemment de données auprès de personnes plus jeunes. Si vous pensez qu'un mineur a créé un compte, signalez-le via la page de contact et nous le supprimerons.
+Krinea s'adresse aux personnes âgées d'au moins 16 ans. Nous ne collectons pas sciemment de données auprès de personnes plus jeunes. Si vous pensez qu'un mineur a créé un compte, signalez-le via la page de contact et nous le supprimerons.
 
 ## Modifications de cette politique
 

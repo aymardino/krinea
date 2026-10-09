@@ -1,4 +1,4 @@
-"""Tamis API application."""
+"""Krinea API application."""
 from __future__ import annotations
 
 import logging
@@ -7,19 +7,19 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from tamis_api import __version__
-from tamis_api.config import get_settings
-from tamis_api.db import create_all
-from tamis_api.routers import ai, auth, exports, records, reviews
-from tamis_api.services.ai import AIUnavailable
-from tamis_api.services.email import EmailError
+from krinea_api import __version__
+from krinea_api.config import get_settings
+from krinea_api.db import create_all
+from krinea_api.routers import ai, auth, exports, records, reviews
+from krinea_api.services.ai import AIUnavailable
+from krinea_api.services.email import EmailError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 
 
 def create_app() -> FastAPI:
     s = get_settings()
-    app = FastAPI(title="Tamis API", version=__version__, docs_url="/docs" if s.debug else None,
+    app = FastAPI(title="Krinea API", version=__version__, docs_url="/docs" if s.debug else None,
                   redoc_url=None, openapi_url="/openapi.json" if s.debug else None)
     app.add_middleware(CORSMiddleware, allow_origins=s.cors_origins, allow_credentials=True,
                        allow_methods=["*"], allow_headers=["*"])

@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tamis-core"
+name = "krinea-core"
 version = "0.1.0"
 description = "Bibliographic parsing, deduplication, screening and extraction-form logic for systematic reviews"
 readme = "README.md"
@@ -13,8 +13,8 @@ dependencies = ["rapidfuzz>=3.9", "pandas>=2.0"]
 
 [project.optional-dependencies]
 excel = ["openpyxl>=3.1"]
-# Provider SDKs used by tamis_core.llm (imported lazily, only when an AI call is made)
+# Provider SDKs used by krinea_core.llm (imported lazily, only when an AI call is made)
 llm = ["anthropic>=0.40", "openai>=1.0", "google-generativeai>=0.8"]
 
 [tool.setuptools.packages.find]
-include = ["tamis_core*"]
+include = ["krinea_core*"]

@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-_TMP = Path(tempfile.mkdtemp(prefix="tamis-test-"))
+_TMP = Path(tempfile.mkdtemp(prefix="krinea-test-"))
 os.environ.update({
-    "TAMIS_ENV": "test", "SECRET_KEY": "test-secret", "DATABASE_URL": f"sqlite:///{_TMP}/test.db",
+    "KRINEA_ENV": "test", "SECRET_KEY": "test-secret", "DATABASE_URL": f"sqlite:///{_TMP}/test.db",
     "DATA_DIR": str(_TMP / "data"), "BASE_URL": "http://web.test", "INLINE_JOBS": "1",
     "EMAIL_PROVIDER": "console", "ANTHROPIC_API_KEY": "", "GEMINI_API_KEY": "", "DEEPSEEK_API_KEY": "",
     "PRO_AI_TOKENS_PER_MONTH": "1000",
@@ -14,8 +14,8 @@ os.environ.update({
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from tamis_api import db as dbmod  # noqa: E402
-from tamis_api.main import app  # noqa: E402
+from krinea_api import db as dbmod  # noqa: E402
+from krinea_api.main import app  # noqa: E402
 
 
 @pytest.fixture(scope="session", autouse=True)

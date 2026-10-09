@@ -1,5 +1,5 @@
 /**
- * Same-origin proxy to the Tamis API (decision D-23).
+ * Same-origin proxy to the Krinea API (decision D-23).
  *
  * The browser only ever talks to this web app: `/api/<path>` is forwarded to the API
  * (`API_URL`, an internal address in production) and the response, cookies included,
@@ -50,8 +50,8 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
   req.headers.forEach((value, key) => {
     if (!HOP.has(key)) headers.set(key, value);
   });
-  headers.set("x-tamis-origin", publicOrigin(req));
-  headers.set("x-tamis-proxy-key", process.env.PROXY_KEY ?? process.env.SECRET_KEY ?? "dev-secret-change-me");
+  headers.set("x-krinea-origin", publicOrigin(req));
+  headers.set("x-krinea-proxy-key", process.env.PROXY_KEY ?? process.env.SECRET_KEY ?? "dev-secret-change-me");
   headers.set("x-forwarded-host", req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "");
 
   // Small bodies are buffered (retryable); large ones (PDF uploads) are streamed once.

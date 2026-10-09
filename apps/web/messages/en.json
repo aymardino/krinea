@@ -1,7 +1,7 @@
 {
   "common": {
-    "appName": "Tamis",
-    "tagline": "Systematic reviews, sifted.",
+    "appName": "Krinea",
+    "tagline": "Systematic reviews, judged on the evidence.",
     "signIn": "Sign in",
     "signUp": "Create an account",
     "signOut": "Sign out",
@@ -96,7 +96,7 @@
     "teamText": "Invite reviewers by email, choose single or double screening, hide decisions in blind mode, resolve conflicts, follow each reviewer's progress and time.",
     "openTitle": "Open source, yours to host",
     "openText": "The whole application is AGPL-3.0; the parsing and deduplication engine is MIT. Run it on your laptop, your lab server or our hosted service.",
-    "footer": "Made for evidence synthesis. © {year} Tamis.",
+    "footer": "Made for evidence synthesis. © {year} Krinea.",
     "trustStrip": {
       "eu": "Hosted in Frankfurt (EU)",
       "oss": "AGPL-3.0 · self-host for free",
@@ -110,7 +110,7 @@
       "cta": "See pricing"
     },
     "closingTitle": "Free to try, free to leave.",
-    "closingText": "Everything you build in Tamis exports as RIS, CSV, Excel and a PRISMA 2020 diagram. The code is AGPL-3.0: if we ever stop, you can host it yourself.",
+    "closingText": "Everything you build in Krinea exports as RIS, CSV, Excel and a PRISMA 2020 diagram. The code is AGPL-3.0: if we ever stop, you can host it yourself.",
     "preview": {
       "stage": "Title & abstract",
       "aiSuggests": "AI suggests",
@@ -169,7 +169,7 @@
   },
   "auth": {
     "signInTitle": "Welcome back",
-    "signUpTitle": "Create your Tamis account",
+    "signUpTitle": "Create your Krinea account",
     "email": "Email",
     "password": "Password",
     "name": "Name",
@@ -188,7 +188,8 @@
     "google": "Continue with Google",
     "googleError": "Google sign-in failed. Try again or use your e-mail.",
     "or": "or",
-    "consent": "By creating an account you accept the <terms>terms of service</terms> and the <privacy>privacy policy</privacy>."
+    "consent": "By creating an account you accept the <terms>terms of service</terms> and the <privacy>privacy policy</privacy>.",
+    "magicAgain": "Send another link"
   },
   "reviews": {
     "title": "Your reviews",
@@ -438,7 +439,7 @@
   },
   "pages": {
     "about": {
-      "title": "About Tamis",
+      "title": "About Krinea",
       "description": "Why this workbench exists, who builds it and how it stays open."
     },
     "privacy": {

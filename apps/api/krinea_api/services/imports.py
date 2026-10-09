@@ -4,8 +4,8 @@ from __future__ import annotations
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
-from tamis_api import models
-from tamis_core import biblio
+from krinea_api import models
+from krinea_core import biblio
 
 RECORD_FIELDS = biblio.RECORD_FIELDS
 

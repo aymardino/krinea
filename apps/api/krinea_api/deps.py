@@ -7,10 +7,10 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from tamis_api import models
-from tamis_api.config import get_settings
-from tamis_api.db import get_db
-from tamis_api.security import token_hash
+from krinea_api import models
+from krinea_api.config import get_settings
+from krinea_api.db import get_db
+from krinea_api.security import token_hash
 
 ROLE_RANK = {"viewer": 0, "reviewer": 1, "admin": 2, "owner": 3}
 

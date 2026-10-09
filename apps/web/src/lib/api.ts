@@ -1,4 +1,4 @@
-/** Thin typed client for the Tamis API. Cookies carry the session (credentials: include).
+/** Thin typed client for the Krinea API. Cookies carry the session (credentials: include).
  *  By default the browser goes through this app's own `/api` proxy (D-23): same origin, no CORS,
  *  no build-time URL. Set NEXT_PUBLIC_API_URL only to call a separately hosted API directly. */
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "/api").replace(/\/+$/, "");
@@ -44,7 +44,7 @@ export const api = {
   url: (path: string) => `${API_URL}${path}`,
 };
 
-// ── Types mirroring tamis_api.schemas ─────────────────────────────────────────
+// ── Types mirroring krinea_api.schemas ─────────────────────────────────────────
 export type User = { id: string; email: string; name: string; locale: string; plan: string; created_at: string; email_verified: boolean };
 export type Member = { user_id: string; email: string; name: string; role: string; created_at: string };
 export type Invitation = { id: string; email: string; role: string; created_at: string; expires_at: string; accepted_at: string | null; accept_url: string | null };

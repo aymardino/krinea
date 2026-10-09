@@ -1,4 +1,4 @@
-from tamis_api.services import email as email_service
+from krinea_api.services import email as email_service
 from tests.conftest import register
 
 
@@ -47,8 +47,8 @@ def test_unauthenticated_is_rejected(client):
 def test_google_sign_in(client, monkeypatch):
     from urllib.parse import parse_qs, urlparse
 
-    from tamis_api.config import get_settings
-    from tamis_api.services import oauth
+    from krinea_api.config import get_settings
+    from krinea_api.services import oauth
 
     s = get_settings()
     assert client.get("/auth/providers").json() == {"google": False}
@@ -95,24 +95,24 @@ def test_public_urls_from_proxy(client, monkeypatch):
     from urllib.parse import parse_qs, urlparse
     """Without explicit BASE_URL, links use the origin reported by the web proxy, but only
     when the request carries the shared secret (D-23)."""
-    from tamis_api.config import get_settings
+    from krinea_api.config import get_settings
 
     s = get_settings()
     monkeypatch.setattr(s, "base_url_explicit", False)
     monkeypatch.setattr(s, "api_url_explicit", False)
     monkeypatch.setattr(s, "google_client_id", "cid")
     monkeypatch.setattr(s, "google_client_secret", "secret")
-    proxied = {"X-Tamis-Origin": "https://tamis-web.onrender.com", "X-Tamis-Proxy-Key": "test-secret"}
+    proxied = {"X-Krinea-Origin": "https://krinea-web.onrender.com", "X-Krinea-Proxy-Key": "test-secret"}
 
     r = client.get("/auth/google/start", headers=proxied, follow_redirects=False)
     q = parse_qs(urlparse(r.headers["location"]).query)
-    assert q["redirect_uri"] == ["https://tamis-web.onrender.com/api/auth/google/callback"]
+    assert q["redirect_uri"] == ["https://krinea-web.onrender.com/api/auth/google/callback"]
     r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=proxied)
-    assert r.json()["dev_link"].startswith("https://tamis-web.onrender.com/auth/magic?token=")
+    assert r.json()["dev_link"].startswith("https://krinea-web.onrender.com/auth/magic?token=")
 
     # Wrong or missing key, or a non-origin value: the configured BASE_URL is used instead
-    for bad in ({**proxied, "X-Tamis-Proxy-Key": "nope"}, {"X-Tamis-Origin": "https://evil.example"},
-                {**proxied, "X-Tamis-Origin": "https://evil.example/path"}):
+    for bad in ({**proxied, "X-Krinea-Proxy-Key": "nope"}, {"X-Krinea-Origin": "https://evil.example"},
+                {**proxied, "X-Krinea-Origin": "https://evil.example/path"}):
         r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=bad)
         assert r.json()["dev_link"].startswith("http://web.test/auth/magic?token=")
 
@@ -120,8 +120,8 @@ def test_public_urls_from_proxy(client, monkeypatch):
 def test_smtp_provider(client, monkeypatch):
     """The SMTP provider logs in, sends the message, and a failure becomes a 502."""
     import smtplib
-    from tamis_api.config import get_settings
-    from tamis_api.services import email as email_service
+    from krinea_api.config import get_settings
+    from krinea_api.services import email as email_service
 
     sent = []
 

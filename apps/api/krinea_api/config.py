@@ -25,10 +25,10 @@ def _normalise_db_url(url: str) -> str:
 
 class Settings:
     def __init__(self) -> None:
-        self.env = os.environ.get("TAMIS_ENV", "development")          # development | test | production
+        self.env = os.environ.get("KRINEA_ENV", "development")          # development | test | production
         self.debug = self.env != "production"
         self.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
-        self.database_url = _normalise_db_url(os.environ.get("DATABASE_URL", "sqlite:///./tamis.db"))
+        self.database_url = _normalise_db_url(os.environ.get("DATABASE_URL", "sqlite:///./krinea.db"))
         self.data_dir = Path(os.environ.get("DATA_DIR", "./data")).resolve()
         # Public URLs. The browser reaches the API through the web app's /api proxy (D-23), so
         # BASE_URL is enough; both can be left unset when the web app runs the proxy (see urls.py).
@@ -37,12 +37,12 @@ class Settings:
         self.api_url = os.environ.get("API_URL", f"{self.base_url}/api").rstrip("/")    # as seen by browsers
         self.api_url_explicit = bool(os.environ.get("API_URL"))
         self.cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", self.base_url).split(",") if o.strip()]
-        self.cookie_name = "tamis_session"
+        self.cookie_name = "krinea_session"
         self.cookie_secure = _bool(os.environ.get("COOKIE_SECURE"), self.env == "production")
         self.session_days = int(os.environ.get("SESSION_DAYS", "30"))
         self.magic_link_minutes = int(os.environ.get("MAGIC_LINK_MINUTES", "20"))
         self.email_provider = os.environ.get("EMAIL_PROVIDER", "console")          # console | resend | smtp
-        self.email_from = os.environ.get("EMAIL_FROM", "Tamis <no-reply@tamis.app>")
+        self.email_from = os.environ.get("EMAIL_FROM", "Krinea <no-reply@krinea.app>")
         self.resend_api_key = os.environ.get("RESEND_API_KEY", "")
         # SMTP (any mailbox, e.g. Gmail with an app password): no domain needed to get started
         self.smtp_host = os.environ.get("SMTP_HOST", "")

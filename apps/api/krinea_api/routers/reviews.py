@@ -5,16 +5,16 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as DBSession
 
-from tamis_api import models, schemas
-from tamis_api.config import get_settings
-from tamis_api.urls import public_base_url
-from tamis_api.db import get_db
-from tamis_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
-from tamis_api.security import expires_in, new_token, token_hash
-from tamis_api.services import email as email_service
-from tamis_api.services import screening as scr
-from tamis_core import extraction_schema
-from tamis_core import screening as core_screening
+from krinea_api import models, schemas
+from krinea_api.config import get_settings
+from krinea_api.urls import public_base_url
+from krinea_api.db import get_db
+from krinea_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
+from krinea_api.security import expires_in, new_token, token_hash
+from krinea_api.services import email as email_service
+from krinea_api.services import screening as scr
+from krinea_core import extraction_schema
+from krinea_core import screening as core_screening
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 

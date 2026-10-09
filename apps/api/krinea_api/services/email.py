@@ -7,9 +7,9 @@ from email.message import EmailMessage
 
 import httpx
 
-from tamis_api.config import get_settings
+from krinea_api.config import get_settings
 
-log = logging.getLogger("tamis.email")
+log = logging.getLogger("krinea.email")
 OUTBOX: list[dict] = []          # console provider keeps the last messages (tests read them)
 
 
@@ -18,15 +18,15 @@ class EmailError(Exception):
 
 _T = {
     "en": {
-        "magic_subject": "Your sign-in link for Tamis",
-        "magic_body": "Hello,\n\nClick to sign in to Tamis (valid for {minutes} minutes):\n{url}\n\nIf you did not request this, ignore this message.",
-        "invite_subject": "{inviter} invited you to the review “{title}” on Tamis",
+        "magic_subject": "Your sign-in link for Krinea",
+        "magic_body": "Hello,\n\nClick to sign in to Krinea (valid for {minutes} minutes):\n{url}\n\nIf you did not request this, ignore this message.",
+        "invite_subject": "{inviter} invited you to the review “{title}” on Krinea",
         "invite_body": "Hello,\n\n{inviter} invited you to join the review “{title}” as {role}.\nAccept the invitation:\n{url}\n\nThe link expires in 14 days.",
     },
     "fr": {
-        "magic_subject": "Votre lien de connexion Tamis",
-        "magic_body": "Bonjour,\n\nCliquez pour vous connecter à Tamis (valable {minutes} minutes) :\n{url}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
-        "invite_subject": "{inviter} vous invite à la revue « {title} » sur Tamis",
+        "magic_subject": "Votre lien de connexion Krinea",
+        "magic_body": "Bonjour,\n\nCliquez pour vous connecter à Krinea (valable {minutes} minutes) :\n{url}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+        "invite_subject": "{inviter} vous invite à la revue « {title} » sur Krinea",
         "invite_body": "Bonjour,\n\n{inviter} vous invite à rejoindre la revue « {title} » en tant que {role}.\nAccepter l'invitation :\n{url}\n\nLe lien expire dans 14 jours.",
     },
 }

@@ -1,6 +1,8 @@
 """Accounts: register, password login, magic links, profile, provider keys."""
 from __future__ import annotations
 
+import logging
+
 import datetime as dt
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -8,17 +10,18 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session as DBSession
 
-from tamis_api import models, schemas
-from tamis_api.config import get_settings
-from tamis_api.urls import public_base_url
-from tamis_api.db import get_db
-from tamis_api.deps import current_user, optional_user
-from tamis_api.security import (decrypt_secret, encrypt_secret, expires_in, hash_password, mask_key,
+from krinea_api import models, schemas
+from krinea_api.config import get_settings
+from krinea_api.urls import public_base_url
+from krinea_api.db import get_db
+from krinea_api.deps import current_user, optional_user
+from krinea_api.security import (decrypt_secret, encrypt_secret, expires_in, hash_password, mask_key,
                                 new_token, token_hash, verify_password)
-from tamis_api.services import ai as ai_service
-from tamis_api.services import email as email_service
-from tamis_api.services import oauth
+from krinea_api.services import ai as ai_service
+from krinea_api.services import email as email_service
+from krinea_api.services import oauth
 
+log = logging.getLogger("krinea.auth")
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -85,6 +88,7 @@ def magic_link(body: schemas.MagicLinkIn, request: Request, db: DBSession = Depe
     db.commit()
     url = f"{public_base_url(request)}/auth/magic?token={token}"
     email_service.send_magic_link(email, url, body.locale if body.locale in ("en", "fr") else "en")
+    log.info("magic link sent to %s via %s", email, s.email_provider)
     out = {"ok": True}
     if s.debug:
         out["dev_link"] = url       # development only: no mail server needed
@@ -96,6 +100,8 @@ def magic_verify(body: schemas.TokenIn, request: Request, response: Response, db
     lt = db.scalar(select(models.LoginToken).where(models.LoginToken.token_hash == token_hash(body.token)))
     now = models.now()
     if not lt or lt.used_at or lt.expires_at < now:
+        reason = "unknown token" if not lt else ("already used" if lt.used_at else "expired")
+        log.info("magic link refused (%s) for %s", reason, lt.email if lt else "?")
         raise HTTPException(400, "This link is invalid or has expired")
     lt.used_at = now
     user = db.scalar(select(models.User).where(models.User.email == lt.email))

@@ -2,22 +2,22 @@
 
 ## In short
 
-- Tamis is open-source software. These terms cover the hosted beta only. If you self-host, the AGPL-3.0 licence applies instead.
+- Krinea is open-source software. These terms cover the hosted beta only. If you self-host, the AGPL-3.0 licence applies instead.
 - The hosted edition is free today and run by the maintainer, a private individual. It is provided as is, best effort, with no uptime guarantee.
-- You own everything you put in Tamis. We use it only to run the service for you. You can export or delete it at any time.
+- You own everything you put in Krinea. We use it only to run the service for you. You can export or delete it at any time.
 - AI output is a suggestion. You stay responsible for your review.
 - You must be at least 16, keep your credentials safe and respect the copyright of the PDFs you upload.
 - French law applies. If something goes wrong, we talk first.
 
 ## What the service is
 
-Tamis is an open-source workbench for systematic reviews: import references, remove duplicates, screen with a team, extract data with an AI that quotes its sources, report with PRISMA 2020, export. See the [about page](/about).
+Krinea is an open-source workbench for systematic reviews: import references, remove duplicates, screen with a team, extract data with an AI that quotes its sources, report with PRISMA 2020, export. See the [about page](/about).
 
-The application is released under the AGPL-3.0 licence; its core engine, the Python package `tamis_core`, under the MIT licence. The source code is at [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review).
+The application is released under the AGPL-3.0 licence; its core engine, the Python package `krinea_core`, under the MIT licence. The source code is at [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review).
 
 These terms apply only to the **hosted edition**: the beta instance operated by the maintainer, currently at a .onrender.com address and hosted on Render in Frankfurt (Germany, EU). "We" means the maintainer, an independent developer-researcher based in France, who runs the service as a natural person. No legal entity exists yet. See the [legal notice](/legal).
 
-If you self-host Tamis (Docker Compose, Render blueprint), these terms do not apply: the licences govern your use, and you are responsible for your instance and its users.
+If you self-host Krinea (Docker Compose, Render blueprint), these terms do not apply: the licences govern your use, and you are responsible for your instance and its users.
 
 By creating an account or using the hosted edition, you accept these terms.
 
@@ -43,13 +43,13 @@ The code is public. Auditing it and reporting a vulnerability on GitHub is welco
 
 ## Your content
 
-You own the references, PDFs, decisions, notes, forms, extractions and other content you put in Tamis. We claim no rights over it.
+You own the references, PDFs, decisions, notes, forms, extractions and other content you put in Krinea. We claim no rights over it.
 
 You grant us a licence limited to operating the service: storing and backing up your content, showing it to the people you invite, and processing it when you ask (deduplication, exports, AI features). It ends when you delete the content or your account, subject to the backup cycle described in the [privacy policy](/privacy).
 
 You can export everything at any time (RIS, CSV, Excel, PRISMA). The owner of a review can delete it from its danger zone, which deletes its references, PDFs, decisions and extractions. Account deletion is requested through the [contact page](/contact) and done within 30 days.
 
-AI suggestions are stored apart from human decisions and never count as a decision. You are responsible for your review: its criteria, the number of screeners, how conflicts are resolved, what is extracted and what is reported. Tamis is a tool, not a methods authority.
+AI suggestions are stored apart from human decisions and never count as a decision. You are responsible for your review: its criteria, the number of screeners, how conflicts are resolved, what is extracted and what is reported. Krinea is a tool, not a methods authority.
 
 ## AI features
 

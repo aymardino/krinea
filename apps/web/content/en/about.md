@@ -1,16 +1,16 @@
-## Why Tamis
+## Why Krinea
 
-Tamis started as a small extraction tool. The maintainer was running a real systematic review on long-term energy-system models in Africa and needed to pull structured data out of hundreds of PDFs without losing track of where each value came from. The script grew a form, then a way to quote the source passage next to every extracted value, then a screening step so the same team could first decide which papers to read at all.
+Krinea started as a small extraction tool. The maintainer was running a real systematic review on long-term energy-system models in Africa and needed to pull structured data out of hundreds of PDFs without losing track of where each value came from. The script grew a form, then a way to quote the source passage next to every extracted value, then a screening step so the same team could first decide which papers to read at all.
 
-At some point it was clear that the tool was no longer a script. A review needs one place where references, decisions, conflicts, extractions and PRISMA counts live together, where two people can screen blind and then compare, and where the final diagram is computed rather than typed by hand. Tamis is that place. It is built by someone who does reviews, for people who do reviews.
+At some point it was clear that the tool was no longer a script. A review needs one place where references, decisions, conflicts, extractions and PRISMA counts live together, where two people can screen blind and then compare, and where the final diagram is computed rather than typed by hand. Krinea is that place. It is built by someone who does reviews, for people who do reviews.
 
 ## The name
 
-*Tamis* is the French word for a sieve. A systematic review is mostly sifting: thousands of records go in, a handful of included studies come out, and every record that falls through must be accounted for. The logo is a round sieve with a diagonal mesh.
+*Krinea* comes from the Greek verb *krinō*: to separate, to sift, to judge. It is the root of *criterion* and *critique*. A systematic review is exactly that: thousands of records go in, a handful of included studies come out, and every decision along the way has to be explained. The mark is a circle divided in two, with what is kept on one side and what is set aside on the other.
 
-## What Tamis is, and what it is not
+## What Krinea is, and what it is not
 
-Tamis is a workbench. You use it to:
+Krinea is a workbench. You use it to:
 
 - import references from RIS, BibTeX, PubMed, Web of Science, Scopus CSV or Excel files;
 - remove duplicates;
@@ -19,21 +19,21 @@ Tamis is a workbench. You use it to:
 - report with the PRISMA 2020 counts and flow diagram;
 - export your work as RIS, CSV or Excel at any time.
 
-Tamis is not a methods authority. It does not tell you which criteria to use, how many screeners you need or when a study is good enough. Those choices are yours, and you are responsible for them.
+Krinea is not a methods authority. It does not tell you which criteria to use, how many screeners you need or when a study is good enough. Those choices are yours, and you are responsible for them.
 
 The AI suggests; it never decides. Every suggestion is stored apart from human decisions and never counts as one. A record is included, excluded or extracted because a person said so.
 
-For reporting, Tamis follows the PRISMA 2020 statement. The templates are reproduced under CC BY 4.0 from prisma-statement.org (Page MJ et al., BMJ 2021;372:n71).
+For reporting, Krinea follows the PRISMA 2020 statement. The templates are reproduced under CC BY 4.0 from prisma-statement.org (Page MJ et al., BMJ 2021;372:n71).
 
 ## Open source
 
-The application is released under the AGPL-3.0 licence. The core engine, the Python package `tamis_core` with the parsers, deduplication, screening rules and extraction schema, is released under the MIT licence so that it can be reused in other tools.
+The application is released under the AGPL-3.0 licence. The core engine, the Python package `krinea_core` with the parsers, deduplication, screening rules and extraction schema, is released under the MIT licence so that it can be reused in other tools.
 
-The source code is at [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone can self-host Tamis with Docker Compose or the Render blueprint. Issues, pull requests and discussions are welcome.
+The source code is at [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone can self-host Krinea with Docker Compose or the Render blueprint. Issues, pull requests and discussions are welcome.
 
 ## The hosted edition
 
-A hosted edition exists so that you can try Tamis without installing anything. It is a beta, currently served from a .onrender.com address; a proper domain will come. The web app, the API, the background worker and the database run on Render in Frankfurt, Germany, in the EU.
+A hosted edition exists so that you can try Krinea without installing anything. It is a beta, currently served from a .onrender.com address; a proper domain will come. The web app, the API, the background worker and the database run on Render in Frankfurt, Germany, in the EU.
 
 The hosted edition is operated by the maintainer as a private individual. It is non-commercial for now and provided as is, best effort, with no uptime guarantee. No paid plan is sold yet. Pro and Institution plans are announced on the [pricing page](/pricing) and will open only once billing and legal documents are ready. When they do, paid hosted plans will fund the hosting and the maintainer's time. Whatever happens to the hosted edition, the code stays free under AGPL-3.0.
 
@@ -41,13 +41,13 @@ See the [privacy policy](/privacy), the [terms of use](/terms) and the [legal no
 
 ## Who is behind it
 
-Tamis is an independent project by an individual developer-researcher based in France, referred to on this site as the maintainer. There is no company or legal entity behind it yet. Tamis is not affiliated with, funded by or endorsed by any institution, company or other review tool. Contributors on GitHub are welcome and credited in the repository.
+Krinea is an independent project by an individual developer-researcher based in France, referred to on this site as the maintainer. There is no company or legal entity behind it yet. Krinea is not affiliated with, funded by or endorsed by any institution, company or other review tool. Contributors on GitHub are welcome and credited in the repository.
 
 ## How to cite
 
 Cite the version number shown in the app and the repository URL.
 
-> Tamis, version X.Y.Z. https://github.com/aymardino/systematic_review
+> Krinea, version X.Y.Z. https://github.com/aymardino/systematic_review
 
 ## Contact
 

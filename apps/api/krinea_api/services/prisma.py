@@ -6,8 +6,8 @@ from collections import defaultdict
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from tamis_api import models
-from tamis_api.services import screening as scr
+from krinea_api import models
+from krinea_api.services import screening as scr
 
 
 def counts(db: Session, review: models.Review) -> dict:

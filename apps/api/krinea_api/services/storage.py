@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from tamis_api.config import get_settings
+from krinea_api.config import get_settings
 
 
 def _safe(name: str) -> str:

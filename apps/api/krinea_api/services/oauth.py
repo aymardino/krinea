@@ -16,14 +16,14 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from fastapi import Request
 
-from tamis_api.config import get_settings
-from tamis_api.urls import public_api_url
+from krinea_api.config import get_settings
+from krinea_api.urls import public_api_url
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs"
 GOOGLE_ISSUERS = ("https://accounts.google.com", "accounts.google.com")
-STATE_COOKIE = "tamis_oauth"
+STATE_COOKIE = "krinea_oauth"
 STATE_MAX_AGE = 600
 
 

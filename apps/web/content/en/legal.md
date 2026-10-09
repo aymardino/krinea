@@ -2,11 +2,11 @@
 
 ## Publisher
 
-This site and the hosted edition of Tamis are published by the maintainer of the project, an independent developer-researcher based in France, acting as a private individual. The hosted edition is a non-commercial beta: no paid plan is sold yet and no legal entity exists.
+This site and the hosted edition of Krinea are published by the maintainer of the project, an independent developer-researcher based in France, acting as a private individual. The hosted edition is a non-commercial beta: no paid plan is sold yet and no legal entity exists.
 
 The maintainer publishes this site on a non-professional basis. As French law allows (article 6-III of law no. 2004-575 of 21 June 2004 for confidence in the digital economy, LCEN), this page therefore gives only the name and address of the host, to whom the maintainer has provided their identity. You can ask for the maintainer's identity through the [contact page](/contact).
 
-Tamis is an independent project. It is not affiliated with, funded by or endorsed by any institution or company.
+Krinea is an independent project. It is not affiliated with, funded by or endorsed by any institution or company.
 
 ## Publication director
 
@@ -20,9 +20,9 @@ The web app, the API, the background worker and the PostgreSQL database run in R
 
 ## Intellectual property
 
-The name "Tamis" and the sieve logo identify the project. Please do not use them in a way that suggests an official edition or an endorsement.
+The name "Krinea" and the logo (a circle divided by a line) identify the project. Please do not use them in a way that suggests an official edition or an endorsement.
 
-The software is free and open source. The application is released under the AGPL-3.0 licence. The core engine, the Python package `tamis_core` (parsers, deduplication, screening rules, extraction schema), is released under the MIT licence. Source code: [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone may self-host it.
+The software is free and open source. The application is released under the AGPL-3.0 licence. The core engine, the Python package `krinea_core` (parsers, deduplication, screening rules, extraction schema), is released under the MIT licence. Source code: [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone may self-host it.
 
 The PRISMA 2020 flow diagram templates are reproduced under the CC BY 4.0 licence from prisma-statement.org. If you use them, cite: Page MJ et al., BMJ 2021;372:n71.
 

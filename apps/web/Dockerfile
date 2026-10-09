@@ -1,4 +1,4 @@
-# Tamis web (Next.js standalone build)
+# Krinea web (Next.js standalone build)
 FROM node:22-alpine AS deps
 RUN corepack enable
 WORKDIR /app

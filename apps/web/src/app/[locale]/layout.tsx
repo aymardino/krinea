@@ -7,7 +7,7 @@ import { Providers } from "@/lib/providers";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Tamis — systematic reviews, sifted", template: "%s · Tamis" },
+  title: { default: "Krinea — systematic reviews, sifted", template: "%s · Krinea" },
   description:
     "Open-source workbench for systematic reviews: import, deduplicate, screen with your team, extract with AI you verify, report with PRISMA 2020.",
 };

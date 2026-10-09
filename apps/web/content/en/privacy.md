@@ -4,7 +4,7 @@
 
 ## In short
 
-- Tamis stores what you give it: your account details and the content of your reviews (references, PDFs, decisions, extractions).
+- Krinea stores what you give it: your account details and the content of your reviews (references, PDFs, decisions, extractions).
 - Your data is hosted in Frankfurt (Germany, EU).
 - We use three cookies, none for analytics or advertising. No tracking, no banner.
 - Nothing goes to an AI provider unless a reviewer in your team asks for a suggestion or an extraction.
@@ -13,9 +13,9 @@
 
 ## Who is responsible
 
-The hosted edition of Tamis (the beta at a .onrender.com address) is run by the maintainer of the project, an independent developer-researcher based in France, as a natural person. Under the GDPR, the maintainer is the data controller. No legal entity exists yet and no paid plan is sold.
+The hosted edition of Krinea (the beta at a .onrender.com address) is run by the maintainer of the project, an independent developer-researcher based in France, as a natural person. Under the GDPR, the maintainer is the data controller. No legal entity exists yet and no paid plan is sold.
 
-If you self-host Tamis (open source, AGPL-3.0), you are the controller of your own instance; this policy does not cover it.
+If you self-host Krinea (open source, AGPL-3.0), you are the controller of your own instance; this policy does not cover it.
 
 To contact the controller, use the [contact page](/contact).
 
@@ -64,9 +64,9 @@ We do not use your data for advertising, profiling or resale, and we do not trai
 
 ## Cookies
 
-Tamis uses three cookies, all necessary for the service to work:
+Krinea uses three cookies, all necessary for the service to work:
 
-- `tamis_session`: keeps you signed in (HttpOnly, 30 days);
+- `krinea_session`: keeps you signed in (HttpOnly, 30 days);
 - a short-lived state cookie during Google sign-in, which protects that step (10 minutes);
 - a cookie that remembers your chosen interface language.
 
@@ -89,7 +89,7 @@ Some of these companies are established in the United States. When data leaves t
 
 ## AI providers
 
-Data leaves Tamis for an AI provider only when a user with reviewer rights triggers a suggestion (screening) or an extraction in a review. Tamis then sends to the provider configured for that review:
+Data leaves Krinea for an AI provider only when a user with reviewer rights triggers a suggestion (screening) or an extraction in a review. Krinea then sends to the provider configured for that review:
 
 - for screening: the title and abstract of the record, and the review's criteria;
 - for extraction: the text of the PDF and the extraction form designed by the authors.
@@ -139,11 +139,11 @@ For any other request, use the contact page. We may ask you to confirm your iden
 - No secret is ever written to logs.
 - The code is public, so anyone can audit it.
 
-Tamis has had no external security audit and holds no certification yet. We say so plainly so you can decide what to upload.
+Krinea has had no external security audit and holds no certification yet. We say so plainly so you can decide what to upload.
 
 ## Children
 
-Tamis is for users aged 16 and over. We do not knowingly collect data from younger people. If you think a child has created an account, tell us through the contact page and we will delete it.
+Krinea is for users aged 16 and over. We do not knowingly collect data from younger people. If you think a child has created an account, tell us through the contact page and we will delete it.
 
 ## Changes to this policy
 

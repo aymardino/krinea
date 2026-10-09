@@ -1,15 +1,15 @@
-# Tamis: full stack on one machine. `docker compose up --build` then open http://localhost:3000
+# Krinea: full stack on one machine. `docker compose up --build` then open http://localhost:3000
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: tamis
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tamis}
-      POSTGRES_DB: tamis
+      POSTGRES_USER: krinea
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-krinea}
+      POSTGRES_DB: krinea
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tamis"]
+      test: ["CMD-SHELL", "pg_isready -U krinea"]
       interval: 5s
       retries: 10
 
@@ -17,9 +17,9 @@ services:
     build: { context: ., dockerfile: apps/api/Dockerfile }
     depends_on: { db: { condition: service_healthy } }
     environment: &api_env
-      TAMIS_ENV: production
+      KRINEA_ENV: production
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      DATABASE_URL: postgresql+psycopg://tamis:${POSTGRES_PASSWORD:-tamis}@db:5432/tamis
+      DATABASE_URL: postgresql+psycopg://krinea:${POSTGRES_PASSWORD:-krinea}@db:5432/krinea
       DATA_DIR: /data
       BASE_URL: ${BASE_URL:-http://localhost:3000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
@@ -39,7 +39,7 @@ services:
 
   worker:
     build: { context: ., dockerfile: apps/api/Dockerfile }
-    command: python -m tamis_api.worker
+    command: python -m krinea_api.worker
     depends_on: { db: { condition: service_healthy } }
     environment: *api_env
     volumes:
@@ -55,7 +55,7 @@ services:
       - "3000:3000"
 
   # The original single-container Streamlit edition is still available:
-  #   docker build -t tamis-streamlit . && docker run -p 8501:8501 -v tamis_streamlit:/data tamis-streamlit
+  #   docker build -t krinea-streamlit . && docker run -p 8501:8501 -v krinea_streamlit:/data krinea-streamlit
 
 volumes:
   pgdata:
