@@ -12,5 +12,5 @@ pip install -e packages/core
 python -c "from krinea_core import biblio; print(biblio.parse_file('x.ris', open('x.ris','rb').read())[0])"
 ```
 
-The LLM calls themselves live in the application (`extractor.py`), so this
+The LLM calls live in `krinea_core.llm`, so this
 package has no provider SDK dependency.

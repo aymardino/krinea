@@ -136,10 +136,12 @@ def from_csv(text: str) -> list[dict]:
 
 
 def energy_template() -> list[dict]:
-    """The 52-field energy-modelling schema of extractor.py, as an importable example."""
-    import extractor
+    """The 52-field energy-modelling schema (the project's origin), as an importable example."""
+    import json
+    from pathlib import Path
+    rows = json.loads((Path(__file__).parent / "data" / "energy_template.json").read_text())
     out = []
-    for name, kind, hint in extractor.FIELDS:
+    for name, kind, hint in rows:
         f = {"name": name, "label": name.replace("_", " ").capitalize(), "options": [], "hint": ""}
         if kind == "enum":
             f.update(kind="enum", options=list(hint))
@@ -221,7 +223,7 @@ def clean_result(fields, raw: dict) -> tuple[dict, dict]:
     return values, quotes
 
 
-# ── Generic consistency checks (the anomalies.py idea, schema-driven) ────────────
+# ── Generic consistency checks (schema-driven) ────────────
 def check_values(fields, values: dict, quotes: dict | None = None) -> dict:
     """{field: (severity, message)} — 'error' is invalid, 'warning' deserves a look."""
     quotes = quotes or {}
@@ -267,11 +269,11 @@ def summarise(flags: dict) -> tuple[int, int]:
 def extract_pdf(fields, pdf_path: str, api_key: str, provider: str, model: str,
                 context: str = "") -> tuple[dict, dict, str]:
     """PDF -> text -> LLM -> (values, quotes, text). Raises on unreadable PDFs."""
-    import extractor
-    text = extractor.extract_text(pdf_path)
+    from krinea_core import llm, pdftext
+    text = pdftext.extract_text(pdf_path)
     if len(text) < 500:
         raise ValueError("Extracted text too short — PDF may be scanned (needs OCR).")
-    raw = extractor.call_llm(build_prompt(fields, text, context), api_key,
-                             provider=provider, model=model)
+    raw, _usage = llm.call_json(build_prompt(fields, text, context), provider, api_key, model,
+                                purpose="extraction", max_retries=2)
     values, quotes = clean_result(fields, raw)
     return values, quotes, text

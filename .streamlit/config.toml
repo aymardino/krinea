@@ -1,4 +1,4 @@
-# Theme shared by review_app.py and the legacy extraction_app.py.
+# Theme of the Streamlit edition (review_app.py).
 # Calm teal on white: readable for hours of screening, neutral enough to brand.
 
 [theme]

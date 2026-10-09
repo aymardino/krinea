@@ -9,7 +9,7 @@ description = "Bibliographic parsing, deduplication, screening and extraction-fo
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-dependencies = ["rapidfuzz>=3.9", "pandas>=2.0"]
+dependencies = ["rapidfuzz>=3.9", "pandas>=2.0", "pymupdf>=1.24"]
 
 [project.optional-dependencies]
 excel = ["openpyxl>=3.1"]

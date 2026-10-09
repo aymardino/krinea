@@ -5,7 +5,7 @@ screening.py — Screening logic shared by the app and the tests.
   (include / exclude / maybe / conflict / pending), Rayyan-style.
 - highlight(): mark inclusion / exclusion keywords in an abstract.
 - build_screening_prompt() + ai_screen(): optional AI pre-screening against the
-  project's criteria, through the same LLM providers as extractor.py.
+  project's criteria, through krinea_core.llm.
 """
 from __future__ import annotations
 
@@ -196,11 +196,11 @@ def ai_screen(record: dict, criteria: dict, api_key: str, provider: str = "claud
               model: str | None = None, stage: str = "ta", full_text: str = "") -> dict:
     """Ask the configured LLM for a screening suggestion. Never raises on bad JSON:
     an unparseable answer becomes a low-confidence 'maybe'."""
-    import extractor  # lazy: pulls in the provider SDKs only when actually used
+    from krinea_core import llm  # lazy: pulls in the provider SDKs only when actually used
     prompt = build_screening_prompt(criteria, record, stage=stage, full_text=full_text)
     try:
-        raw = extractor.call_llm(prompt, api_key, provider=provider, model=model)
-    except json.JSONDecodeError:
+        raw, _usage = llm.call_json(prompt, provider, api_key, model, purpose="screening")
+    except (json.JSONDecodeError, ValueError):
         raw = {}
     out = parse_suggestion(raw)
     out["model"] = model or provider

@@ -152,8 +152,8 @@ def _render_pdf(pdf_path: str, key: str) -> None:
 
 def _pdf_text(pdf_path: str) -> str:
     try:
-        import extractor
-        return extractor.extract_text(pdf_path)
+        from krinea_core import pdftext
+        return pdftext.extract_text(pdf_path)
     except Exception:                                         # noqa: BLE001
         return ""
 
@@ -544,8 +544,8 @@ def _fulltext_material(rec: dict, email: str):
                 st.error(t("need_email"))
             else:
                 try:
-                    import extractor
-                    path = extractor.fetch_pdf_by_doi(rec["doi"], email, str(PDF_DIR))
+                    from krinea_core import unpaywall
+                    path = unpaywall.fetch_pdf_by_doi(rec["doi"], email, str(PDF_DIR))
                     review_db.set_pdf(rid, path, "available")
                     st.rerun()
                 except Exception as e:                        # noqa: BLE001
