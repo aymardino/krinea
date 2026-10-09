@@ -60,6 +60,12 @@ and no URL to configure, and the session cookie is first-party.
    in Resend. Update the Google OAuth redirect URI to
    `https://example.org/api/auth/google/callback`.
 
+### Contact address on the site
+
+Set `NEXT_PUBLIC_CONTACT_EMAIL` (for example `contact@krinea.org`) on
+`tamis-web`, then **Manual Deploy → Clear build cache & deploy**: the value
+is baked into the pages at build time.
+
 ### If something fails
 
 - **"Server failure" mails / `tamis-api` restarting**: open the service's

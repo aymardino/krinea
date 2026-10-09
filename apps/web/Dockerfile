@@ -13,7 +13,8 @@ COPY apps/web ./
 # The browser reaches the API through this app's /api proxy (API_URL at run time), so nothing
 # is baked in; NEXT_PUBLIC_API_URL is only for a separately hosted API.
 ARG NEXT_PUBLIC_API_URL=
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_CONTACT_EMAIL=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_PUBLIC_CONTACT_EMAIL=$NEXT_PUBLIC_CONTACT_EMAIL NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
 FROM node:22-alpine AS run
