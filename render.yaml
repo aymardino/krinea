@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Render blueprint: one web service built from the Dockerfile, with a persistent
 # disk so review.db and the PDFs survive deploys. Persistent disks need a paid
 # instance (Starter or above) and keep the service on a single instance.
@@ -16,6 +17,66 @@ services:
         value: /data
       - key: APP_LANG
         value: en
+=======
+# Render blueprint for Krinea (decisions D-17, D-21, D-23).
+#
+# Services: PostgreSQL, API, worker, web. Browsers only talk to `tamis-web`; it proxies
+# `/api/*` to the API over Render's private network, so the deployment works on the
+# default *.onrender.com address with no domain and no extra configuration.
+#
+# Custom domain: add it to `tamis-web` (Settings → Custom domains), then set BASE_URL on
+# `tamis-api` to that https URL (optional: links already use the origin the proxy reports).
+# `fromService` values are filled in when the Blueprint syncs: if a service failed to build
+# during a sync, run "Manual sync" once everything is green so tamis-web gets API_URL.
+# Cheaper test setup: `plan: free` on tamis-web and tamis-api, INLINE_JOBS=1 on the API, no
+# worker. Free instances cannot receive private-network traffic, so then set API_URL on
+# tamis-web to the API's public https URL by hand (and expect 50 s cold starts).
+# PDFs: set S3_BUCKET / S3_ENDPOINT_URL (Cloudflare R2, Backblaze B2…) so the API needs no
+# persistent disk; otherwise attach a disk to the API at /data.
+databases:
+  - name: tamis-db
+    plan: basic-256mb
+    databaseName: krinea
+    user: krinea
+    region: frankfurt
+
+services:
+  - type: web
+    name: tamis-api
+    runtime: docker
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /health
+    envVars:
+      - key: KRINEA_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase: { name: tamis-db, property: connectionString }
+      - key: SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: INLINE_JOBS
+        value: "0"
+      # E-mail: set in the dashboard (console | resend | smtp, plus RESEND_API_KEY or the
+      # SMTP_* variables); never overwritten by a sync.
+      - key: EMAIL_PROVIDER
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+>>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: GEMINI_API_KEY
@@ -24,3 +85,55 @@ services:
         sync: false
       - key: UNPAYWALL_EMAIL
         sync: false
+<<<<<<< HEAD
+=======
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+  - type: worker
+    name: tamis-worker
+    runtime: docker
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
+    dockerCommand: python -m krinea_api.worker
+    plan: starter
+    region: frankfurt
+    envVars:
+      - key: KRINEA_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase: { name: tamis-db, property: connectionString }
+      - key: SECRET_KEY
+        fromService: { type: web, name: tamis-api, envVarKey: SECRET_KEY }
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+
+  - type: web
+    name: tamis-web
+    runtime: docker
+    dockerfilePath: apps/web/Dockerfile
+    dockerContext: .
+    plan: starter
+    region: frankfurt
+    envVars:
+      # Internal address of the API on Render's private network (host:port, plain http,
+      # paid instances only). Fallback: set API_URL by hand to the API's public https URL.
+      - key: API_URL
+        fromService: { type: web, name: tamis-api, property: hostport }
+      - key: PROXY_KEY
+        fromService: { type: web, name: tamis-api, envVarKey: SECRET_KEY }
+>>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

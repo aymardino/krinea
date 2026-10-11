@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 extraction_schema.py — Author-defined data extraction forms.
 
@@ -275,3 +276,9 @@ def extract_pdf(fields, pdf_path: str, api_key: str, provider: str, model: str,
                              provider=provider, model=model)
     values, quotes = clean_result(fields, raw)
     return values, quotes, text
+=======
+"""Compatibility shim: this module now lives in packages/core as krinea_core.extraction_schema."""
+import sys as _sys
+import krinea_core.extraction_schema as _m
+_sys.modules[__name__] = _m
+>>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

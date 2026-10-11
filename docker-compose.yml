@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 services:
   review:
     build: .
@@ -16,3 +17,67 @@ services:
 
 volumes:
   review_data:
+=======
+# Krinea: full stack on one machine. `docker compose up --build` then open http://localhost:3000
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: krinea
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-krinea}
+      POSTGRES_DB: krinea
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U krinea"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    depends_on: { db: { condition: service_healthy } }
+    environment: &api_env
+      KRINEA_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DATABASE_URL: postgresql+psycopg://krinea:${POSTGRES_PASSWORD:-krinea}@db:5432/krinea
+      DATA_DIR: /data
+      BASE_URL: ${BASE_URL:-http://localhost:3000}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      INLINE_JOBS: "0"
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      UNPAYWALL_EMAIL: ${UNPAYWALL_EMAIL:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - pdfs:/data
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: python -m krinea_api.worker
+    depends_on: { db: { condition: service_healthy } }
+    environment: *api_env
+    volumes:
+      - pdfs:/data
+
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    depends_on: [api]
+    environment:
+      API_URL: http://api:8000                                # the web app proxies /api/* to it (D-23)
+      PROXY_KEY: ${SECRET_KEY:-change-me-in-production}
+    ports:
+      - "3000:3000"
+
+  # The original single-container Streamlit edition is still available:
+  #   docker build -t krinea-streamlit . && docker run -p 8501:8501 -v krinea_streamlit:/data krinea-streamlit
+
+volumes:
+  pgdata:
+  pdfs:
+>>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

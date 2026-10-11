@@ -1,0 +1,493 @@
+{
+  "common": {
+    "appName": "Krinea",
+    "tagline": "La revue systématique, jugée sur pièces.",
+    "signIn": "Se connecter",
+    "signUp": "Créer un compte",
+    "signOut": "Se déconnecter",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "loading": "Chargement…",
+    "search": "Rechercher",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "of": "sur",
+    "all": "Toutes",
+    "none": "Aucun",
+    "yes": "Oui",
+    "no": "Non",
+    "download": "Télécharger",
+    "error": "Une erreur est survenue",
+    "language": "Langue",
+    "settings": "Paramètres",
+    "reviews": "Revues",
+    "role": {
+      "owner": "Propriétaire",
+      "admin": "Admin",
+      "reviewer": "Relecteur",
+      "viewer": "Lecteur"
+    },
+    "decision": {
+      "include": "Inclure",
+      "maybe": "Peut-être",
+      "exclude": "Exclure",
+      "conflict": "Conflit",
+      "pending": "En attente"
+    }
+  },
+  "nav": {
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "docs": "Documentation",
+    "github": "Code source sur GitHub",
+    "app": "Ouvrir l'application",
+    "about": "À propos",
+    "menu": "Menu",
+    "footer": {
+      "product": "Produit",
+      "project": "Projet",
+      "legal": "Légal",
+      "selfHost": "Auto-hébergement",
+      "releases": "Versions",
+      "contact": "Contact",
+      "privacy": "Politique de confidentialité",
+      "terms": "Conditions d'utilisation",
+      "legalNotice": "Mentions légales",
+      "independence": "Un projet open source indépendant, sans affiliation ni soutien d'aucune institution. Hébergé à Francfort (UE).",
+      "licences": "Application AGPL-3.0, moteur MIT · Modèles PRISMA 2020 reproduits sous CC BY 4.0 (prisma-statement.org)",
+      "security": "Sécurité"
+    }
+  },
+  "marketing": {
+    "heroEyebrow": "Open source · PRISMA 2020 · une IA que vous vérifiez",
+    "heroTitle": "L'atelier de revue systématique qui vous laisse aux commandes",
+    "heroText": "Importez vos recherches, retirez les doublons, triez en équipe, extrayez les données avec une IA qui cite ses sources, et rapportez avec le diagramme PRISMA officiel. Gratuit à auto-héberger, prêt à l'emploi en ligne.",
+    "ctaPrimary": "Démarrer une revue",
+    "ctaSecondary": "Voir comment ça marche",
+    "trust": "Conçu par des chercheurs, pour des équipes de recherche en Afrique et en Europe. Licence AGPL-3.0.",
+    "stepsTitle": "De l'export de recherche au diagramme PRISMA",
+    "steps": {
+      "import": {
+        "title": "Importer",
+        "text": "RIS, BibTeX, PubMed, Web of Science, CSV Scopus, Excel. Format détecté automatiquement, chaque fichier conservé comme un lot."
+      },
+      "dedup": {
+        "title": "Dédoublonner",
+        "text": "Les DOI et titres identiques fusionnent seuls. Les cas proches attendent votre décision, preuves côte à côte."
+      },
+      "screen": {
+        "title": "Trier",
+        "text": "Titre et résumé, puis texte intégral. Double lecture en aveugle, conflits, raccourcis clavier, mots-clés surlignés."
+      },
+      "extract": {
+        "title": "Extraire",
+        "text": "Vous dessinez la grille. L'IA la remplit depuis chaque PDF avec une citation par champ. Vous vérifiez, à côté de l'article."
+      },
+      "report": {
+        "title": "Rapporter",
+        "text": "Comptages et diagramme PRISMA 2020 conformes au gabarit officiel, plus exports RIS, CSV et Excel."
+      }
+    },
+    "aiTitle": "Une IA qui suggère, jamais ne décide",
+    "aiText": "Les suggestions sont stockées à part des décisions et exigent toujours un clic humain. Apportez votre clé API, ou utilisez les crédits inclus dans les offres payantes.",
+    "teamTitle": "Pensé pour les équipes",
+    "teamText": "Invitez des relecteurs par e-mail, choisissez simple ou double lecture, masquez les décisions en mode aveugle, résolvez les conflits, suivez la progression et le temps de chacun.",
+    "openTitle": "Open source, à héberger chez vous",
+    "openText": "L'application entière est sous AGPL-3.0 ; le moteur d'analyse et de dédoublonnage sous MIT. Sur votre portable, le serveur du labo ou notre service hébergé.",
+    "footer": "Conçu pour la synthèse des preuves. © {year} Krinea.",
+    "trustStrip": {
+      "eu": "Hébergé à Francfort (UE)",
+      "oss": "AGPL-3.0 · auto-hébergement gratuit",
+      "prisma": "Modèle PRISMA 2020 officiel",
+      "export": "Tout exporter, à tout moment"
+    },
+    "stepsLede": "Cinq étapes, un seul espace de travail, et rien que vous ne puissiez exporter.",
+    "pricingTeaser": {
+      "title": "Auto-hébergement gratuit, pour toujours.",
+      "text": "L'offre Gratuit hébergée est ouverte dès aujourd'hui. Les offres Pro et Institution ouvriront quand la facturation et les documents juridiques seront prêts.",
+      "cta": "Voir les tarifs"
+    },
+    "closingTitle": "Libre d'essayer, libre de partir.",
+    "closingText": "Tout ce que vous construisez dans Krinea s'exporte en RIS, CSV, Excel et en diagramme PRISMA 2020. Le code est sous AGPL-3.0 : si nous arrêtons un jour, vous pouvez l'héberger vous-même.",
+    "preview": {
+      "stage": "Titre et résumé",
+      "aiSuggests": "L'IA suggère",
+      "aiReason": "résultats de coût pour un mini-réseau solaire en Afrique subsaharienne"
+    }
+  },
+  "pricing": {
+    "title": "Des tarifs simples, un code ouvert",
+    "subtitle": "Auto-hébergez gratuitement, pour toujours. Ou laissez-nous héberger pour que vos relecteurs avancent.",
+    "monthly": "par mois, facturé à l'année",
+    "plans": {
+      "free": {
+        "name": "Gratuit",
+        "price": "0 €",
+        "tagline": "Pour un relecteur qui démarre",
+        "features": [
+          "1 revue active",
+          "Jusqu'à 2 collaborateurs",
+          "Notices illimitées",
+          "Votre propre clé IA",
+          "Exports PRISMA 2020"
+        ],
+        "cta": "Commencer gratuitement"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "9 €",
+        "tagline": "Pour les équipes de recherche",
+        "features": [
+          "Revues illimitées",
+          "Collaborateurs illimités",
+          "Crédits IA inclus chaque mois",
+          "Double lecture en aveugle et conflits",
+          "Support prioritaire"
+        ],
+        "cta": "Rejoindre la liste d'attente"
+      },
+      "institution": {
+        "name": "Institution",
+        "price": "Sur devis",
+        "tagline": "Pour les universités et organisations",
+        "features": [
+          "Authentification unique (SSO)",
+          "Console d'administration et facturation",
+          "Options de résidence des données",
+          "Formation des bibliothécaires",
+          "Contrat de service"
+        ],
+        "cta": "Nous contacter"
+      }
+    },
+    "selfhost": "Vous préférez votre serveur ? L'image Docker et le blueprint Render sont dans le dépôt.",
+    "lowIncome": "Accès Pro gratuit pour les relecteurs d'institutions situées dans des pays à faible revenu.",
+    "paidSoon": "Les offres payantes ouvriront quand nos conditions, notre politique de confidentialité et notre accord de traitement des données seront publiés. Rien n'est facturé sans abonnement explicite de votre part.",
+    "lowIncomeCta": "Écrivez-nous."
+  },
+  "auth": {
+    "signInTitle": "Bon retour",
+    "signUpTitle": "Créez votre compte Krinea",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "name": "Nom",
+    "passwordHint": "Au moins 8 caractères",
+    "magicTitle": "Ou recevez un lien de connexion par e-mail",
+    "magicButton": "M'envoyer un lien",
+    "magicSent": "Consultez votre boîte mail pour le lien de connexion.",
+    "magicChecking": "Connexion en cours…",
+    "magicInvalid": "Ce lien est invalide ou expiré. Demandez-en un nouveau.",
+    "noAccount": "Pas encore de compte ?",
+    "haveAccount": "Déjà un compte ?",
+    "inviteTitle": "Vous êtes invité·e",
+    "inviteText": "{inviter} vous invite à rejoindre « {title} » en tant que {role}.",
+    "inviteAccept": "Accepter et ouvrir la revue",
+    "inviteNeedAccount": "Connectez-vous ou créez un compte avec {email} pour accepter.",
+    "google": "Continuer avec Google",
+    "googleError": "La connexion Google a échoué. Réessayez ou utilisez votre e-mail.",
+    "or": "ou",
+    "consent": "En créant un compte, vous acceptez les <terms>conditions d'utilisation</terms> et la <privacy>politique de confidentialité</privacy>.",
+    "magicAgain": "Renvoyer un lien"
+  },
+  "reviews": {
+    "title": "Vos revues",
+    "new": "Nouvelle revue",
+    "empty": "Aucune revue pour l'instant. Créez la première.",
+    "records": "{n} notices",
+    "members": "{n} membres",
+    "progress": "{p} % triés par vous",
+    "createTitle": "Créer une revue",
+    "createText": "Tout reste modifiable ensuite dans les paramètres de la revue.",
+    "fields": {
+      "title": "Titre",
+      "question": "Question de recherche",
+      "description": "Description",
+      "type": "Type"
+    },
+    "types": {
+      "systematic": "Revue systématique",
+      "scoping": "Revue de portée",
+      "rapid": "Revue rapide",
+      "umbrella": "Revue parapluie",
+      "other": "Autre"
+    },
+    "create": "Créer"
+  },
+  "review": {
+    "tabs": {
+      "overview": "Aperçu",
+      "data": "Données",
+      "screening": "Tri",
+      "fulltext": "Texte intégral",
+      "extraction": "Extraction",
+      "prisma": "PRISMA",
+      "settings": "Paramètres"
+    },
+    "overview": {
+      "title": "Aperçu",
+      "identified": "Notices identifiées",
+      "duplicates": "Doublons retirés",
+      "toScreen": "À trier (titre & résumé)",
+      "fullTexts": "Textes intégraux à évaluer",
+      "included": "Études incluses",
+      "yourProgress": "Votre progression",
+      "teamProgress": "Progression de l'équipe",
+      "decisions": "Décisions",
+      "activity": "Activité récente",
+      "left": "{n} restantes",
+      "timeSpent": "{t} passées",
+      "throughput": "Décisions par jour",
+      "noActivity": "Rien pour l'instant. Commencez par importer des résultats de recherche.",
+      "conflicts": "{n} conflits à résoudre",
+      "stage": {
+        "ta": "Titre & résumé",
+        "ft": "Texte intégral"
+      }
+    },
+    "data": {
+      "title": "Données",
+      "imports": "Imports",
+      "upload": "Ajouter des résultats de recherche",
+      "uploadHint": "RIS, BibTeX, PubMed .nbib, Web of Science .txt, CSV, TSV ou Excel",
+      "sourceLabel": "Base source (optionnel)",
+      "import": "Importer",
+      "imported": "{n} notices importées depuis {file}",
+      "skipped": "{n} ignorées sans titre ni DOI",
+      "deleteImport": "Supprimer cet import",
+      "duplicates": "Doublons",
+      "runDedup": "Détecter les doublons",
+      "dedupText": "Les DOI et titres identiques fusionnent automatiquement. Les cas proches attendent votre décision ci-dessous.",
+      "autoThreshold": "Fusion automatique au-dessus de",
+      "askThreshold": "Me demander au-dessus de",
+      "dedupDone": "{removed} doublons retirés, {possible} paires à vérifier",
+      "candidates": "Paires à vérifier",
+      "noCandidates": "Aucune paire en attente.",
+      "same": "Même étude, fusionner",
+      "different": "Différentes, garder les deux",
+      "removed": "Retirées comme doublons",
+      "restore": "Restaurer",
+      "keptAs": "conservée sous #{id}",
+      "records": "Toutes les notices",
+      "columns": {
+        "title": "Titre",
+        "year": "Année",
+        "source": "Source",
+        "status": "Statut",
+        "pdf": "PDF"
+      }
+    },
+    "screening": {
+      "views": {
+        "todo": "À trier",
+        "mine_include": "Incluses par moi",
+        "mine_maybe": "Peut-être",
+        "mine_exclude": "Exclues par moi",
+        "conflict": "Conflits",
+        "include": "Incluses",
+        "exclude": "Exclues",
+        "pending": "En attente",
+        "all": "Toutes"
+      },
+      "search": "Titre, auteurs, résumé…",
+      "empty": "Rien dans cette vue.",
+      "allDone": "Vous avez tout trié à cette étape.",
+      "noAbstract": "Pas de résumé dans l'export.",
+      "keywords": "Mots-clés",
+      "reason": "Motif d'exclusion",
+      "note": "Note",
+      "labels": "Étiquettes",
+      "labelsHint": "Séparées par des virgules",
+      "addNote": "Ajouter une note…",
+      "yourDecision": "Votre décision",
+      "others": "Autres relecteurs",
+      "blindHidden": "Masqué en mode aveugle",
+      "consensus": "Résoudre en consensus",
+      "aiSuggests": "L'IA suggère",
+      "acceptAi": "Accepter la suggestion",
+      "runAi": "Demander des suggestions à l'IA",
+      "aiLimit": "Notices à analyser",
+      "aiDone": "{ok} suggestions enregistrées",
+      "aiNeedKey": "Ajoutez votre clé IA dans le panneau IA, ou passez à une offre avec crédits inclus.",
+      "shortcuts": "Raccourcis",
+      "shortcutList": "I inclure · M peut-être · E exclure · ← → naviguer · P ouvrir le PDF",
+      "progress": "{done} / {total} triées par vous",
+      "fullText": "Texte intégral",
+      "uploadPdf": "Téléverser le PDF",
+      "fetchPdf": "Chercher un PDF en accès libre",
+      "notRetrieved": "Introuvable",
+      "notRetrievedOn": "Marqué comme non récupéré",
+      "openPdf": "Ouvrir le PDF",
+      "noPdf": "Pas encore de PDF. Téléversez-le ou tentez la recherche en accès libre.",
+      "clearDecision": "Effacer ma décision",
+      "filters": "Filtres",
+      "includeKw": "Mots-clés d'inclusion",
+      "excludeKw": "Mots-clés d'exclusion",
+      "keywordsTitle": "Mots-clés",
+      "addInclude": "Ajouter un mot-clé vert…",
+      "addExclude": "Ajouter un mot-clé rouge…",
+      "keywordHint": "Entrée pour ajouter, virgules pour plusieurs, * comme joker. Surlignés dans chaque résumé.",
+      "filterBy": "Afficher les références contenant « {keyword} »",
+      "aiProvider": "Fournisseur :",
+      "aiChange": "changer",
+      "aiNoKey": "Aucune clé {provider} enregistrée. Collez la vôtre pour obtenir des suggestions dans cette revue et toutes les autres.",
+      "aiKeyPlaceholder": "Clé API",
+      "aiKeySave": "Enregistrer la clé",
+      "aiKeySaved": "Clé enregistrée. Elle est chiffrée et ne sera plus affichée.",
+      "aiKeyStored": "Chiffrée au repos, jamais journalisée, supprimable à tout moment.",
+      "aiRemoveKey": "retirer",
+      "aiCredits": "Crédits inclus : {n} jetons restants ce mois-ci.",
+      "aiKeyMore": "Comment les clés sont protégées"
+    },
+    "extraction": {
+      "title": "Extraction des données",
+      "text": "Études incluses au texte intégral. L'IA remplit votre grille depuis chaque PDF avec une citation par champ ; vous vérifiez à côté de l'article.",
+      "run": "Extraire avec l'IA",
+      "runHint": "{n} études avec PDF et sans brouillon",
+      "status": {
+        "none": "Non commencée",
+        "draft": "Brouillon",
+        "verified": "Vérifiée",
+        "failed": "Échec"
+      },
+      "verify": "Vérifier",
+      "saveVerified": "Enregistrer comme vérifiée",
+      "reExtract": "Relancer l'IA",
+      "flags": "{errors} erreurs · {warnings} avertissements",
+      "noFlags": "Rien à signaler",
+      "quote": "Citation source",
+      "noPdf": "Aucun PDF pour cette étude.",
+      "pdf": "PDF",
+      "textTab": "Texte extrait",
+      "form": "Grille",
+      "empty": "Aucune étude incluse au texte intégral pour l'instant."
+    },
+    "prisma": {
+      "title": "PRISMA 2020",
+      "text": "Les comptages et le diagramme suivent le gabarit officiel PRISMA 2020 (CC BY 4.0).",
+      "variant": "Gabarit",
+      "variants": {
+        "new_v1": "Nouvelle revue, bases et registres",
+        "new_v2": "Nouvelle revue, avec autres méthodes",
+        "updated_v1": "Revue mise à jour, bases et registres",
+        "updated_v2": "Revue mise à jour, avec autres méthodes"
+      },
+      "downloadSvg": "Télécharger le SVG",
+      "exports": "Exports",
+      "included": "Études incluses",
+      "allRecords": "Toutes les notices avec statut",
+      "decisions": "Journal des décisions",
+      "extractions": "Extractions vérifiées",
+      "counts": "Comptages PRISMA",
+      "bySource": "Par source",
+      "reasons": "Motifs d'exclusion au texte intégral"
+    },
+    "settings": {
+      "title": "Paramètres de la revue",
+      "general": "Général",
+      "criteria": "Critères de tri",
+      "inclusion": "Critères d'inclusion",
+      "exclusion": "Critères d'exclusion",
+      "reasons": "Motifs d'exclusion (un par ligne)",
+      "highlightInclude": "Mots-clés surlignés en vert",
+      "highlightExclude": "Mots-clés surlignés en rouge",
+      "keywordHint": "Séparés par des virgules, * comme joker",
+      "team": "Équipe",
+      "required": "Relecteurs requis par notice",
+      "blind": "Mode aveugle",
+      "blindHint": "Les relecteurs ne voient pas les décisions des autres ; les admins, si.",
+      "invite": "Inviter par e-mail",
+      "inviteRole": "Rôle",
+      "pending": "Invitations en attente",
+      "form": "Grille d'extraction",
+      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list.",
+      "addField": "Ajouter un champ",
+      "templates": "Modèles",
+      "templateDefault": "PICO (par défaut)",
+      "templateEnergy": "Modélisation énergétique (52 champs)",
+      "ai": "IA",
+      "aiProvider": "Fournisseur",
+      "aiModelScreening": "Modèle de tri",
+      "aiModelExtraction": "Modèle d'extraction",
+      "danger": "Zone dangereuse",
+      "archive": "Archiver cette revue",
+      "deleteReview": "Supprimer cette revue",
+      "deleteConfirm": "Saisissez le titre de la revue pour confirmer",
+      "field": {
+        "name": "Clé",
+        "label": "Libellé",
+        "kind": "Type",
+        "options": "Options (a | b | c)",
+        "hint": "Consigne pour l'IA",
+        "required": "Obligatoire"
+      }
+    }
+  },
+  "userSettings": {
+    "title": "Vos paramètres",
+    "profile": "Profil",
+    "aiKeys": "Fournisseurs d'IA",
+    "aiKeysText": "Vos clés sont chiffrées au repos et jamais journalisées. Elles priment toujours sur les crédits inclus.",
+    "addKey": "Enregistrer la clé",
+    "removeKey": "Retirer",
+    "usage": "Utilisation de l'IA ce mois-ci",
+    "included": "Crédits inclus",
+    "ownKey": "Avec vos propres clés",
+    "tokens": "{n} jetons",
+    "plan": "Offre",
+    "newPassword": "Nouveau mot de passe"
+  },
+  "pages": {
+    "about": {
+      "title": "À propos de Krinea",
+      "description": "Pourquoi cet atelier existe, qui le construit et comment il reste ouvert."
+    },
+    "privacy": {
+      "title": "Politique de confidentialité",
+      "description": "Ce que nous stockons, où, pourquoi, et ce que vous pouvez en faire."
+    },
+    "terms": {
+      "title": "Conditions d'utilisation",
+      "description": "Les règles de l'édition hébergée, en langage clair."
+    },
+    "legal": {
+      "title": "Mentions légales",
+      "description": "Éditeur, hébergeur et propriété intellectuelle."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Institutions, demandes d'accès gratuit, support et bugs."
+    },
+    "security": {
+      "title": "Sécurité et données",
+      "description": "Où vivent vos données, comment vos clés IA sont protégées, et ce qui n'est pas encore en place."
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "lede": "Une vraie personne lit chaque message, en français ou en anglais. Les bugs et les demandes de fonctionnalités avancent plus vite sur GitHub ; les questions institutionnelles, les demandes d'accès gratuit et tout ce qui est privé passent par e-mail.",
+    "institutions": {
+      "title": "Institutions",
+      "text": "Authentification unique, console d'administration, facturation et accord de traitement des données pour les universités et organisations. Indiquez le nombre de relecteurs, les types de revues et vos exigences sur les données."
+    },
+    "lowIncome": {
+      "title": "Accès Pro gratuit",
+      "text": "Les relecteurs d'institutions situées dans des pays à faible revenu obtiennent l'offre Pro gratuitement. Écrivez depuis votre adresse institutionnelle avec votre nom et votre service."
+    },
+    "support": {
+      "title": "Support et bugs",
+      "text": "Le suivi des problèmes est public : cherchez d'abord, puis ouvrez un ticket avec ce que vous avez fait, ce que vous attendiez et ce qui s'est passé. Questions et idées vont dans les Discussions.",
+      "issues": "Ouvrir un ticket sur GitHub",
+      "discussions": "Poser une question dans les Discussions"
+    },
+    "email": "Pour les sujets privés, écrivez à",
+    "emailSoon": "Une adresse e-mail privée sera publiée ici dès que notre domaine sera configuré. D'ici là, utilisez GitHub ou répondez à l'e-mail que vous avez reçu de nous.",
+    "response": "Nous répondons sous cinq jours ouvrés ; il n'y a ni ligne téléphonique ni chat en direct."
+  },
+  "seo": {
+    "title": "Krinea : logiciel open source de revue systématique",
+    "description": "Importez vos références, retirez les doublons, triez titres et résumés en équipe, extrayez les données avec une IA qui cite ses sources, et rapportez avec le diagramme PRISMA 2020 officiel. Gratuit à auto-héberger, hébergé dans l'UE."
+  }
+}

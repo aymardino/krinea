@@ -26,10 +26,19 @@ def test_json_csv_roundtrip():
     assert back[3]["options"] == fields[3]["options"]
 
 
+<<<<<<< HEAD
 def test_energy_template_matches_extractor():
     import extractor
     fields = es.energy_template()
     assert len(fields) == len(extractor.FIELDS)
+=======
+def test_energy_template_matches_data_file():
+    import json
+    from pathlib import Path
+    rows = json.loads((Path(es.__file__).parent / "data" / "energy_template.json").read_text())
+    fields = es.energy_template()
+    assert len(fields) == len(rows) >= 50
+>>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
     by_name = {f["name"]: f for f in fields}
     assert by_name["approach"]["kind"] == "enum"
     assert by_name["informal_economy"]["options"] == ["yes", "no", "partial"]

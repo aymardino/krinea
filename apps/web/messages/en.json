@@ -1,0 +1,493 @@
+{
+  "common": {
+    "appName": "Krinea",
+    "tagline": "Systematic reviews, judged on the evidence.",
+    "signIn": "Sign in",
+    "signUp": "Create an account",
+    "signOut": "Sign out",
+    "save": "Save",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "loading": "Loading…",
+    "search": "Search",
+    "previous": "Previous",
+    "next": "Next",
+    "of": "of",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "download": "Download",
+    "error": "Something went wrong",
+    "language": "Language",
+    "settings": "Settings",
+    "reviews": "Reviews",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "reviewer": "Reviewer",
+      "viewer": "Viewer"
+    },
+    "decision": {
+      "include": "Include",
+      "maybe": "Maybe",
+      "exclude": "Exclude",
+      "conflict": "Conflict",
+      "pending": "Pending"
+    }
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Docs",
+    "github": "Source code on GitHub",
+    "app": "Open the app",
+    "about": "About",
+    "menu": "Menu",
+    "footer": {
+      "product": "Product",
+      "project": "Project",
+      "legal": "Legal",
+      "selfHost": "Self-hosting",
+      "releases": "Releases",
+      "contact": "Contact",
+      "privacy": "Privacy policy",
+      "terms": "Terms of service",
+      "legalNotice": "Legal notice",
+      "independence": "An independent open-source project, not affiliated with or endorsed by any institution. Hosted in Frankfurt (EU).",
+      "licences": "Application AGPL-3.0, core engine MIT · PRISMA 2020 templates reproduced under CC BY 4.0 (prisma-statement.org)",
+      "security": "Security"
+    }
+  },
+  "marketing": {
+    "heroEyebrow": "Open source · PRISMA 2020 · AI you verify",
+    "heroTitle": "The systematic review workbench that keeps you in control",
+    "heroText": "Import your searches, remove duplicates, screen with your team, extract data with an AI that quotes its sources, and report with the official PRISMA flow. Free to self-host, ready to use online.",
+    "ctaPrimary": "Start a review",
+    "ctaSecondary": "See how it works",
+    "trust": "Built by researchers, for research teams in Africa and Europe. AGPL-3.0 licensed.",
+    "stepsTitle": "From search export to PRISMA diagram",
+    "steps": {
+      "import": {
+        "title": "Import",
+        "text": "RIS, BibTeX, PubMed, Web of Science, Scopus CSV, Excel. Format detected automatically, every file kept as a batch."
+      },
+      "dedup": {
+        "title": "Deduplicate",
+        "text": "DOI and title matches merge on their own. Near matches wait for your call, with the evidence side by side."
+      },
+      "screen": {
+        "title": "Screen",
+        "text": "Title and abstract, then full text. Blind double screening, conflicts, keyboard shortcuts, highlighted keywords."
+      },
+      "extract": {
+        "title": "Extract",
+        "text": "You design the form. The AI fills it from each PDF with a verbatim quote per field. You verify, next to the paper."
+      },
+      "report": {
+        "title": "Report",
+        "text": "PRISMA 2020 counts and diagram, exactly as the official template, plus RIS, CSV and Excel exports."
+      }
+    },
+    "aiTitle": "AI that suggests, never decides",
+    "aiText": "Suggestions are stored apart from decisions and always need a human click. Bring your own API key, or use the credits included in paid plans.",
+    "teamTitle": "Built for teams",
+    "teamText": "Invite reviewers by email, choose single or double screening, hide decisions in blind mode, resolve conflicts, follow each reviewer's progress and time.",
+    "openTitle": "Open source, yours to host",
+    "openText": "The whole application is AGPL-3.0; the parsing and deduplication engine is MIT. Run it on your laptop, your lab server or our hosted service.",
+    "footer": "Made for evidence synthesis. © {year} Krinea.",
+    "trustStrip": {
+      "eu": "Hosted in Frankfurt (EU)",
+      "oss": "AGPL-3.0 · self-host for free",
+      "prisma": "PRISMA 2020 official template",
+      "export": "Export everything, any time"
+    },
+    "stepsLede": "Five stages, one workspace, and nothing you cannot export.",
+    "pricingTeaser": {
+      "title": "Self-host for free, forever.",
+      "text": "The hosted Free plan is open today. Pro and Institution plans open once billing and the legal documents are ready.",
+      "cta": "See pricing"
+    },
+    "closingTitle": "Free to try, free to leave.",
+    "closingText": "Everything you build in Krinea exports as RIS, CSV, Excel and a PRISMA 2020 diagram. The code is AGPL-3.0: if we ever stop, you can host it yourself.",
+    "preview": {
+      "stage": "Title & abstract",
+      "aiSuggests": "AI suggests",
+      "aiReason": "cost outcomes for a solar mini-grid in sub-Saharan Africa"
+    }
+  },
+  "pricing": {
+    "title": "Simple pricing, open code",
+    "subtitle": "Self-host for free, forever. Or let us host it and keep your reviewers moving.",
+    "monthly": "per month, billed yearly",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "price": "€0",
+        "tagline": "For a single reviewer getting started",
+        "features": [
+          "1 active review",
+          "Up to 2 collaborators",
+          "Unlimited records",
+          "Bring your own AI key",
+          "PRISMA 2020 exports"
+        ],
+        "cta": "Start free"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "€9",
+        "tagline": "For research teams",
+        "features": [
+          "Unlimited reviews",
+          "Unlimited collaborators",
+          "Included AI credits each month",
+          "Blind double screening and conflicts",
+          "Priority support"
+        ],
+        "cta": "Join the waitlist"
+      },
+      "institution": {
+        "name": "Institution",
+        "price": "Custom",
+        "tagline": "For universities and organisations",
+        "features": [
+          "Single sign-on",
+          "Admin console and invoicing",
+          "Data residency options",
+          "Onboarding for librarians",
+          "Service agreement"
+        ],
+        "cta": "Talk to us"
+      }
+    },
+    "selfhost": "Prefer your own server? The Docker image and Render blueprint are in the repository.",
+    "lowIncome": "Free Pro access for reviewers at institutions in low-income countries.",
+    "paidSoon": "Paid plans open once our terms, privacy policy and data processing agreement are published. Nothing is charged before you explicitly subscribe.",
+    "lowIncomeCta": "Write to us."
+  },
+  "auth": {
+    "signInTitle": "Welcome back",
+    "signUpTitle": "Create your Krinea account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "passwordHint": "At least 8 characters",
+    "magicTitle": "Or get a sign-in link by email",
+    "magicButton": "Email me a link",
+    "magicSent": "Check your inbox for the sign-in link.",
+    "magicChecking": "Signing you in…",
+    "magicInvalid": "This link is invalid or has expired. Ask for a new one.",
+    "noAccount": "No account yet?",
+    "haveAccount": "Already have an account?",
+    "inviteTitle": "You are invited",
+    "inviteText": "{inviter} invites you to join “{title}” as {role}.",
+    "inviteAccept": "Accept and open the review",
+    "inviteNeedAccount": "Sign in or create an account with {email} to accept.",
+    "google": "Continue with Google",
+    "googleError": "Google sign-in failed. Try again or use your e-mail.",
+    "or": "or",
+    "consent": "By creating an account you accept the <terms>terms of service</terms> and the <privacy>privacy policy</privacy>.",
+    "magicAgain": "Send another link"
+  },
+  "reviews": {
+    "title": "Your reviews",
+    "new": "New review",
+    "empty": "No review yet. Create your first one.",
+    "records": "{n} records",
+    "members": "{n} members",
+    "progress": "{p}% screened by you",
+    "createTitle": "Create a review",
+    "createText": "You can change everything later in the review settings.",
+    "fields": {
+      "title": "Title",
+      "question": "Research question",
+      "description": "Description",
+      "type": "Type"
+    },
+    "types": {
+      "systematic": "Systematic review",
+      "scoping": "Scoping review",
+      "rapid": "Rapid review",
+      "umbrella": "Umbrella review",
+      "other": "Other"
+    },
+    "create": "Create"
+  },
+  "review": {
+    "tabs": {
+      "overview": "Overview",
+      "data": "Data",
+      "screening": "Screening",
+      "fulltext": "Full text",
+      "extraction": "Extraction",
+      "prisma": "PRISMA",
+      "settings": "Settings"
+    },
+    "overview": {
+      "title": "Overview",
+      "identified": "Records identified",
+      "duplicates": "Duplicates removed",
+      "toScreen": "To screen (title & abstract)",
+      "fullTexts": "Full texts to assess",
+      "included": "Studies included",
+      "yourProgress": "Your progress",
+      "teamProgress": "Team progress",
+      "decisions": "Decisions",
+      "activity": "Recent activity",
+      "left": "{n} left",
+      "timeSpent": "{t} spent",
+      "throughput": "Decisions per day",
+      "noActivity": "Nothing yet. Start by importing search results.",
+      "conflicts": "{n} conflicts to resolve",
+      "stage": {
+        "ta": "Title & abstract",
+        "ft": "Full text"
+      }
+    },
+    "data": {
+      "title": "Data",
+      "imports": "Imports",
+      "upload": "Add search results",
+      "uploadHint": "RIS, BibTeX, PubMed .nbib, Web of Science .txt, CSV, TSV or Excel",
+      "sourceLabel": "Source database (optional)",
+      "import": "Import",
+      "imported": "{n} records imported from {file}",
+      "skipped": "{n} skipped without title or DOI",
+      "deleteImport": "Delete this import",
+      "duplicates": "Duplicates",
+      "runDedup": "Detect duplicates",
+      "dedupText": "DOI and identical titles merge automatically. Near matches wait below for your decision.",
+      "autoThreshold": "Auto-merge above",
+      "askThreshold": "Ask me above",
+      "dedupDone": "{removed} duplicates removed, {possible} pairs to check",
+      "candidates": "Pairs to check",
+      "noCandidates": "No pair waiting for you.",
+      "same": "Same study, merge",
+      "different": "Different, keep both",
+      "removed": "Removed as duplicates",
+      "restore": "Restore",
+      "keptAs": "kept as #{id}",
+      "records": "All records",
+      "columns": {
+        "title": "Title",
+        "year": "Year",
+        "source": "Source",
+        "status": "Status",
+        "pdf": "PDF"
+      }
+    },
+    "screening": {
+      "views": {
+        "todo": "To screen",
+        "mine_include": "Included by me",
+        "mine_maybe": "Maybe",
+        "mine_exclude": "Excluded by me",
+        "conflict": "Conflicts",
+        "include": "Included",
+        "exclude": "Excluded",
+        "pending": "Pending",
+        "all": "All"
+      },
+      "search": "Search title, authors, abstract…",
+      "empty": "Nothing in this view.",
+      "allDone": "You screened everything in this stage.",
+      "noAbstract": "No abstract in the export.",
+      "keywords": "Keywords",
+      "reason": "Exclusion reason",
+      "note": "Note",
+      "labels": "Labels",
+      "labelsHint": "Comma-separated",
+      "addNote": "Add a note…",
+      "yourDecision": "Your decision",
+      "others": "Other reviewers",
+      "blindHidden": "Hidden in blind mode",
+      "consensus": "Resolve as consensus",
+      "aiSuggests": "AI suggests",
+      "acceptAi": "Accept suggestion",
+      "runAi": "Ask the AI for suggestions",
+      "aiLimit": "Records to analyse",
+      "aiDone": "{ok} suggestions saved",
+      "aiNeedKey": "Add your AI key in the AI panel, or upgrade for included credits.",
+      "shortcuts": "Shortcuts",
+      "shortcutList": "I include · M maybe · E exclude · ← → navigate · P open PDF",
+      "progress": "{done} / {total} screened by you",
+      "fullText": "Full text",
+      "uploadPdf": "Upload PDF",
+      "fetchPdf": "Find open-access PDF",
+      "notRetrieved": "Not retrievable",
+      "notRetrievedOn": "Flagged as not retrieved",
+      "openPdf": "Open PDF",
+      "noPdf": "No PDF yet. Upload it or try the open-access lookup.",
+      "clearDecision": "Clear my decision",
+      "filters": "Filters",
+      "includeKw": "Include keywords",
+      "excludeKw": "Exclude keywords",
+      "keywordsTitle": "Keywords",
+      "addInclude": "Add a green keyword…",
+      "addExclude": "Add a red keyword…",
+      "keywordHint": "Enter to add, commas for several, * as wildcard. Highlighted in every abstract.",
+      "filterBy": "Show records containing “{keyword}”",
+      "aiProvider": "Provider:",
+      "aiChange": "change",
+      "aiNoKey": "No {provider} key on file yet. Paste yours to get suggestions in this review and all your others.",
+      "aiKeyPlaceholder": "API key",
+      "aiKeySave": "Save key",
+      "aiKeySaved": "Key saved. It is encrypted and never shown again.",
+      "aiKeyStored": "Encrypted at rest, never logged, removable at any time.",
+      "aiRemoveKey": "remove",
+      "aiCredits": "Included credits: {n} tokens left this month.",
+      "aiKeyMore": "How keys are protected"
+    },
+    "extraction": {
+      "title": "Data extraction",
+      "text": "Studies included at full text. The AI fills your form from each PDF with a quote per field; you verify next to the paper.",
+      "run": "Extract with AI",
+      "runHint": "{n} studies with a PDF and no draft",
+      "status": {
+        "none": "Not started",
+        "draft": "Draft",
+        "verified": "Verified",
+        "failed": "Failed"
+      },
+      "verify": "Verify",
+      "saveVerified": "Save as verified",
+      "reExtract": "Run AI again",
+      "flags": "{errors} errors · {warnings} warnings",
+      "noFlags": "Nothing flagged",
+      "quote": "Source quote",
+      "noPdf": "No PDF on file for this study.",
+      "pdf": "PDF",
+      "textTab": "Extracted text",
+      "form": "Form",
+      "empty": "No study included at full text yet."
+    },
+    "prisma": {
+      "title": "PRISMA 2020",
+      "text": "Counts and diagram follow the official PRISMA 2020 template (CC BY 4.0).",
+      "variant": "Template",
+      "variants": {
+        "new_v1": "New review, databases and registers",
+        "new_v2": "New review, with other methods",
+        "updated_v1": "Updated review, databases and registers",
+        "updated_v2": "Updated review, with other methods"
+      },
+      "downloadSvg": "Download SVG",
+      "exports": "Exports",
+      "included": "Included studies",
+      "allRecords": "All records with status",
+      "decisions": "Decision log",
+      "extractions": "Verified extractions",
+      "counts": "PRISMA counts",
+      "bySource": "By source",
+      "reasons": "Full-text exclusion reasons"
+    },
+    "settings": {
+      "title": "Review settings",
+      "general": "General",
+      "criteria": "Screening criteria",
+      "inclusion": "Inclusion criteria",
+      "exclusion": "Exclusion criteria",
+      "reasons": "Exclusion reasons (one per line)",
+      "highlightInclude": "Keywords highlighted in green",
+      "highlightExclude": "Keywords highlighted in red",
+      "keywordHint": "Comma-separated, * as wildcard",
+      "team": "Team",
+      "required": "Reviewers needed per record",
+      "blind": "Blind mode",
+      "blindHint": "Reviewers do not see each other's decisions; admins do.",
+      "invite": "Invite by email",
+      "inviteRole": "Role",
+      "pending": "Pending invitations",
+      "form": "Extraction form",
+      "formHint": "The fields the AI extracts and you verify. Kinds: text, sentences, number, year, yesno, enum, multi, list.",
+      "addField": "Add field",
+      "templates": "Templates",
+      "templateDefault": "PICO (default)",
+      "templateEnergy": "Energy modelling (52 fields)",
+      "ai": "AI",
+      "aiProvider": "Provider",
+      "aiModelScreening": "Screening model",
+      "aiModelExtraction": "Extraction model",
+      "danger": "Danger zone",
+      "archive": "Archive this review",
+      "deleteReview": "Delete this review",
+      "deleteConfirm": "Type the review title to confirm",
+      "field": {
+        "name": "Key",
+        "label": "Label",
+        "kind": "Kind",
+        "options": "Options (a | b | c)",
+        "hint": "Instruction for the AI",
+        "required": "Required"
+      }
+    }
+  },
+  "userSettings": {
+    "title": "Your settings",
+    "profile": "Profile",
+    "aiKeys": "AI providers",
+    "aiKeysText": "Your own keys are encrypted at rest and never logged. They always take precedence over included credits.",
+    "addKey": "Save key",
+    "removeKey": "Remove",
+    "usage": "AI usage this month",
+    "included": "Included credits",
+    "ownKey": "With your own keys",
+    "tokens": "{n} tokens",
+    "plan": "Plan",
+    "newPassword": "New password"
+  },
+  "pages": {
+    "about": {
+      "title": "About Krinea",
+      "description": "Why this workbench exists, who builds it and how it stays open."
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "description": "What we store, where, why, and what you can do about it."
+    },
+    "terms": {
+      "title": "Terms of service",
+      "description": "The rules of the hosted edition, in plain language."
+    },
+    "legal": {
+      "title": "Legal notice",
+      "description": "Publisher, host and intellectual property."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Institutions, free access requests, support and bugs."
+    },
+    "security": {
+      "title": "Security and data",
+      "description": "Where your data lives, how your AI keys are protected, and what is not in place yet."
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "lede": "A real person reads every message, in English or French. Bugs and feature requests move fastest through GitHub; institutional questions, free-access requests and anything private go by e-mail.",
+    "institutions": {
+      "title": "Institutions",
+      "text": "Single sign-on, admin console, invoicing and a data processing agreement for universities and organisations. Tell us the number of reviewers, the review types and your data requirements."
+    },
+    "lowIncome": {
+      "title": "Free Pro access",
+      "text": "Reviewers at institutions in low-income countries get the Pro plan for free. Write from your institutional e-mail address with your name and department."
+    },
+    "support": {
+      "title": "Support and bugs",
+      "text": "The issue tracker is public: search it first, then open an issue with what you did, what you expected and what happened. Questions and ideas go to Discussions.",
+      "issues": "Open an issue on GitHub",
+      "discussions": "Ask in GitHub Discussions"
+    },
+    "email": "For private matters, write to",
+    "emailSoon": "A private e-mail address will be published here once our domain is set up. Until then, use GitHub or reply to the e-mail you received from us.",
+    "response": "We answer within five working days; there is no phone line or live chat."
+  },
+  "seo": {
+    "title": "Krinea: open-source systematic review software",
+    "description": "Import references, remove duplicates, screen titles and abstracts with your team, extract data with an AI that quotes its sources, and report with the official PRISMA 2020 diagram. Free to self-host, hosted in the EU."
+  }
+}

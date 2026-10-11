@@ -1,0 +1,28 @@
+# Krinea web (Next.js standalone build)
+FROM node:22-alpine AS deps
+RUN corepack enable
+WORKDIR /app
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+
+FROM node:22-alpine AS build
+RUN corepack enable
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY apps/web ./
+# The browser reaches the API through this app's /api proxy (API_URL at run time), so nothing
+# is baked in; NEXT_PUBLIC_API_URL is only for a separately hosted API.
+ARG NEXT_PUBLIC_API_URL=
+ARG NEXT_PUBLIC_CONTACT_EMAIL=
+ARG NEXT_PUBLIC_SITE_URL=https://krinea.org
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_PUBLIC_CONTACT_EMAIL=$NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
+
+FROM node:22-alpine AS run
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0
+WORKDIR /app
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+EXPOSE 3000
+CMD ["sh", "-c", "PORT=${PORT:-3000} node server.js"]

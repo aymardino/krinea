@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Krinea design tokens (decision D-18) ─────────────────────────────────────── */
+:root {
+  --brand-50: #effcf8;  --brand-100: #d4f7ec; --brand-200: #a9eed9; --brand-300: #71dfc2;
+  --brand-400: #3cc8a8; --brand-500: #1fae90; --brand-600: #178c76; --brand-700: #16705f;
+  --brand-800: #16594d; --brand-900: #154a41; --brand-950: #082b26;
+  --amber-500: #d97706; --amber-100: #fef3c7; --amber-700: #b45309;
+
+  --background: #fbfcfc; --foreground: #0f172a;
+  --card: #ffffff; --card-foreground: #0f172a;
+  --muted: #f1f5f9; --muted-foreground: #64748b;
+  --border: #e2e8f0; --input: #e2e8f0; --ring: var(--brand-500);
+  --primary: var(--brand-700); --primary-foreground: #ffffff;
+  --accent: var(--brand-50); --accent-foreground: var(--brand-900);
+  --destructive: #b91c1c; --destructive-foreground: #ffffff;
+
+  --include: #15803d; --include-bg: #dcfce7;
+  --maybe: #d97706;   --maybe-bg: #fef3c7;
+  --exclude: #b91c1c; --exclude-bg: #fee2e2;
+  --conflict: #6d28d9; --conflict-bg: #ede9fe;
+  --pending: #475569; --pending-bg: #f1f5f9;
+
+  --radius: 10px;
+}
+
+.dark {
+  --background: #0b1220; --foreground: #e5edf3;
+  --card: #111a2b; --card-foreground: #e5edf3;
+  --muted: #1a2538; --muted-foreground: #93a3b8;
+  --border: #243049; --input: #243049; --ring: var(--brand-400);
+  --primary: var(--brand-400); --primary-foreground: #06211c;
+  --accent: #10302a; --accent-foreground: var(--brand-200);
+  --destructive: #ef4444; --destructive-foreground: #ffffff;
+  --include: #16a34a; --include-bg: #0f2e1d;
+  --maybe: #d97706;   --maybe-bg: #3a2a08;
+  --exclude: #e11d48; --exclude-bg: #3b1111;
+  --conflict: #8b5cf6; --conflict-bg: #2a1d4d;
+  --pending: #cbd5e1; --pending-bg: #1e293b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-brand-50: var(--brand-50); --color-brand-100: var(--brand-100); --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300); --color-brand-400: var(--brand-400); --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600); --color-brand-700: var(--brand-700); --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900); --color-brand-950: var(--brand-950);
+  --color-amber-500: var(--amber-500); --color-amber-100: var(--amber-100); --color-amber-700: var(--amber-700);
+  --color-include: var(--include); --color-include-bg: var(--include-bg);
+  --color-maybe: var(--maybe); --color-maybe-bg: var(--maybe-bg);
+  --color-exclude: var(--exclude); --color-exclude-bg: var(--exclude-bg);
+  --color-conflict: var(--conflict); --color-conflict-bg: var(--conflict-bg);
+  --color-pending: var(--pending); --color-pending-bg: var(--pending-bg);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 10px 30px -10px rgb(15 23 42 / 0.25);
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-background text-foreground font-sans antialiased; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+  h1, h2, h3 { @apply tracking-tight; }
+  ::selection { background: var(--brand-200); color: var(--brand-950); }
+  mark.kw-include { background: var(--include-bg); color: var(--include); border-radius: 3px; padding: 0 2px; }
+  mark.kw-exclude { background: var(--exclude-bg); color: var(--exclude); border-radius: 3px; padding: 0 2px; }
+  .dark mark.kw-include, .dark mark.kw-exclude { filter: none; }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+  /* Faint grid behind a section. Drawn on a pseudo-element so the fade-out mask never
+     touches the section's own content. */
+  .mesh-bg { position: relative; isolation: isolate; }
+  .mesh-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgb(22 112 95 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(22 112 95 / 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(120% 90% at 40% 0%, #000 35%, transparent 100%);
+  }
+  .text-balance { text-wrap: balance; }
+  .scrollbar-thin { scrollbar-width: thin; }
+}
+
+/* ── Reading pages (about, privacy, terms, legal notice) ──────────────────────── */
+.prose-krinea { @apply text-[15px] leading-7 text-foreground; }
+.prose-krinea > :first-child { @apply mt-0; }
+.prose-krinea h2 { @apply font-display mt-10 text-2xl font-semibold tracking-tight; }
+.prose-krinea h3 { @apply mt-7 text-lg font-semibold; }
+.prose-krinea h4 { @apply mt-5 text-base font-semibold; }
+.prose-krinea p { @apply mt-4; }
+.prose-krinea ul { @apply mt-4 list-disc space-y-1.5 pl-6; }
+.prose-krinea ol { @apply mt-4 list-decimal space-y-1.5 pl-6; }
+.prose-krinea li > p { @apply mt-1; }
+.prose-krinea a { @apply font-medium text-primary underline underline-offset-4; }
+.prose-krinea strong { @apply font-semibold; }
+.prose-krinea blockquote { @apply mt-4 border-l-4 border-brand-300 bg-brand-50 px-4 py-3 text-foreground dark:bg-brand-950; }
+.prose-krinea hr { @apply my-8 border-border; }
+.prose-krinea code { @apply rounded bg-muted px-1.5 py-0.5 font-mono text-[13px]; }
+.prose-krinea table { @apply mt-4 w-full border-collapse text-sm; }
+.prose-krinea th { @apply border-b border-border py-2 pr-4 text-left font-semibold; }
+.prose-krinea td { @apply border-b border-border py-2 pr-4 align-top; }
+.prose-krinea h2 + p, .prose-krinea h3 + p { @apply mt-3; }

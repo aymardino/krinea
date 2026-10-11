@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 biblio.py — Import and export of bibliographic search results.
 
@@ -550,3 +551,9 @@ def to_csv(records, extra_fields=()) -> str:
     for r in records:
         w.writerow({f: r.get(f, "") for f in fields})
     return buf.getvalue()
+=======
+"""Compatibility shim: this module now lives in packages/core as krinea_core.biblio."""
+import sys as _sys
+import krinea_core.biblio as _m
+_sys.modules[__name__] = _m
+>>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
