@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 dedup.py — Duplicate detection across imported search results.
 
@@ -219,9 +218,3 @@ def merge_records(records, keeper: int, idxs) -> dict:
                 merged[f] = records[i][f]
     merged["source_db"] = "; ".join(sources)
     return merged
-=======
-"""Compatibility shim: this module now lives in packages/core as krinea_core.dedup."""
-import sys as _sys
-import krinea_core.dedup as _m
-_sys.modules[__name__] = _m
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

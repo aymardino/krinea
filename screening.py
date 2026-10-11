@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 screening.py — Screening logic shared by the app and the tests.
 
@@ -206,9 +205,3 @@ def ai_screen(record: dict, criteria: dict, api_key: str, provider: str = "claud
     out = parse_suggestion(raw)
     out["model"] = model or provider
     return out
-=======
-"""Compatibility shim: this module now lives in packages/core as krinea_core.screening."""
-import sys as _sys
-import krinea_core.screening as _m
-_sys.modules[__name__] = _m
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

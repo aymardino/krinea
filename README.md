@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Systematic review workbench
 
 An open-source, self-hosted tool for running a systematic review from end to
@@ -103,7 +102,6 @@ A cheap model is fine for screening; use a stronger one for extraction.
 | `extractor.py` | PDF text extraction, LLM calls, Unpaywall lookup (shared with the legacy app) |
 | `extraction_app.py`, `anomalies.py` | The original energy-modelling extraction app this project grew from |
 | `tests/` | pytest suite (parsers, dedup, screening, schema, storage, app smoke test) |
-=======
 # Krinea — systematic reviews, sifted
 
 Open-source workbench for systematic reviews, in the spirit of Rayyan or
@@ -165,12 +163,10 @@ invitations, Google redirects) from `BASE_URL` when set, otherwise from the
 origin the proxy reports, which it trusts because the web app's `PROXY_KEY`
 equals the API's `SECRET_KEY`. Set `NEXT_PUBLIC_API_URL` only when the API
 is hosted separately and called directly.
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
 
 ## Tests
 
 ```bash
-<<<<<<< HEAD
 pip install -r requirements-dev.txt
 python -m pytest -q
 ```
@@ -196,7 +192,6 @@ Copy the `"en"` block of `i18n.py`, translate it, and add the code to
 ## License
 
 MIT (see `LICENSE`).
-=======
 cd apps/api && pytest -q        # accounts and a two-reviewer end-to-end flow (stubbed LLM)
 python -m pytest -q             # engine and Streamlit edition (repository root)
 cd apps/web && pnpm build       # type-checks and builds the web app
@@ -230,4 +225,3 @@ dark-mode toggle, Alembic migrations. Decisions and rationale:
 Application: AGPL-3.0-only (`LICENSE`). `packages/core`: MIT
 (`packages/core/LICENSE`). PRISMA 2020 templates are reproduced under CC BY
 4.0 (prisma-statement.org).
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

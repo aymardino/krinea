@@ -1,13 +1,10 @@
 .git
-<<<<<<< HEAD
 __pycache__
 *.pyc
-=======
 **/node_modules
 **/.next
 **/__pycache__
 **/*.pyc
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
 *.db
 *.db.bak
 _pdf_cache
@@ -17,9 +14,6 @@ charts*.zip
 *.xlsx
 *.xlsm
 *.zip
-<<<<<<< HEAD
 tests
-=======
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
 .pytest_cache
 .DS_Store

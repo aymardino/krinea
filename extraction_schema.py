@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 extraction_schema.py — Author-defined data extraction forms.
 
@@ -137,29 +136,11 @@ def from_csv(text: str) -> list[dict]:
 
 
 def energy_template() -> list[dict]:
-    """The 52-field energy-modelling schema of extractor.py, as an importable example."""
-    import extractor
-    out = []
-    for name, kind, hint in extractor.FIELDS:
-        f = {"name": name, "label": name.replace("_", " ").capitalize(), "options": [], "hint": ""}
-        if kind == "enum":
-            f.update(kind="enum", options=list(hint))
-        elif kind == "multi":
-            f.update(kind="multi", options=list(hint))
-        elif kind == "yesno":
-            f.update(kind="yesno")
-        elif kind == "ynp":
-            f.update(kind="enum", options=["yes", "no", "partial"])
-        elif kind == "year":
-            f.update(kind="year", hint=hint)
-        elif kind in ("iso", "list"):
-            f.update(kind="list", hint=hint)
-        elif kind == "sentences":
-            f.update(kind="sentences", hint=hint)
-        else:
-            f.update(kind="text", hint=hint)
-        out.append(normalise_field(f))
-    return out
+    """Load the versioned energy-modelling schema from the shared core package."""
+    from pathlib import Path
+
+    rows = json.loads((Path(__file__).parent / "packages" / "core" / "krinea_core" / "data" / "energy_template.json").read_text())
+    return [normalise_field(row) for row in rows]
 
 
 # ── Prompt ───────────────────────────────────────────────────────────────────────
@@ -276,9 +257,3 @@ def extract_pdf(fields, pdf_path: str, api_key: str, provider: str, model: str,
                              provider=provider, model=model)
     values, quotes = clean_result(fields, raw)
     return values, quotes, text
-=======
-"""Compatibility shim: this module now lives in packages/core as krinea_core.extraction_schema."""
-import sys as _sys
-import krinea_core.extraction_schema as _m
-_sys.modules[__name__] = _m
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d

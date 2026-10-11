@@ -3,6 +3,7 @@ __pycache__/
 .vscode/
 .DS_Store
 .pytest_cache/
+.venv/
 .env
 
 # Local data of the workbench (keep out of the repository)
@@ -11,8 +12,6 @@ review.db.bak
 _review_pdfs/
 _pdf_cache/
 _last_bad_response.txt
-<<<<<<< HEAD
-=======
 
 # JavaScript / Next.js
 node_modules/
@@ -25,4 +24,3 @@ out/
 *.egg-info/
 build/
 dist/
->>>>>>> d4ff4f6bba015c2b901ce172bd9a1553a3c5810d
