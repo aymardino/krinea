@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Krinea web
 
-## Getting Started
+The Next.js front end of [Krinea](../../README.md): the public site (home, pricing, about,
+security and legal pages) and the review workspace. The browser only talks to this app;
+`/api/*` is proxied to the Krinea API, so cookies stay first-party and no CORS setup is needed.
 
-First, run the development server:
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev      # http://localhost:3000, expects the API on http://localhost:8000
+pnpm build    # production build (standalone output, used by the Dockerfile)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the API first (see the [root README](../../README.md)).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run time (read by the server, no rebuild needed):
 
-## Learn More
+| Variable | Purpose |
+| --- | --- |
+| `API_URL` | Internal address of the API that `/api/*` is proxied to. A full URL or a bare `host:port` (Render's `hostport`). Default `http://localhost:8000`. |
+| `PROXY_KEY` | Shared secret sent with every proxied request; must equal the API's `SECRET_KEY`. |
+| `PUBLIC_ORIGIN` | Public origin of the site (for example `https://krinea.org`), reported to the API for links in e-mails and OAuth redirects. In production the proxy never derives it from request headers; it uses `PUBLIC_ORIGIN`, else `NEXT_PUBLIC_SITE_URL`. Set it when the site is served elsewhere (a test deployment, a self-hosted domain). The API's `BASE_URL`, when set, takes precedence. |
 
-To learn more about Next.js, take a look at the following resources:
+Build time (inlined into the bundle, so a change needs a rebuild):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Canonical public address, used for metadata, the sitemap and social cards. Default `https://krinea.org`. |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | Address shown on the contact page. Default `contact@krinea.org`. |
+| `NEXT_PUBLIC_API_URL` | Only for a separately hosted API that the browser calls directly. Leave empty to use the `/api` proxy. |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [docs/deploy-render.md](../../docs/deploy-render.md) for the Render blueprint and the
+[root README](../../README.md) for Docker Compose and self-hosting.
