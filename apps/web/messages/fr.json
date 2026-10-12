@@ -478,12 +478,11 @@
     },
     "support": {
       "title": "Support et bugs",
-      "text": "Le suivi des problèmes est public : cherchez d'abord, puis ouvrez un ticket avec ce que vous avez fait, ce que vous attendiez et ce qui s'est passé. Questions et idées vont dans les Discussions.",
+      "text": "Le suivi des problèmes est public : cherchez d'abord, puis ouvrez un ticket avec ce que vous avez fait, ce que vous attendiez et ce qui s'est passé. Questions et idées vont dans les Discussions. Une faille de sécurité ne se signale jamais dans un ticket public : écrivez-nous en privé par e-mail ou passez par le signalement privé de vulnérabilités de GitHub.",
       "issues": "Ouvrir un ticket sur GitHub",
       "discussions": "Poser une question dans les Discussions"
     },
     "email": "Pour les sujets privés, écrivez à",
-    "emailSoon": "Une adresse e-mail privée sera publiée ici dès que notre domaine sera configuré. D'ici là, utilisez GitHub ou répondez à l'e-mail que vous avez reçu de nous.",
     "response": "Nous répondons sous cinq jours ouvrés ; il n'y a ni ligne téléphonique ni chat en direct."
   },
   "seo": {

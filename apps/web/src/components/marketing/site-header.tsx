@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useMe } from "@/lib/auth";
+import { REPO_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
-
-export const REPO_URL = "https://github.com/aymardino/systematic_review";
 
 export function LanguageSwitch({ className, bare = false }: { className?: string; bare?: boolean }) {
   const locale = useLocale();

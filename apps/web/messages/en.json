@@ -478,12 +478,11 @@
     },
     "support": {
       "title": "Support and bugs",
-      "text": "The issue tracker is public: search it first, then open an issue with what you did, what you expected and what happened. Questions and ideas go to Discussions.",
+      "text": "The issue tracker is public: search it first, then open an issue with what you did, what you expected and what happened. Questions and ideas go to Discussions. Security vulnerabilities never go in a public issue: report them privately by e-mail or through GitHub private vulnerability reporting.",
       "issues": "Open an issue on GitHub",
       "discussions": "Ask in GitHub Discussions"
     },
     "email": "For private matters, write to",
-    "emailSoon": "A private e-mail address will be published here once our domain is set up. Until then, use GitHub or reply to the e-mail you received from us.",
     "response": "We answer within five working days; there is no phone line or live chat."
   },
   "seo": {

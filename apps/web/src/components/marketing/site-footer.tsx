@@ -3,7 +3,8 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { KrineaWordmark } from "@/components/brand/logo";
-import { LanguageSwitch, REPO_URL } from "@/components/marketing/site-header";
+import { LanguageSwitch } from "@/components/marketing/site-header";
+import { APP_VERSION, REPO_URL } from "@/lib/site";
 
 type FooterLink = { key: string; href: string; external?: boolean };
 const GROUPS: { key: "product" | "project" | "legal"; links: FooterLink[] }[] = [
@@ -53,7 +54,7 @@ export function SiteFooter() {
         </div>
         <div className="mt-8 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>{m("footer", { year })}</p>
-          <p>{t("footer.licences")}</p>
+          <p>{t("footer.licences")} <span className="text-muted-foreground/70">· Krinea {APP_VERSION}</span></p>
         </div>
       </div>
     </footer>

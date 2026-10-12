@@ -3,9 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
 import { Building2, HeartHandshake, LifeBuoy, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { REPO_URL } from "@/components/marketing/site-header";
-
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
+import { CONTACT_EMAIL, REPO_URL } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -48,11 +46,7 @@ function Contact() {
       <div className="mt-10 flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-5 text-sm">
         <Mail className="mt-0.5 size-4 shrink-0 text-brand-700" />
         <div>
-          {CONTACT_EMAIL ? (
-            <p>{t("email")} <a className="font-medium text-primary underline-offset-4 hover:underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
-          ) : (
-            <p className="text-muted-foreground">{t("emailSoon")}</p>
-          )}
+          <p>{t("email")} <a className="font-medium text-primary underline-offset-4 hover:underline" href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
           <p className="mt-1 text-muted-foreground">{t("response")}</p>
         </div>
       </div>
