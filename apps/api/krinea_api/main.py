@@ -15,10 +15,14 @@ from krinea_api.services.ai import AIUnavailable
 from krinea_api.services.email import EmailError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+log = logging.getLogger("krinea")
 
 
 def create_app() -> FastAPI:
-    s = get_settings()
+    s = get_settings()               # refuses a weak SECRET_KEY in production (config.check_secret_key)
+    if s.env == "production" and not s.base_url_explicit:
+        log.warning("BASE_URL is not set: links in e-mails and the Google redirect fall back to the origin "
+                    "reported by the web proxy. Set BASE_URL to the public https address in production.")
     app = FastAPI(title="Krinea API", version=__version__, docs_url="/docs" if s.debug else None,
                   redoc_url=None, openapi_url="/openapi.json" if s.debug else None)
     app.add_middleware(CORSMiddleware, allow_origins=s.cors_origins, allow_credentials=True,

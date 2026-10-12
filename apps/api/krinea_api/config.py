@@ -23,6 +23,28 @@ def _normalise_db_url(url: str) -> str:
     return url
 
 
+# Placeholder values shipped in examples and defaults: never acceptable in production.
+WEAK_SECRETS = frozenset({"change-me", "change-me-in-production", "dev-secret-change-me"})
+MIN_SECRET_LENGTH = 16
+
+
+def check_secret_key(secret_key: str) -> None:
+    """Refuse a production start with a missing, short or placeholder SECRET_KEY: it signs the
+    Google sign-in state, encrypts users' provider keys and authenticates the web proxy."""
+    key = (secret_key or "").strip()
+    if not key:
+        problem = "is empty"
+    elif key.lower() in WEAK_SECRETS:
+        problem = f"is the placeholder value {key!r}"
+    elif len(key) < MIN_SECRET_LENGTH:
+        problem = f"is shorter than {MIN_SECRET_LENGTH} characters"
+    else:
+        return
+    raise RuntimeError(
+        f"SECRET_KEY {problem}; refusing to start with KRINEA_ENV=production. Set SECRET_KEY to a long "
+        "random value, e.g. the output of: python -c \"import secrets; print(secrets.token_urlsafe(48))\"")
+
+
 class Settings:
     def __init__(self) -> None:
         self.env = os.environ.get("KRINEA_ENV", "development")          # development | test | production
@@ -42,12 +64,16 @@ class Settings:
         self.session_days = int(os.environ.get("SESSION_DAYS", "30"))
         self.magic_link_minutes = int(os.environ.get("MAGIC_LINK_MINUTES", "20"))
         self.email_provider = os.environ.get("EMAIL_PROVIDER", "console")          # console | resend | smtp
-        self.email_from = os.environ.get("EMAIL_FROM", "Krinea <no-reply@krinea.app>")
         self.resend_api_key = os.environ.get("RESEND_API_KEY", "")
-        # SMTP (any mailbox, e.g. Gmail with an app password): no domain needed to get started
+        # SMTP (any mailbox: OVHcloud ssl0.ovh.net:465 for krinea.org, Gmail with an app password…)
         self.smtp_host = os.environ.get("SMTP_HOST", "")
-        self.smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+        self.smtp_port = int(os.environ.get("SMTP_PORT") or "587")
         self.smtp_user = os.environ.get("SMTP_USER", "")
+        # Sender: EMAIL_FROM; otherwise the SMTP mailbox itself (OVHcloud and Gmail only relay
+        # mail sent from the authenticated address); otherwise no-reply@krinea.org.
+        smtp_from = self.email_provider == "smtp" and "@" in self.smtp_user
+        self.email_from = (os.environ.get("EMAIL_FROM", "").strip()
+                           or (f"Krinea <{self.smtp_user}>" if smtp_from else "Krinea <no-reply@krinea.org>"))
         self.smtp_password = os.environ.get("SMTP_PASSWORD", "")
         self.smtp_starttls = _bool(os.environ.get("SMTP_STARTTLS"), True)
         self.smtp_tls = os.environ.get("SMTP_TLS", "").strip().lower()          # "" | ssl | starttls
@@ -66,6 +92,8 @@ class Settings:
         self.max_upload_mb = int(os.environ.get("MAX_UPLOAD_MB", "200"))
         self.google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
         self.google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+        if self.env == "production":
+            check_secret_key(self.secret_key)
 
     @property
     def is_test(self) -> bool:
