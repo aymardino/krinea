@@ -9,34 +9,38 @@ Format: number · date · status · decision · why · consequences / how to und
 
 ---
 
-## D-01 · 2026-10-08 · decided · Do not modify `extraction_tool`, work in a duplicate
+## D-01 · 2026-10-08 · decided · Leave the original prototype untouched, work in a copy
 
-**Decision.** The original repository `aymardino/extraction_tool` is left
-untouched. All work happens in a copy, now `aymardino/systematic_review`.
+**Decision.** The project started as a PDF-extraction prototype for a
+research review. The prototype's repository is left untouched; all work
+happens in a copy, first named `aymardino/systematic_review`, now
+`aymardino/krinea`.
 
-**Why.** Owner's instruction. The original app is in daily use for the
-EnerMod Africa corpus and must keep working as is.
+**Why.** Owner's instruction. The prototype was in daily use and had to keep
+working as is.
 
-**Consequences.** Fixes made in the new repository are not back-ported
-automatically. Undo: none needed, the original is intact.
+**Consequences.** Fixes made in this repository are not back-ported to the
+prototype. Undo: none needed, the original is intact.
 
 ## D-02 · 2026-10-08 · decided · Remove the cached PDFs from the whole git history
 
 **Decision.** `_pdf_cache/` (≈3.3 GB of copyrighted article PDFs) was
-removed from every commit of the duplicate, not only from the working tree.
+removed from every commit of the copy, not only from the working tree.
 
 **Why.** Owner's instruction; GitHub refuses pushes above 2 GB; the PDFs are
 third-party copyrighted material that should not ship in an open-source
 repository. Result: 2.84 GB → 58 MB.
 
-**Consequences.** The duplicate's commit hashes differ from the original's.
-`extractions.db` (the 436 verified extractions, 51 MB) was kept. Undo:
-impossible in this repository, but the original still has everything.
+**Consequences.** The copy's commit hashes differ from the prototype's. The
+prototype's other data files stayed in the working tree until they were
+removed on 2026-10-09 (see D-25). Undo: impossible in this repository, but
+the prototype's own repository is unaffected.
 
 ## D-03 · 2026-10-08 · decided · New GitHub repository, private at creation
 
-**Decision.** Code lives in `aymardino/systematic_review`, created private by
-the owner (the session's GitHub integration cannot create repositories).
+**Decision.** Code lives in `aymardino/systematic_review` (renamed
+`aymardino/krinea` since, see D-26), created private by the owner (the
+session's GitHub integration cannot create repositories).
 
 **Why.** A separate home for a product that will diverge from the original
 tool. Private first because publishing is a one-way door; flipping to public
@@ -89,7 +93,7 @@ schema is shared; the Streamlit edition can later point at PostgreSQL too.
 
 **Decision.** Extraction fields are per project (name, label, kind, options,
 instruction for the AI, required), edited in the app, importable as JSON/CSV.
-The former fixed 52-field energy schema is an importable template.
+The former fixed 51-field energy schema is an importable template.
 
 **Why.** Owner's instruction. A review tool must serve any discipline.
 
@@ -174,9 +178,12 @@ obliging anyone who offers it as a hosted service to publish their changes,
 which protects the paid hosted offer (D-15). MIT on the core maximises reuse
 and goodwill in the research-software community.
 
-**Consequences.** `LICENSE` at the root is AGPL-3.0; `packages/core/LICENSE`
-is MIT; every source file states its licence in the header. Contributors
-accept both. The MIT licence file added earlier at the root is replaced.
+**Consequences.** `LICENSE` at the root is AGPL-3.0 (`apps/api` declares
+AGPL-3.0-only in its package metadata); `packages/core/LICENSE` is MIT and
+`packages/core` declares MIT. A licence header (SPDX identifier) in every
+source file is planned, not done yet. Contributors accept both licences and
+sign off their commits (DCO, see `CONTRIBUTING.md`). The MIT licence file
+added earlier at the root is replaced.
 
 ## D-14 · 2026-10-08 · decided · Product name: Tamis
 
@@ -241,9 +248,10 @@ password (argon2) plus magic links; Google and ORCID sign-in later.
 common pairing for this kind of product and are well supported on Render;
 a database queue avoids a paid Key Value instance until load justifies it.
 
-**Consequences.** Two languages in the repository (Python, TypeScript); CI
-runs both test suites. The Streamlit edition keeps working from
-`packages/core`.
+**Consequences.** Two languages in the repository (Python, TypeScript). CI
+(`.github/workflows/ci.yml`, since D-28) runs the root and API test suites and
+the web build on every push and pull request. The Streamlit edition keeps
+working from `packages/core`.
 
 ## D-18 · 2026-10-08 · decided · Tamis visual identity
 
@@ -286,8 +294,9 @@ slavishly. The rules above remove those risks. This is a working posture,
 not legal advice: a lawyer reviews the terms and the brand before launch.
 
 **Consequences.** Design reviews check originality; a `THIRD_PARTY_NOTICES`
-file lists dependencies; the brand name is checked and filed as a trademark
-before public launch.
+file listing the dependencies and their licences is planned (not written
+yet); the brand name is checked and filed as a trademark before public
+launch.
 
 ---
 
@@ -309,7 +318,8 @@ means one session mechanism (the same cookie) for every sign-in method and no
 secrets in the browser.
 
 **Consequences.** Needs an OAuth client in Google Cloud Console per
-environment and `API_URL` set to the public API address.
+environment. Since D-23 no public API address is needed: the callback is
+`<public origin>/api/auth/google/callback`.
 
 ### P-06 · PRISMA 2020
 
@@ -425,7 +435,7 @@ now: /about, /contact, /privacy, /terms, /legal (Markdown under
 /security, /cite, /dpa, /changelog, /accessibility. Pro is a waitlist and the
 Institution plan points to /contact until billing and the legal documents exist. No
 e-mail address is published until a domain with working mail exists
-(`NEXT_PUBLIC_CONTACT_EMAIL`).
+(`NEXT_PUBLIC_CONTACT_EMAIL`); since D-28 that address is contact@krinea.org.
 
 **Why.** Three critiques (information architecture, density at 100 % zoom, content and
 trust) converged: the source link outweighed the product, the single-column hero left
@@ -434,9 +444,10 @@ exist, so GDPR article 13 and LCEN information are due now, not later.
 
 **Consequences.** The legal texts must be read by a lawyer before any paid plan (P-09);
 the publisher identity in /legal is withheld under LCEN 6-III as a non-professional
-publisher until a legal entity exists. The repository root still carries files of the
-original extraction project; moving them to `legacy/` is pending (see the cleanup
-proposal of 2026-10-08).
+publisher until a legal entity exists. The files of the original extraction prototype
+that still sat at the repository root were removed on 2026-10-09; the core package
+took over the three pieces the Streamlit edition used (PDF text, Unpaywall lookup, the
+energy template).
 
 ## D-26 · 2026-10-09 · decided · Renamed Tamis → Krinea
 
@@ -454,8 +465,8 @@ colorectal surgery when searching the name. Two naming rounds vetted candidates
 against the web, GitHub and the founder's INPI search; Krinea had no indexed use and no
 trademark hit.
 
-**Consequences.** Earlier entries keep the historical name. GitHub repository to be
-renamed by the owner (old URLs redirect); Render services to be renamed in the
+**Consequences.** Earlier entries keep the historical name. GitHub repository renamed
+to `aymardino/krinea` (old URLs redirect); Render services to be renamed in the
 dashboard before the next blueprint sync; the first citation of the software must use
 the new name.
 
@@ -475,15 +486,64 @@ marketing pages.
 a class so no markup changed. Readability keeps a line length under about 80 characters
 in text columns (prose pages stay at 768 px).
 
-### P-09 · Legal vehicle operating the hosted service
+## D-28 · 2026-10-12 · decided · Audit after the 2026-10-11 merge
 
-Open-source publication needs no legal entity. Taking payments does. Options
-being weighed: a company (SAS) run by a partner who is entitled to manage a
-business in France, with the founding researcher as shareholder and
-scientific contributor under the public-research "chercheur-entrepreneur"
-rules (Code de la recherche L531-1 and following; up to 49 % of the capital,
-authorisation by the employing institution); or a non-profit association
-hosting the service at cost. Prerequisite in all cases: written
-clarification with the employer of who owns the original extraction code
-and of the open-source release. Until this is settled, Tamis stays open
-source without a paid offer.
+**Decision.** A review of the repository after the merge of an old local branch on
+2026-10-11 led to these fixes, all in place:
+
+- **Root shims.** `biblio.py`, `dedup.py`, `screening.py` and `extraction_schema.py` at the
+  root are again shims to `krinea_core` (the merge had replaced them with stale copies).
+  `tests/test_shims.py` fails as soon as a root module stops being the engine module.
+  `requirements.txt` installs `./packages/core`, and the root `Dockerfile` copies it.
+- **Account pre-hijacking.** When a sign-in link or a Google sign-in verifies an address
+  that had never been verified, the API clears the account's password and deletes its
+  other sessions, so whoever registered the address first loses access.
+- **Public origin from configuration only.** The web proxy no longer derives the origin
+  it reports to the API from client headers (`X-Forwarded-Host`, `X-Forwarded-Proto`). In
+  production it sends `PUBLIC_ORIGIN` (run time) or `NEXT_PUBLIC_SITE_URL` (build time,
+  default `https://krinea.org`); only in development does it use the `Host` header. The
+  API still prefers `BASE_URL`, which `render.yaml` declares on `tamis-api` (`sync:
+  false`) and which is required in production.
+- **`dev_link` fail-safe.** The sign-in link is returned in the API response only when
+  debug mode is on and the link's host is `localhost` or `127.0.0.1`.
+- **Secret guard.** With `KRINEA_ENV=production` the API refuses to start when
+  `SECRET_KEY` is empty, shorter than 16 characters or a known placeholder (`change-me`,
+  `change-me-in-production`, `dev-secret-change-me`); `docker-compose.yml` requires
+  `SECRET_KEY` (`${SECRET_KEY:?…}`).
+- **PDF deletion and purge.** Deleting a review, records or an import deletes their
+  stored PDFs (local disk or S3). The worker deletes sign-in-link tokens older than a day
+  and expired sessions, at most once an hour.
+- **E-mail.** The hosted service sends through an SMTP mailbox at OVHcloud (France, EU)
+  for krinea.org (`ssl0.ovh.net`, port 465); Resend remains an option. In production
+  without a configured provider the API refuses to send (`502` with the reason) and the
+  sign-in page hides the e-mail-link option. The public contact address is
+  contact@krinea.org.
+- **Compose and environment.** `docker-compose.yml` passes the SMTP and S3 settings and
+  `PUBLIC_ORIGIN`, and binds the API port to the local machine only.
+- **CI.** `.github/workflows/ci.yml` runs the root and API test suites and the web build
+  on every push and pull request.
+- **Community files.** `CONTRIBUTING.md` (licences per directory, DCO sign-off with
+  `git commit -s`), `SECURITY.md` (private reporting to contact@krinea.org or through
+  GitHub private vulnerability reporting), `CODE_OF_CONDUCT.md` (Contributor Covenant
+  2.1) and `CITATION.cff` for release 0.1.0, which the site footer shows. One repository
+  URL everywhere: https://github.com/aymardino/krinea. The energy template has 51
+  fields, not 52.
+- **Public pages.** The privacy policy, security page and terms describe the actual data
+  flows: what each AI task sends, what Krinea stores, retention of sign-in links and
+  sessions, and OVHcloud as e-mail processor.
+
+**Why.** The merge silently reintroduced divergent copies of the engine and an outdated
+README; the review then found security gaps that matter as soon as the service is public
+(pre-registered accounts, a forgeable origin in e-mailed links, a development shortcut
+that could leak sign-in links, placeholder secrets accepted in production), PDFs that
+outlived their review, and documentation that no longer matched the code.
+
+**Consequences.** Self-hosters upgrading must set a real `SECRET_KEY` and, on public
+servers, `BASE_URL` and `PUBLIC_ORIGIN`. A password set on an account whose address was
+never verified stops working at the first e-mail or Google sign-in. Undo: each item is a
+separate commit and can be reverted on its own, though reverting the security items is
+not advised.
+
+### P-09 · Legal vehicle for a paid offer
+
+Undecided; until then the hosted service stays free.
