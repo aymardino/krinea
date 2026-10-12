@@ -137,6 +137,9 @@ def delete_review_pdfs(review_id: str) -> None:
         shutil.rmtree(folder, ignore_errors=True)
 
 
+_OMITTED = "\n\n[... middle of paper omitted to fit context ...]\n\n"
+
+
 def pdf_text(data: bytes, max_chars: int = 800_000) -> str:
     """Plain text of a PDF (PyMuPDF); keeps the head and the tail of very long papers."""
     import pymupdf
@@ -147,4 +150,5 @@ def pdf_text(data: bytes, max_chars: int = 800_000) -> str:
     if len(text) <= max_chars:
         return text
     head = int(max_chars * 0.70)
-    return text[:head] + "\n\n[... middle of paper omitted to fit context ...]\n\n" + text[-(max_chars - head - 50):]
+    tail = max(max_chars - head - len(_OMITTED), 0)
+    return text[:head] + _OMITTED + (text[-tail:] if tail else "")      # text[-0:] would be all of it

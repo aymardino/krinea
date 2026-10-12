@@ -11,7 +11,14 @@ load_dotenv()
 
 
 def _bool(v: str | None, default: bool = False) -> bool:
-    return default if v is None else v.strip().lower() in ("1", "true", "yes", "on")
+    return default if v is None or not v.strip() else v.strip().lower() in ("1", "true", "yes", "on")
+
+
+def _env(name: str, default: str = "") -> str:
+    """An environment variable, with blank values treated as unset (dashboards such as Render's
+    keep variables declared without a value as empty strings)."""
+    value = os.environ.get(name, "").strip()
+    return value or default
 
 
 def _normalise_db_url(url: str) -> str:
@@ -47,51 +54,51 @@ def check_secret_key(secret_key: str) -> None:
 
 class Settings:
     def __init__(self) -> None:
-        self.env = os.environ.get("KRINEA_ENV", "development")          # development | test | production
+        self.env = _env("KRINEA_ENV", "development")          # development | test | production
         self.debug = self.env != "production"
-        self.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
-        self.database_url = _normalise_db_url(os.environ.get("DATABASE_URL", "sqlite:///./krinea.db"))
-        self.data_dir = Path(os.environ.get("DATA_DIR", "./data")).resolve()
+        self.secret_key = _env("SECRET_KEY", "dev-secret-change-me")
+        self.database_url = _normalise_db_url(_env("DATABASE_URL", "sqlite:///./krinea.db"))
+        self.data_dir = Path(_env("DATA_DIR", "./data")).resolve()
         # Public URLs. The browser reaches the API through the web app's /api proxy (D-23), so
         # BASE_URL is enough; both can be left unset when the web app runs the proxy (see urls.py).
-        self.base_url = os.environ.get("BASE_URL", "http://localhost:3000").rstrip("/")   # the web app
-        self.base_url_explicit = bool(os.environ.get("BASE_URL"))
-        self.api_url = os.environ.get("API_URL", f"{self.base_url}/api").rstrip("/")    # as seen by browsers
-        self.api_url_explicit = bool(os.environ.get("API_URL"))
-        self.cors_origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", self.base_url).split(",") if o.strip()]
+        self.base_url = _env("BASE_URL", "http://localhost:3000").rstrip("/")   # the web app
+        self.base_url_explicit = bool(_env("BASE_URL"))
+        self.api_url = _env("API_URL", f"{self.base_url}/api").rstrip("/")    # as seen by browsers
+        self.api_url_explicit = bool(_env("API_URL"))
+        self.cors_origins = [o.strip() for o in _env("CORS_ORIGINS", self.base_url).split(",") if o.strip()]
         self.cookie_name = "krinea_session"
         self.cookie_secure = _bool(os.environ.get("COOKIE_SECURE"), self.env == "production")
-        self.session_days = int(os.environ.get("SESSION_DAYS", "30"))
-        self.magic_link_minutes = int(os.environ.get("MAGIC_LINK_MINUTES", "20"))
-        self.email_provider = os.environ.get("EMAIL_PROVIDER", "console")          # console | resend | smtp
-        self.resend_api_key = os.environ.get("RESEND_API_KEY", "")
+        self.session_days = int(_env("SESSION_DAYS", "30"))
+        self.magic_link_minutes = int(_env("MAGIC_LINK_MINUTES", "20"))
+        self.email_provider = _env("EMAIL_PROVIDER", "console")          # console | resend | smtp
+        self.resend_api_key = _env("RESEND_API_KEY", "")
         # SMTP (any mailbox: OVHcloud ssl0.ovh.net:465 for krinea.org, Gmail with an app password…)
-        self.smtp_host = os.environ.get("SMTP_HOST", "")
-        self.smtp_port = int(os.environ.get("SMTP_PORT") or "587")
-        self.smtp_user = os.environ.get("SMTP_USER", "")
+        self.smtp_host = _env("SMTP_HOST", "")
+        self.smtp_port = int(_env("SMTP_PORT", "587"))
+        self.smtp_user = _env("SMTP_USER", "")
         # Sender: EMAIL_FROM; otherwise the SMTP mailbox itself (OVHcloud and Gmail only relay
         # mail sent from the authenticated address); otherwise no-reply@krinea.org.
         smtp_from = self.email_provider == "smtp" and "@" in self.smtp_user
-        self.email_from = (os.environ.get("EMAIL_FROM", "").strip()
+        self.email_from = (_env("EMAIL_FROM")
                            or (f"Krinea <{self.smtp_user}>" if smtp_from else "Krinea <no-reply@krinea.org>"))
-        self.smtp_password = os.environ.get("SMTP_PASSWORD", "")
+        self.smtp_password = os.environ.get("SMTP_PASSWORD", "")      # kept verbatim
         self.smtp_starttls = _bool(os.environ.get("SMTP_STARTTLS"), True)
-        self.smtp_tls = os.environ.get("SMTP_TLS", "").strip().lower()          # "" | ssl | starttls
-        self.s3_bucket = os.environ.get("S3_BUCKET", "")
-        self.s3_endpoint = os.environ.get("S3_ENDPOINT_URL", "")
-        self.s3_region = os.environ.get("S3_REGION", "auto")
+        self.smtp_tls = _env("SMTP_TLS").lower()          # "" | ssl | starttls
+        self.s3_bucket = _env("S3_BUCKET", "")
+        self.s3_endpoint = _env("S3_ENDPOINT_URL", "")
+        self.s3_region = _env("S3_REGION", "auto")
         self.inline_jobs = _bool(os.environ.get("INLINE_JOBS"), self.env != "production")
-        self.unpaywall_email = os.environ.get("UNPAYWALL_EMAIL", "")
+        self.unpaywall_email = _env("UNPAYWALL_EMAIL", "")
         self.server_ai_keys = {                                                      # D-16: included credits
-            "claude": os.environ.get("ANTHROPIC_API_KEY", ""),
-            "gemini": os.environ.get("GEMINI_API_KEY", ""),
-            "deepseek": os.environ.get("DEEPSEEK_API_KEY", ""),
+            "claude": _env("ANTHROPIC_API_KEY", ""),
+            "gemini": _env("GEMINI_API_KEY", ""),
+            "deepseek": _env("DEEPSEEK_API_KEY", ""),
         }
-        self.free_ai_tokens_per_month = int(os.environ.get("FREE_AI_TOKENS_PER_MONTH", "0"))
-        self.pro_ai_tokens_per_month = int(os.environ.get("PRO_AI_TOKENS_PER_MONTH", "5000000"))
-        self.max_upload_mb = int(os.environ.get("MAX_UPLOAD_MB", "200"))
-        self.google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-        self.google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+        self.free_ai_tokens_per_month = int(_env("FREE_AI_TOKENS_PER_MONTH", "0"))
+        self.pro_ai_tokens_per_month = int(_env("PRO_AI_TOKENS_PER_MONTH", "5000000"))
+        self.max_upload_mb = int(_env("MAX_UPLOAD_MB", "200"))
+        self.google_client_id = _env("GOOGLE_CLIENT_ID", "")
+        self.google_client_secret = _env("GOOGLE_CLIENT_SECRET", "")
         if self.env == "production":
             check_secret_key(self.secret_key)
 

@@ -54,3 +54,14 @@ def test_sender_address_defaults(monkeypatch):
     assert Settings().email_from == "Krinea <no-reply@krinea.org>"
     monkeypatch.setenv("EMAIL_FROM", "Krinea <hello@krinea.org>")
     assert Settings().email_from == "Krinea <hello@krinea.org>"
+
+
+def test_blank_variables_fall_back_to_defaults(monkeypatch):
+    """Variables declared without a value (Render keeps them as empty strings) act as unset."""
+    for name in ("S3_REGION", "MAX_UPLOAD_MB", "SESSION_DAYS", "MAGIC_LINK_MINUTES", "BASE_URL",
+                 "EMAIL_PROVIDER", "INLINE_JOBS", "COOKIE_SECURE"):
+        monkeypatch.setenv(name, "")
+    s = Settings()
+    assert (s.s3_region, s.max_upload_mb, s.session_days, s.magic_link_minutes) == ("auto", 200, 30, 20)
+    assert s.base_url == "http://localhost:3000" and not s.base_url_explicit
+    assert s.email_provider == "console" and s.inline_jobs is (s.env != "production")
