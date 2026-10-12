@@ -20,13 +20,12 @@ def fetch_pdf_by_doi(doi: str, email: str, dest_dir: str) -> str:
     content) won't be accessible this way — expect ~50-65% hit rate on energy
     journals.
     """
-    import urllib.request, urllib.parse
     doi = doi.strip().lower().replace("https://doi.org/", "").replace("doi.org/", "")
     if not doi or "/" not in doi:
         raise ValueError("Doesn't look like a valid DOI (expected '10.xxxx/yyyy').")
 
-    api = f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi, safe='/')}?email={email}"
-    req = urllib.request.Request(api, headers={"User-Agent": "AISESA-extractor/1.0"})
+    api = f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi, safe='/')}?email={urllib.parse.quote(email)}"
+    req = urllib.request.Request(api, headers={"User-Agent": "Krinea/0.1 (research; https://github.com/aymardino/krinea)"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read())
@@ -55,16 +54,3 @@ def fetch_pdf_by_doi(doi: str, email: str, dest_dir: str) -> str:
         raise RuntimeError(f"Found OA URL but download failed ({pdf_url[:80]}…): {e}")
     return out_path
 
-
-if __name__ == "__main__":
-    import sys
-    key = os.environ.get("GEMINI_API_KEY")
-    if not key:
-        sys.exit("Set GEMINI_API_KEY environment variable first.")
-    if len(sys.argv) < 2:
-        sys.exit("Usage: python extractor.py path/to/article.pdf")
-    data = extract_pdf(sys.argv[1], key)
-    for f in EXPORT_FIELDS:
-        v = data.get(f, {}).get("value", "")
-        q = data.get(f, {}).get("quote", "")
-        print(f"{f:22s}: {v[:55]!r}" + (f"   ← {q[:45]!r}" if q and q != 'computed from countries' else ""))

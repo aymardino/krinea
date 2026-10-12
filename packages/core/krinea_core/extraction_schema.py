@@ -136,7 +136,7 @@ def from_csv(text: str) -> list[dict]:
 
 
 def energy_template() -> list[dict]:
-    """The 52-field energy-modelling schema (the project's origin), as an importable example."""
+    """The 51-field energy-modelling schema (the project's origin), as an importable example."""
     import json
     from pathlib import Path
     rows = json.loads((Path(__file__).parent / "data" / "energy_template.json").read_text())

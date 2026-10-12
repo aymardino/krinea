@@ -137,13 +137,13 @@ def _render_pdf(pdf_path: str, key: str) -> None:
     st.download_button(t("open_pdf"), p.read_bytes(), file_name=p.name,
                        mime="application/pdf", key=f"dl_{key}", **_WIDE)
     try:
-        import fitz
-        doc = fitz.open(str(p))
+        import pymupdf
+        doc = pymupdf.open(str(p))
         n_pages = len(doc)
         top = min(n_pages, 40)
         show_n = st.slider(t("show_pages"), 1, top, 1, key=f"pg_{key}") if top > 1 else 1
         for i in range(min(show_n, n_pages)):
-            pix = doc[i].get_pixmap(matrix=fitz.Matrix(2, 2))
+            pix = doc[i].get_pixmap(matrix=pymupdf.Matrix(2, 2))
             st.image(pix.tobytes("png"), caption=f"{i + 1}/{n_pages}")
         doc.close()
     except Exception as e:                                     # noqa: BLE001

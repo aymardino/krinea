@@ -1,7 +1,9 @@
 """Plain text out of a PDF (PyMuPDF), with head+tail truncation for very long papers."""
 from __future__ import annotations
 
-import fitz
+import pymupdf
+
+_OMITTED = "\n\n[... middle of paper omitted to fit context ...]\n\n"
 
 
 def extract_text(pdf_path: str, max_chars: int = 800_000) -> str:
@@ -11,7 +13,7 @@ def extract_text(pdf_path: str, max_chars: int = 800_000) -> str:
     character budget — abstracts/intro live at the start, but results, key
     findings and conclusions live at the end. Pure head-truncation loses them.
     """
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     raw = "".join(page.get_text() for page in doc)
     # Strip control characters that break HTML/DOM rendering downstream
     # (some PDFs embed them via OCR artefacts or broken encoding). Keep
@@ -21,5 +23,5 @@ def extract_text(pdf_path: str, max_chars: int = 800_000) -> str:
     if len(text) <= max_chars:
         return text
     head = int(max_chars * 0.70)
-    tail = max_chars - head - 50  # 50 chars for the marker
-    return text[:head] + "\n\n[... middle of paper omitted to fit context ...]\n\n" + text[-tail:]
+    tail = max(max_chars - head - len(_OMITTED), 0)
+    return text[:head] + _OMITTED + (text[-tail:] if tail else "")      # text[-0:] would be all of it
