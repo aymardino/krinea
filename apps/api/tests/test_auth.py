@@ -1,5 +1,13 @@
+import re
+
 from krinea_api.services import email as email_service
 from tests.conftest import register
+
+
+def last_link(to: str) -> str:
+    """The sign-in link of the last message sent to `to` (console provider outbox)."""
+    msg = next(m for m in reversed(email_service.OUTBOX) if m["to"] == to)
+    return re.search(r"https?://\S+", msg["text"]).group(0)
 
 
 def test_register_login_me(client):
@@ -17,8 +25,9 @@ def test_register_login_me(client):
 def test_magic_link(client):
     r = client.post("/auth/magic-link", json={"email": "magic@example.org", "locale": "fr"})
     assert r.status_code == 200
-    link = r.json()["dev_link"]
-    assert email_service.OUTBOX[-1]["to"] == "magic@example.org" and link in email_service.OUTBOX[-1]["text"]
+    assert "dev_link" not in r.json()                  # BASE_URL is not a local address
+    link = last_link("magic@example.org")
+    assert link.startswith("http://web.test/auth/magic?token=")
     token = link.split("token=")[1]
     r = client.post("/auth/magic-link/verify", json={"token": token})
     assert r.status_code == 200 and r.json()["email_verified"] is True
@@ -108,13 +117,95 @@ def test_public_urls_from_proxy(client, monkeypatch):
     q = parse_qs(urlparse(r.headers["location"]).query)
     assert q["redirect_uri"] == ["https://krinea-web.onrender.com/api/auth/google/callback"]
     r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=proxied)
-    assert r.json()["dev_link"].startswith("https://krinea-web.onrender.com/auth/magic?token=")
+    assert r.status_code == 200 and "dev_link" not in r.json()        # a public origin: never echoed
+    assert last_link("p@example.org").startswith("https://krinea-web.onrender.com/auth/magic?token=")
 
     # Wrong or missing key, or a non-origin value: the configured BASE_URL is used instead
     for bad in ({**proxied, "X-Krinea-Proxy-Key": "nope"}, {"X-Krinea-Origin": "https://evil.example"},
                 {**proxied, "X-Krinea-Origin": "https://evil.example/path"}):
         r = client.post("/auth/magic-link", json={"email": "p@example.org"}, headers=bad)
-        assert r.json()["dev_link"].startswith("http://web.test/auth/magic?token=")
+        assert r.status_code == 200 and "dev_link" not in r.json()
+        assert last_link("p@example.org").startswith("http://web.test/auth/magic?token=")
+
+
+def test_dev_link_only_on_a_local_base_url(client, monkeypatch):
+    """The link is echoed in the response only in debug mode with a localhost BASE_URL."""
+    from krinea_api.config import get_settings
+
+    s = get_settings()
+    for base in ("http://localhost:3000", "http://127.0.0.1:8000"):
+        monkeypatch.setattr(s, "base_url", base)
+        r = client.post("/auth/magic-link", json={"email": "dev@example.org"})
+        assert r.json()["dev_link"] == last_link("dev@example.org")
+        assert r.json()["dev_link"].startswith(f"{base}/auth/magic?token=")
+    for base in ("http://web.test", "https://krinea.org", "http://localhost.evil.example"):
+        monkeypatch.setattr(s, "base_url", base)
+        r = client.post("/auth/magic-link", json={"email": "dev@example.org"})
+        assert r.status_code == 200 and "dev_link" not in r.json(), base
+    # Production (no debug): never, even on localhost
+    monkeypatch.setattr(s, "base_url", "http://localhost:3000")
+    monkeypatch.setattr(s, "debug", False)
+    monkeypatch.setattr(email_service, "send_magic_link", lambda to, url, locale="en": None)
+    r = client.post("/auth/magic-link", json={"email": "dev@example.org"})
+    assert r.status_code == 200 and "dev_link" not in r.json()
+
+
+def test_magic_link_evicts_whoever_registered_the_address_first(client, client2):
+    """Account pre-hijacking: an attacker registers the victim's address with a password and
+    keeps a session open. When the victim proves the address with a magic link, the
+    attacker's password and session stop working."""
+    attacker, victim = client2, client
+    register(attacker, "victim@example.org", "Mallory", password="attacker-password")
+    assert attacker.get("/auth/me").json()["email_verified"] is False
+
+    victim.post("/auth/magic-link", json={"email": "victim@example.org"})
+    token = last_link("victim@example.org").split("token=")[1]
+    r = victim.post("/auth/magic-link/verify", json={"token": token})
+    assert r.status_code == 200 and r.json()["email_verified"] is True
+
+    assert attacker.get("/auth/me").status_code == 401                 # old session closed
+    r = attacker.post("/auth/login", json={"email": "victim@example.org", "password": "attacker-password"})
+    assert r.status_code == 401                                          # password cleared
+    assert victim.get("/auth/me").json()["email"] == "victim@example.org"
+
+    # Once verified, the owner signing in on a second device leaves the first session alone
+    second_device = client2
+    second_device.post("/auth/magic-link", json={"email": "victim@example.org"})
+    token = last_link("victim@example.org").split("token=")[1]
+    assert second_device.post("/auth/magic-link/verify", json={"token": token}).status_code == 200
+    assert victim.get("/auth/me").status_code == 200
+    # ...and a password the verified owner sets keeps working
+    assert victim.patch("/auth/me", json={"password": "victim-password"}).status_code == 200
+    victim.post("/auth/magic-link", json={"email": "victim@example.org"})
+    token = last_link("victim@example.org").split("token=")[1]
+    assert victim.post("/auth/magic-link/verify", json={"token": token}).status_code == 200
+    r = victim.post("/auth/login", json={"email": "victim@example.org", "password": "victim-password"})
+    assert r.status_code == 200
+
+
+def test_google_sign_in_evicts_whoever_registered_the_address_first(client, client2, monkeypatch):
+    from urllib.parse import parse_qs, urlparse
+
+    from krinea_api.config import get_settings
+    from krinea_api.services import oauth
+
+    attacker, victim = client2, client
+    register(attacker, "gvictim@example.org", password="attacker-password")
+    s = get_settings()
+    monkeypatch.setattr(s, "google_client_id", "cid")
+    monkeypatch.setattr(s, "google_client_secret", "secret")
+    monkeypatch.setattr(oauth, "exchange_code", lambda code, request=None: {"id_token": "signed"})
+    monkeypatch.setattr(oauth, "verify_id_token", lambda tok, nonce=None: {
+        "sub": "g-victim", "email": "gvictim@example.org", "email_verified": True, "name": "Victim"})
+    r = victim.get("/auth/google/start", follow_redirects=False)
+    state = parse_qs(urlparse(r.headers["location"]).query)["state"][0]
+    r = victim.get("/auth/google/callback", params={"code": "abc", "state": state}, follow_redirects=False)
+    assert r.status_code == 302 and r.headers["location"] == "http://web.test/app"
+    assert victim.get("/auth/me").json()["email_verified"] is True
+
+    assert attacker.get("/auth/me").status_code == 401
+    r = attacker.post("/auth/login", json={"email": "gvictim@example.org", "password": "attacker-password"})
+    assert r.status_code == 401
 
 
 def test_smtp_provider(client, monkeypatch):

@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 import logging
-
-import datetime as dt
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
@@ -36,6 +35,27 @@ def start_session(db: DBSession, user: models.User, request: Request, response: 
     response.set_cookie(s.cookie_name, token, max_age=s.session_days * 86400, httponly=True,
                         samesite="lax", secure=s.cookie_secure, path="/")
     return token
+
+
+def mark_email_verified(db: DBSession, user: models.User) -> None:
+    """The person signing in has just proven they control the address (magic link, Google).
+
+    If the address was never verified before, whatever was set up on the account until now
+    may come from someone else who registered it first (account pre-hijacking): their
+    password stops working and every open session is closed before the new one starts."""
+    if user.email_verified_at:
+        return
+    if user.password_hash:
+        log.info("first verification of %s: password cleared, other sessions closed", user.email)
+    user.password_hash = None
+    db.execute(delete(models.Session).where(models.Session.user_id == user.id))
+    user.email_verified_at = models.now()
+
+
+def _dev_link_allowed(url: str) -> bool:
+    """Sign-in links are echoed in the API response only on a developer's machine: debug
+    mode alone is not enough, a misconfigured public deployment must never hand them out."""
+    return get_settings().debug and urlparse(url).hostname in ("localhost", "127.0.0.1")
 
 
 def user_out(user: models.User) -> schemas.UserOut:
@@ -90,8 +110,8 @@ def magic_link(body: schemas.MagicLinkIn, request: Request, db: DBSession = Depe
     email_service.send_magic_link(email, url, body.locale if body.locale in ("en", "fr") else "en")
     log.info("magic link sent to %s via %s", email, s.email_provider)
     out = {"ok": True}
-    if s.debug:
-        out["dev_link"] = url       # development only: no mail server needed
+    if _dev_link_allowed(url):
+        out["dev_link"] = url       # local development only: no mail server needed
     return out
 
 
@@ -109,8 +129,7 @@ def magic_verify(body: schemas.TokenIn, request: Request, response: Response, db
         user = models.User(email=lt.email, name="", password_hash=None)
         db.add(user)
         db.flush()
-    if not user.email_verified_at:
-        user.email_verified_at = now
+    mark_email_verified(db, user)
     start_session(db, user, request, response)
     return user_out(user)
 
@@ -223,8 +242,7 @@ def google_callback(request: Request, code: str = "", state: str = "", error: st
         db.add(models.OAuthAccount(user_id=user.id, provider="google", subject=str(claims["sub"]), email=email))
     if not user or not user.is_active:
         return failure
-    if not user.email_verified_at:
-        user.email_verified_at = models.now()
+    mark_email_verified(db, user)
     if not user.name and claims.get("name"):
         user.name = str(claims["name"]).strip()[:200]
     resp = RedirectResponse(f"{base}{prefix}{saved.get('next', '/app')}", status_code=302)
