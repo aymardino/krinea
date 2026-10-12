@@ -1,5 +1,6 @@
 import json
-from krinea_core import extraction_schema as es
+
+import extraction_schema as es          # the root module name (a shim for krinea_core)
 
 
 def test_normalise_and_validate():
@@ -31,7 +32,7 @@ def test_energy_template_matches_data_file():
     from pathlib import Path
     rows = json.loads((Path(es.__file__).parent / "data" / "energy_template.json").read_text())
     fields = es.energy_template()
-    assert len(fields) == len(rows) >= 50
+    assert len(fields) == len(rows) == 51
     by_name = {f["name"]: f for f in fields}
     assert by_name["approach"]["kind"] == "enum"
     assert by_name["informal_economy"]["options"] == ["yes", "no", "partial"]
