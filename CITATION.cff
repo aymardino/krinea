@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use Krinea in your research, please cite it using these metadata."
+type: software
+title: Krinea
+abstract: >-
+  Open-source workbench for systematic reviews: import of search exports,
+  duplicate detection, blind title/abstract and full-text screening with
+  consensus, AI-assisted data extraction into author-defined forms with a
+  verbatim quote per value, and the PRISMA 2020 flow diagram.
+authors:
+  - family-names: Plakoo
+    given-names: Kodjovi Aymard
+version: 0.1.0
+date-released: "2026-10-12"
+license: AGPL-3.0-only
+repository-code: "https://github.com/aymardino/krinea"
+url: "https://krinea.org"
+keywords:
+  - systematic review
+  - evidence synthesis
+  - screening
+  - data extraction
+  - deduplication
+  - PRISMA 2020
