@@ -68,8 +68,8 @@ def delete_pdf(key: str) -> None:
 
 def pdf_text(data: bytes, max_chars: int = 800_000) -> str:
     """Plain text of a PDF (PyMuPDF); keeps the head and the tail of very long papers."""
-    import fitz
-    doc = fitz.open(stream=data, filetype="pdf")
+    import pymupdf
+    doc = pymupdf.open(stream=data, filetype="pdf")
     raw = "".join(page.get_text() for page in doc)
     doc.close()
     text = "".join(c for c in raw if c >= " " or c in "\t\n\r")

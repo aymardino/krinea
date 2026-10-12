@@ -46,10 +46,10 @@ def register(client: TestClient, email: str, name: str = "", password: str = "pa
 
 @pytest.fixture
 def pdf_bytes() -> bytes:
-    import fitz
-    doc = fitz.open()
+    import pymupdf
+    doc = pymupdf.open()
     page = doc.new_page()
     text = ("Techno-economic assessment of solar mini-grids in Kenya. We model 120 villages with HOMER "
             "and compute the levelised cost of electricity. Results show mini-grids are least cost. ") * 12
-    page.insert_textbox(fitz.Rect(50, 50, 550, 780), text, fontsize=9)
+    page.insert_textbox(pymupdf.Rect(50, 50, 550, 780), text, fontsize=9)
     return doc.tobytes()
