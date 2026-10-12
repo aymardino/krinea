@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from krinea_api import models
 from krinea_api.config import get_settings
 from krinea_api.db import session_factory
+from krinea_api.services import maintenance
 
 log = logging.getLogger("krinea.jobs")
 
@@ -110,9 +111,12 @@ def run_job(job_id: str) -> None:
 
 
 def worker_loop(poll_seconds: float = 2.0) -> None:
-    """`python -m krinea_api.worker` — picks queued jobs one at a time."""
+    """`python -m krinea_api.worker` — picks queued jobs one at a time and, at most once an
+    hour, purges old sign-in tokens and expired sessions."""
     log.info("worker started")
+    last_purge: float | None = None
     while True:
+        last_purge = maintenance.purge_if_due(last_purge)
         db: Session = session_factory()()
         try:
             job = db.scalar(select(models.Job).where(models.Job.status == "queued")
