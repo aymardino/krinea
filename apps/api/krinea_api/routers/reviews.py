@@ -13,6 +13,7 @@ from krinea_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
 from krinea_api.security import expires_in, new_token, token_hash
 from krinea_api.services import email as email_service
 from krinea_api.services import screening as scr
+from krinea_api.services import storage
 from krinea_core import extraction_schema
 from krinea_core import screening as core_screening
 
@@ -122,8 +123,10 @@ def update_review(body: schemas.ReviewUpdate, access=Depends(ReviewAccess("admin
 @router.delete("/{review_id}", response_model=schemas.Ok)
 def delete_review(access=Depends(ReviewAccess("owner")), db: DBSession = Depends(get_db)):
     review, _ = access
+    review_id = review.id
     db.delete(review)
     db.commit()
+    storage.delete_review_pdfs(review_id)      # the rows are gone: the full texts go too
     return schemas.Ok()
 
 

@@ -5,6 +5,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from krinea_api import models
+from krinea_api.services import storage
 from krinea_core import biblio
 
 RECORD_FIELDS = biblio.RECORD_FIELDS
@@ -38,6 +39,10 @@ def import_file(db: Session, review: models.Review, user: models.User | None, fi
 
 
 def delete_import(db: Session, review: models.Review, imp: models.Import) -> int:
+    """Deletes the import, its records and their stored PDFs."""
+    pdf_keys = db.scalars(select(models.Record.pdf_key).where(models.Record.import_id == imp.id,
+                                                              models.Record.review_id == review.id,
+                                                              models.Record.pdf_key != "")).all()
     n = db.execute(delete(models.Record).where(models.Record.import_id == imp.id,
                                                 models.Record.review_id == review.id)).rowcount
     # Duplicates whose keeper vanished become visible again
@@ -48,4 +53,5 @@ def delete_import(db: Session, review: models.Review, imp: models.Import) -> int
                .values(is_duplicate=False, duplicate_of=None, dup_score=None, dup_reason=""))
     db.delete(imp)
     db.commit()
+    storage.delete_pdfs(pdf_keys)
     return n

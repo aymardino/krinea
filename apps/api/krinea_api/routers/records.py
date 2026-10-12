@@ -220,9 +220,13 @@ def update_record(record_id: int, body: schemas.RecordUpdate, access=Depends(Rev
 @router.post("/records/delete")
 def delete_records(record_ids: list[int], access=Depends(ReviewAccess("admin")), db: DBSession = Depends(get_db)):
     review, _ = access
+    pdf_keys = db.scalars(select(models.Record.pdf_key).where(models.Record.review_id == review.id,
+                                                              models.Record.id.in_(record_ids),
+                                                              models.Record.pdf_key != "")).all()
     n = db.execute(delete(models.Record).where(models.Record.review_id == review.id,
                                                 models.Record.id.in_(record_ids))).rowcount
     db.commit()
+    storage.delete_pdfs(pdf_keys)
     return {"deleted": n}
 
 
