@@ -1,19 +1,42 @@
+# Every image (Streamlit edition, API, worker, web) builds with the repository root as its
+# context, so the patterns use **/ to apply at any depth. Keep packages/core whole: the
+# images install it, including krinea_core/data/*.json and its README.md and LICENSE.
 .git
-__pycache__
-*.pyc
-**/node_modules
-**/.next
+.github
+.DS_Store
+**/.DS_Store
+
+# Secrets and local databases
+**/.env
+**/.env.*
+**/*.db
+**/*.db-journal
+**/*.db.bak
+**/*.sqlite*
+
+# Python environments, caches and build leftovers
+**/.venv
+**/.pytest_cache
 **/__pycache__
 **/*.pyc
-*.db
-*.db.bak
-_pdf_cache
-_review_pdfs
+**/*.egg-info
+packages/core/build
+apps/api/build
+
+# JavaScript dependencies and builds (the web image installs and builds its own)
+**/node_modules
+**/.next
+
+# Local data and exports
+**/_pdf_cache
+**/_review_pdfs
+**/_last_bad_response.txt
+apps/api/data
 charts
-charts*.zip
-*.xlsx
-*.xlsm
-*.zip
+**/*.xlsx
+**/*.xlsm
+**/*.zip
+
+# Tests are not shipped in the images
 tests
-.pytest_cache
-.DS_Store
+apps/api/tests

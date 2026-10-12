@@ -4,14 +4,30 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 .venv/
+
+# Secrets: every .env variant stays local; only the documented template is tracked
 .env
+.env.*
+!.env.example
+
+# Local databases (Streamlit edition, API development database, backups)
+*.db
+*.db-journal
+*.db.bak
+*.sqlite*
+# API development storage (uploaded PDFs, DATA_DIR default)
+/apps/api/data/
 
 # Local data of the workbench (keep out of the repository)
-review.db
-review.db.bak
 _review_pdfs/
 _pdf_cache/
 _last_bad_response.txt
+
+# Exports and personal working files
+*.xlsx
+*.xlsm
+*.zip
+charts/
 
 # JavaScript / Next.js
 node_modules/
