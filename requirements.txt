@@ -1,8 +1,6 @@
+# Streamlit edition (review_app.py). Install from the repository root:
+#   pip install -r requirements.txt
+# The engine (parsers, deduplication, screening, extraction, PDF text, LLM providers) comes
+# from packages/core; its own dependencies are declared in packages/core/pyproject.toml.
 streamlit>=1.35.0
-pandas>=2.0.0
-openpyxl>=3.1.0
-rapidfuzz>=3.9.0
-pymupdf>=1.24.0
-anthropic>=0.40.0
-openai>=1.0.0
-google-generativeai>=0.8.0
+./packages/core[excel,llm]

@@ -1,11 +1,13 @@
-# Systematic review workbench — single container, data persisted in /data
+# Krinea, Streamlit edition: single container, data persisted in /data
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
     DATA_DIR=/data STREAMLIT_SERVER_HEADLESS=true STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
 WORKDIR /app
+# requirements.txt installs the engine from ./packages/core, so copy it first
 COPY requirements.txt .
+COPY packages/core ./packages/core
 RUN pip install -r requirements.txt
 
 COPY *.py ./
