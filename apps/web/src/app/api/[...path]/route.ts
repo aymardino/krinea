@@ -4,11 +4,13 @@
  * The browser only ever talks to this web app: `/api/<path>` is forwarded to the API
  * (`API_URL`, an internal address in production) and the response, cookies included,
  * is streamed back. One public origin means first-party session cookies, no CORS,
- * one domain to configure. The API learns the public origin from the headers we add
- * and trusts them because `PROXY_KEY` equals its `SECRET_KEY`.
+ * one domain to configure. The API learns the public origin from the header we add
+ * (`x-krinea-origin`) and trusts it because `PROXY_KEY` equals its `SECRET_KEY`.
+ * That origin is configuration, never client input: forwarded headers can be forged.
  */
 import type { NextRequest } from "next/server";
 
+import { SITE_URL } from "@/lib/site";
 import { upstreamUrl } from "@/lib/upstream";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +21,9 @@ const HOP = new Set([
   "connection", "keep-alive", "transfer-encoding", "te", "trailer", "upgrade", "host",
   "content-length", "content-encoding", "proxy-authorization", "proxy-authenticate", "expect",
 ]);
+// Client-supplied forwarding headers are not passed on: anyone can forge them, and the API
+// learns the public origin from x-krinea-origin only.
+const FORGEABLE = new Set(["x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "forwarded"]);
 const BUFFER_LIMIT = 2 * 1024 * 1024;        // bodies up to 2 MB are buffered so a request can be retried
 const RETRY_DELAYS_MS = [500, 1000, 2000, 4000];   // ~7.5 s of connection errors (API restarting, cold start)
 const TIMEOUT_MS = 20_000;                   // per attempt, buffered requests
@@ -26,10 +31,17 @@ const STREAM_TIMEOUT_MS = 10 * 60_000;       // streamed uploads
 const RETRYABLE = new Set(["ECONNREFUSED", "ECONNRESET", "ENOTFOUND", "EAI_AGAIN", "ETIMEDOUT", "EHOSTUNREACH", "ENETUNREACH",
   "UND_ERR_SOCKET", "UND_ERR_CONNECT_TIMEOUT"]);
 
+/**
+ * Public origin of the site, used by the API to build links in e-mails and OAuth redirects.
+ * In production it is configuration only: PUBLIC_ORIGIN (run time), else NEXT_PUBLIC_SITE_URL
+ * (build time, default https://krinea.org). X-Forwarded-Host/Proto are never trusted, since any
+ * client can set them. Only in development is the Host header used, so localhost works as is.
+ */
 function publicOrigin(req: NextRequest): string {
-  const proto = req.headers.get("x-forwarded-proto")?.split(",")[0].trim() || "http";
-  const host = req.headers.get("x-forwarded-host")?.split(",")[0].trim() || req.headers.get("host") || "localhost:3000";
-  return `${proto}://${host}`;
+  if (process.env.NODE_ENV === "production") {
+    return (process.env.PUBLIC_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL || SITE_URL).trim().replace(/\/+$/, "");
+  }
+  return `http://${req.headers.get("host") || "localhost:3000"}`;
 }
 
 function errorCode(err: unknown): string {
@@ -48,11 +60,10 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
 
   const headers = new Headers();
   req.headers.forEach((value, key) => {
-    if (!HOP.has(key)) headers.set(key, value);
+    if (!HOP.has(key) && !FORGEABLE.has(key)) headers.set(key, value);
   });
   headers.set("x-krinea-origin", publicOrigin(req));
   headers.set("x-krinea-proxy-key", process.env.PROXY_KEY ?? process.env.SECRET_KEY ?? "dev-secret-change-me");
-  headers.set("x-forwarded-host", req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "");
 
   // Small bodies are buffered (retryable); large ones (PDF uploads) are streamed once.
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
