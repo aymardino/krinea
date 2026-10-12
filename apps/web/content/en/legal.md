@@ -1,4 +1,4 @@
-*Version 0.1, under legal review. Last updated: 8 October 2026.*
+*Version 0.1, under legal review. Last updated: 12 October 2026.*
 
 ## Publisher
 
@@ -22,7 +22,7 @@ The web app, the API, the background worker and the PostgreSQL database run in R
 
 The name "Krinea" and the logo (a circle divided by a line) identify the project. Please do not use them in a way that suggests an official edition or an endorsement.
 
-The software is free and open source. The application is released under the AGPL-3.0 licence. The core engine, the Python package `krinea_core` (parsers, deduplication, screening rules, extraction schema), is released under the MIT licence. Source code: [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone may self-host it.
+The software is free and open source. The application is released under the AGPL-3.0 licence. The core engine, the Python package `krinea_core` (parsers, deduplication, screening rules, extraction schema), is released under the MIT licence. Source code: [github.com/aymardino/krinea](https://github.com/aymardino/krinea). Anyone may self-host it.
 
 The PRISMA 2020 flow diagram templates are reproduced under the CC BY 4.0 licence from prisma-statement.org. If you use them, cite: Page MJ et al., BMJ 2021;372:n71.
 
@@ -34,5 +34,5 @@ How we handle your data, which cookies we use and what your rights are is explai
 
 ## Credits
 
-- Fonts: Inter and Source Serif 4, under the SIL Open Font License 1.1.
+- Font: Inter, SIL Open Font License 1.1.
 - Icons: Lucide, under the ISC licence.

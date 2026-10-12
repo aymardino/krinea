@@ -29,11 +29,11 @@ Pour la restitution, Krinea suit la déclaration PRISMA 2020. Les gabarits sont 
 
 L'application est publiée sous licence AGPL-3.0. Le moteur, c'est-à-dire le paquet Python `krinea_core` (analyseurs de fichiers, dédoublonnage, règles de sélection, schéma d'extraction), est publié sous licence MIT afin de pouvoir être réutilisé dans d'autres outils.
 
-Le code source est disponible sur [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Chacun peut héberger Krinea sur sa propre infrastructure, avec Docker Compose ou le blueprint Render. Signalements, contributions et discussions sont les bienvenus sur GitHub.
+Le code source est disponible sur [github.com/aymardino/krinea](https://github.com/aymardino/krinea). Chacun peut héberger Krinea sur sa propre infrastructure, avec Docker Compose ou le blueprint Render. Signalements, contributions et discussions sont les bienvenus sur GitHub.
 
 ## L'édition hébergée
 
-Une édition hébergée existe pour que vous puissiez essayer Krinea sans rien installer. Il s'agit d'une bêta, servie pour l'instant depuis une adresse en .onrender.com ; un vrai nom de domaine suivra. L'application web, l'API, le processus de tâches en arrière-plan et la base de données tournent chez Render, à Francfort (Allemagne), dans l'Union européenne.
+Une édition hébergée existe pour que vous puissiez essayer Krinea sans rien installer. Il s'agit d'une bêta, accessible sur krinea.org. L'application web, l'API, le processus de tâches en arrière-plan et la base de données tournent chez Render, à Francfort (Allemagne), dans l'Union européenne.
 
 L'édition hébergée est exploitée par le mainteneur en tant que personne physique. Elle est non commerciale pour l'instant et fournie en l'état, au mieux des possibilités, sans garantie de disponibilité. Aucune offre payante n'est vendue à ce jour. Les offres Pro et Institution sont annoncées sur la page [tarifs](/pricing) et n'ouvriront qu'une fois la facturation et les documents juridiques prêts. Elles financeront alors l'hébergement et le temps du mainteneur. Quoi qu'il advienne de l'édition hébergée, le code reste libre sous AGPL-3.0.
 
@@ -45,10 +45,10 @@ Krinea est un projet indépendant, porté par un développeur-chercheur basé en
 
 ## Comment citer Krinea
 
-Citez le numéro de version affiché dans l'application et l'adresse du dépôt.
+Citez la version que vous avez utilisée (elle figure en pied de page du site) et l'adresse du dépôt. Le fichier `CITATION.cff` du dépôt contient toutes les métadonnées de citation, que GitHub propose via « Cite this repository ».
 
-> Krinea, version X.Y.Z. https://github.com/aymardino/systematic_review
+> Krinea, version 0.1.0. https://github.com/aymardino/krinea
 
 ## Contact
 
-Pour les bugs et les questions publiques, utilisez les issues et discussions GitHub. Pour les sujets privés, rendez-vous sur la page [contact](/contact).
+Pour les bugs et les questions publiques, utilisez les issues et discussions GitHub. Pour les sujets privés, rendez-vous sur la page [contact](/contact). Les failles de sécurité se signalent en privé, jamais dans un ticket public : voir la page [sécurité](/security).

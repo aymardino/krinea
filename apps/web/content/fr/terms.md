@@ -1,4 +1,4 @@
-*Version 0.1, en cours de relecture juridique. Dernière mise à jour : 8 octobre 2026.*
+*Version 0.1, en cours de relecture juridique. Dernière mise à jour : 12 octobre 2026.*
 
 ## En bref
 
@@ -13,9 +13,9 @@
 
 Krinea est un établi de travail libre pour les revues systématiques : import de références, dédoublonnage, sélection en équipe, extraction de données par une IA qui cite ses sources, rapport PRISMA 2020, export. Voir la page [à propos](/about).
 
-L'application est publiée sous licence AGPL-3.0 ; son moteur, le paquet Python `krinea_core`, sous licence MIT. Le code source est sur [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review).
+L'application est publiée sous licence AGPL-3.0 ; son moteur, le paquet Python `krinea_core`, sous licence MIT. Le code source est sur [github.com/aymardino/krinea](https://github.com/aymardino/krinea).
 
-Les présentes conditions régissent uniquement l'**édition hébergée** : l'instance bêta exploitée par le mainteneur, servie aujourd'hui depuis une adresse en .onrender.com et hébergée chez Render à Francfort (Allemagne, UE). « Nous » désigne le mainteneur, chercheur et développeur indépendant établi en France, qui exploite le service en tant que personne physique. Aucune personne morale n'existe à ce jour. Voir les [mentions légales](/legal).
+Les présentes conditions régissent uniquement l'**édition hébergée** : l'instance bêta exploitée par le mainteneur sur krinea.org, hébergée chez Render à Francfort (Allemagne, UE). « Nous » désigne le mainteneur, chercheur et développeur indépendant établi en France, qui exploite le service en tant que personne physique. Aucune personne morale n'existe à ce jour. Voir les [mentions légales](/legal).
 
 Si vous auto-hébergez Krinea (Docker Compose, blueprint Render), ces conditions ne s'appliquent pas : les licences régissent votre usage, et vous répondez de votre instance et de ses utilisateurs.
 
@@ -39,7 +39,7 @@ Utilisez le service pour un travail de recherche, de façon licite et loyale. Il
 - contourner les limites, quotas ou contrôles d'accès, ou accéder aux revues d'autres personnes sans y avoir été invité ;
 - revendre l'édition hébergée ou la présenter comme votre propre service.
 
-Le code est public : l'auditer et signaler une faille sur GitHub est bienvenu. Tester l'instance hébergée sans nous prévenir ne l'est pas.
+Le code est public et l'auditer est bienvenu. Signalez une faille en privé, par e-mail à contact@krinea.org ou par le signalement privé de vulnérabilités de GitHub, jamais dans un ticket public (voir la [page sécurité](/security)). Tester l'instance hébergée sans nous prévenir ne l'est pas.
 
 ## Vos contenus
 
@@ -47,15 +47,15 @@ Vous êtes propriétaire des références, PDF, décisions, notes, formulaires, 
 
 Vous nous accordez une licence limitée au fonctionnement du service : stocker et sauvegarder vos contenus, les afficher aux personnes que vous invitez, les traiter quand vous le demandez (dédoublonnage, exports, fonctions IA). Elle prend fin quand vous supprimez les contenus ou votre compte, sous réserve du cycle de sauvegardes décrit dans la [politique de confidentialité](/privacy).
 
-Vous pouvez tout exporter à tout moment (RIS, CSV, Excel, PRISMA). Le propriétaire d'une revue peut la supprimer depuis sa zone de danger ; cela efface ses références, PDF, décisions et extractions. La suppression du compte se demande via la [page de contact](/contact) et intervient sous 30 jours.
+Vous pouvez tout exporter à tout moment (RIS, CSV, Excel, PRISMA). Le propriétaire d'une revue peut la supprimer depuis sa zone de danger ; cela efface ses références, PDF, décisions, réponses de l'IA et extractions. La suppression du compte se demande via la [page de contact](/contact) et intervient sous 30 jours.
 
 Les suggestions de l'IA sont conservées à part des décisions humaines et ne valent jamais décision. Vous êtes responsable de votre revue : critères, nombre de lecteurs, résolution des conflits, données extraites, résultats rapportés. Krinea est un outil, pas une autorité méthodologique.
 
 ## Fonctions IA
 
-Rien n'est envoyé à un fournisseur d'IA tant qu'un utilisateur disposant des droits de relecteur ne déclenche pas une suggestion ou une extraction dans une revue. Le titre et le résumé (sélection) ou le texte du PDF (extraction), avec les critères ou le formulaire de la revue, sont alors transmis au fournisseur configuré pour cette revue : Anthropic (Claude), Google (Gemini) ou DeepSeek.
+Rien n'est envoyé à un fournisseur d'IA tant qu'un utilisateur disposant des droits de relecteur ne déclenche pas une suggestion ou une extraction dans une revue. Le fournisseur configuré pour cette revue, Anthropic (Claude), Google (Gemini) ou DeepSeek, reçoit alors : pour la sélection sur titre et résumé, les champs bibliographiques de la référence (titre, auteurs, année, revue, mots-clés, résumé) avec la question et les critères de la revue ; pour la sélection sur texte intégral, les mêmes éléments plus le texte du PDF ; pour l'extraction, le texte du PDF avec la question de la revue et le formulaire d'extraction.
 
-Aujourd'hui, les fonctions IA utilisent votre propre clé d'API. Elle est chiffrée au repos, jamais écrite dans les journaux, et vous pouvez la retirer à tout moment. Vous êtes responsable de cette clé, des coûts que le fournisseur vous facture et du respect de ses conditions. Nous conservons des compteurs d'usage (nombre de jetons, jamais les textes). Sur les offres payantes, lorsqu'elles ouvriront, des clés détenues par le service pourront être utilisées à la place.
+Aujourd'hui, les fonctions IA utilisent votre propre clé d'API. Elle est chiffrée au repos, jamais écrite dans les journaux, et vous pouvez la retirer à tout moment. Vous êtes responsable de cette clé, des coûts que le fournisseur vous facture et du respect de ses conditions. Krinea conserve les réponses du fournisseur (suggestions et justifications, valeurs extraites et citations) ainsi que le texte du PDF utilisé pour une extraction, et compte les jetons de chaque requête ; voir la [politique de confidentialité](/privacy). Sur les offres payantes, lorsqu'elles ouvriront, des clés détenues par le service pourront être utilisées à la place.
 
 Une réponse d'IA peut être fausse. Vérifiez-la ; n'incluez, n'excluez et n'extrayez jamais sur la seule foi d'une suggestion.
 
@@ -65,7 +65,7 @@ L'édition hébergée est gratuite aujourd'hui. Les offres Pro et Institution so
 
 ## Disponibilité et évolutions
 
-L'édition hébergée est une bêta, fournie en l'état et dans la mesure du possible, sans garantie de disponibilité. Nous pouvons effectuer des maintenances, modifier ou retirer des fonctions, fixer des limites et déplacer le service vers une autre adresse (un vrai nom de domaine viendra).
+L'édition hébergée est une bêta, fournie en l'état et dans la mesure du possible, sans garantie de disponibilité. Nous pouvons effectuer des maintenances, modifier ou retirer des fonctions, fixer des limites et déplacer le service vers une autre adresse.
 
 Si nous arrêtons l'édition hébergée, ou la modifions au point d'en retirer un élément essentiel, nous vous en informerons au moins 60 jours à l'avance, par e-mail ou dans l'application, et une fenêtre d'export restera ouverte pendant toute cette période. Le logiciel restant disponible sous AGPL-3.0, vous pourrez l'auto-héberger et y réimporter vos exports.
 
@@ -75,7 +75,7 @@ L'édition hébergée est fournie « en l'état » et « selon disponibilité »
 
 Dans les limites permises par la loi, nous ne répondons pas des dommages indirects, des pertes de données ou de temps de recherche, ni des conséquences de vos choix méthodologiques ou des réponses de l'IA. Rien ici n'exclut la responsabilité qui ne peut l'être en droit français, notamment en cas de faute lourde, de dol ou de dommage corporel.
 
-Aucun audit de sécurité externe ni aucune certification n'a encore été réalisé. Les mesures de sécurité sont décrites dans la [politique de confidentialité](/privacy), et le code est public : chacun peut l'auditer.
+Aucun audit de sécurité externe ni aucune certification n'a encore été réalisé. Les mesures de sécurité sont décrites dans la [politique de confidentialité](/privacy) et sur la [page sécurité](/security), et le code est public : chacun peut l'auditer.
 
 ## Résiliation
 

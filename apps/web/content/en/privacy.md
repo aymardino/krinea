@@ -1,11 +1,11 @@
 *Version 0.1, under legal review*
 
-*Last updated: 8 October 2026*
+*Last updated: 12 October 2026*
 
 ## In short
 
 - Krinea stores what you give it: your account details and the content of your reviews (references, PDFs, decisions, extractions).
-- Your data is hosted in Frankfurt (Germany, EU).
+- Your data is hosted in Frankfurt (Germany, EU). E-mails are sent from France (EU).
 - We use three cookies, none for analytics or advertising. No tracking, no banner.
 - Nothing goes to an AI provider unless a reviewer in your team asks for a suggestion or an extraction.
 - You can export everything at any time, delete a review yourself, and ask for your account to be deleted.
@@ -13,7 +13,7 @@
 
 ## Who is responsible
 
-The hosted edition of Krinea (the beta at a .onrender.com address) is run by the maintainer of the project, an independent developer-researcher based in France, as a natural person. Under the GDPR, the maintainer is the data controller. No legal entity exists yet and no paid plan is sold.
+The hosted edition of Krinea (the beta at krinea.org) is run by the maintainer of the project, an independent developer-researcher based in France, as a natural person. Under the GDPR, the maintainer is the data controller. No legal entity exists yet and no paid plan is sold.
 
 If you self-host Krinea (open source, AGPL-3.0), you are the controller of your own instance; this policy does not cover it.
 
@@ -23,11 +23,12 @@ To contact the controller, use the [contact page](/contact).
 
 ### Your account
 
-- Your name and e-mail address. Both are needed to create an account.
-- A hash of your password (Argon2id). We never store the password itself.
+- Your e-mail address, which is needed to create an account, and your name, which is optional.
+- If you set a password: a hash of it (Argon2id). We never store the password itself. Accounts created with a sign-in link or with Google have no password.
 - If you sign in with Google: your Google account identifier and the e-mail address verified by Google. We do not receive your Google password.
-- Sign-in sessions: a random token kept in an HttpOnly cookie for 30 days; the server stores only its SHA-256 hash.
-- One-time sign-in links sent by e-mail: stored hashed, valid for 20 minutes.
+- Sign-in sessions: a random token kept in an HttpOnly cookie for 30 days. The server stores only its SHA-256 hash, together with the user agent your browser sent when you signed in (browser and operating system) and the session's start and expiry dates.
+- The date your account was created, the date of your last sign-in and the date your e-mail address was first verified.
+- One-time sign-in links sent by e-mail: stored hashed, with the address they were sent to; valid for 20 minutes.
 - Your interface language and the name of your plan.
 
 ### Review content
@@ -38,16 +39,18 @@ Everything you and your team put in a review:
 - uploaded PDFs;
 - screening decisions and their reasons, notes and labels, and the time spent on each record;
 - extraction forms and the values entered or suggested;
+- AI answers: screening suggestions (decision, reason, rationale, confidence) and extraction drafts (extracted values and the verbatim quotes supporting them), with the name of the model;
+- the text taken from a PDF for an AI extraction;
 - PRISMA counts;
 - an activity log: who did what, and when;
 - invitations sent by e-mail to team members;
-- AI usage counters (token counts), never the texts exchanged.
+- AI usage counters: the number of tokens of each request, with the provider and model.
 
 If you add your own AI provider key, it is encrypted at rest (Fernet: AES-128-CBC with HMAC, key derived from the server secret), never written to logs, and you can remove it at any time.
 
 ### Technical data
 
-Server logs, including IP addresses, are kept for 30 days for security purposes (detecting abuse, diagnosing incidents).
+Server logs are kept for 30 days for security purposes (detecting abuse, diagnosing incidents). They include IP addresses and may contain the e-mail address entered when someone asks for a sign-in link.
 
 ## Why and on what legal basis
 
@@ -55,8 +58,8 @@ Server logs, including IP addresses, are kept for 30 days for security purposes 
 |---|---|---|
 | Providing the service (account, reviews, team, exports) | Account and review content | Performance of a contract: the [terms of use](/terms) |
 | Sending sign-in links and invitations | E-mail address | Performance of a contract |
-| Security, abuse prevention, incident diagnosis | Server logs, IP addresses, activity log | Legitimate interest |
-| AI suggestions and extractions | Title and abstract, or PDF text, plus the review's criteria or form | Your consent, given each time a reviewer triggers the feature |
+| Security, abuse prevention, incident diagnosis | Server logs, IP addresses, sessions, activity log | Legitimate interest |
+| AI suggestions and extractions | A record's bibliographic fields, or the text of its PDF, plus the review's question and criteria or extraction form | Your consent, given each time a reviewer triggers the feature |
 
 Consent for AI processing is given action by action; you withdraw it by not triggering the feature or by removing your key.
 
@@ -81,7 +84,7 @@ A few third parties process data on our behalf:
 | Provider | Purpose | Location |
 |---|---|---|
 | Render, Inc. | Hosting (app, API, worker, database, backups) | USA company; servers in Frankfurt, EU |
-| Resend | Transactional e-mail (sign-in links, invitations) | USA |
+| OVHcloud (OVH SAS) | Sending sign-in links and invitations from a mailbox on krinea.org | France, EU |
 | Google | Optional sign-in with a Google account | USA |
 | Anthropic, Google or DeepSeek | AI suggestions and extractions, only when a reviewer triggers them | Depends on the provider, may be outside the EU |
 
@@ -91,23 +94,24 @@ Some of these companies are established in the United States. When data leaves t
 
 Data leaves Krinea for an AI provider only when a user with reviewer rights triggers a suggestion (screening) or an extraction in a review. Krinea then sends to the provider configured for that review:
 
-- for screening: the title and abstract of the record, and the review's criteria;
-- for extraction: the text of the PDF and the extraction form designed by the authors.
+- for title and abstract screening: the record's bibliographic fields (title, authors, year, journal, keywords, abstract), with the review question and the inclusion and exclusion criteria;
+- for full-text screening: the same, plus the text of the record's PDF;
+- for extraction: the text of the PDF, with the review question and the extraction form designed by the authors.
 
 The provider is Anthropic (Claude), Google (Gemini) or DeepSeek, as set in the review. The request uses your own API key or, on paid plans once they open, keys held by the service. Each provider applies its own terms: check them before using AI on sensitive material.
 
-AI output is stored apart from human decisions and never counts as a decision. We keep token counts, never the texts.
+Krinea stores the answers: the suggestion and its rationale for screening, the extracted values and their quotes for extraction, and the PDF text used for the extraction, so that reviewers can check each value against its source. It also counts the tokens of each request. AI output is stored apart from human decisions and never counts as a decision.
 
 ## How long we keep data
 
 | Data | Retention |
 |---|---|
 | Account data | Life of the account |
-| Reviews and their content | Until the review's owner deletes them |
-| Sign-in links | 20 minutes |
-| Sessions | 30 days |
+| Reviews and their content, including PDFs and AI answers | Until the review's owner deletes them |
+| Sign-in links | Valid for 20 minutes, deleted after a day |
+| Sessions | 30 days, or until you sign out; expired sessions are deleted |
 | Activity log | With the review |
-| Server logs with IP addresses | 30 days |
+| Server logs (IP addresses, e-mail addresses of sign-in requests) | 30 days |
 | Backups | A limited period after deletion, as part of the host's backup cycle |
 
 ## Your rights
@@ -124,7 +128,7 @@ Under the GDPR you can:
 Much of this is self-service:
 
 - export everything from the application at any time: RIS, CSV, Excel, PRISMA;
-- a review's owner can delete the review from its danger zone, which deletes its references, PDFs, decisions and extractions;
+- a review's owner can delete the review from its danger zone, which deletes its references, PDFs, decisions, AI answers and extractions;
 - remove your AI provider key at any time;
 - to delete your account, ask through the [contact page](/contact); it is done within 30 days.
 
@@ -132,14 +136,14 @@ For any other request, use the contact page. We may ask you to confirm your iden
 
 ## Security
 
-- TLS encrypts all traffic in transit.
-- Single public origin: browsers never talk to the API directly.
+- Traffic between your browser and Krinea is encrypted with TLS (HTTPS).
+- Browsers only talk to the web application, which reaches the API over the host's private network.
 - Passwords are hashed with Argon2id; session and sign-in tokens are stored as hashes.
 - AI provider keys are encrypted at rest.
 - No secret is ever written to logs.
 - The code is public, so anyone can audit it.
 
-Krinea has had no external security audit and holds no certification yet. We say so plainly so you can decide what to upload.
+Krinea has had no external security audit and holds no certification yet. We say so plainly so you can decide what to upload. More on the [security page](/security).
 
 ## Children
 
@@ -147,4 +151,4 @@ Krinea is for users aged 16 and over. We do not knowingly collect data from youn
 
 ## Changes to this policy
 
-This is version 0.1, still under legal review. It will change as the service grows (proper domain, paid plans, legal entity). We will tell you in the application before a material change applies. The date at the top of this page shows the current version; earlier versions stay in the public source history.
+This is version 0.1, still under legal review. It will change as the service grows (paid plans, legal entity). We will tell you in the application before a material change applies. The date at the top of this page shows the current version; earlier versions stay in the public source history.

@@ -1,4 +1,4 @@
-*Version 0.1, under legal review. Last updated: 8 October 2026.*
+*Version 0.1, under legal review. Last updated: 12 October 2026.*
 
 ## In short
 
@@ -13,9 +13,9 @@
 
 Krinea is an open-source workbench for systematic reviews: import references, remove duplicates, screen with a team, extract data with an AI that quotes its sources, report with PRISMA 2020, export. See the [about page](/about).
 
-The application is released under the AGPL-3.0 licence; its core engine, the Python package `krinea_core`, under the MIT licence. The source code is at [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review).
+The application is released under the AGPL-3.0 licence; its core engine, the Python package `krinea_core`, under the MIT licence. The source code is at [github.com/aymardino/krinea](https://github.com/aymardino/krinea).
 
-These terms apply only to the **hosted edition**: the beta instance operated by the maintainer, currently at a .onrender.com address and hosted on Render in Frankfurt (Germany, EU). "We" means the maintainer, an independent developer-researcher based in France, who runs the service as a natural person. No legal entity exists yet. See the [legal notice](/legal).
+These terms apply only to the **hosted edition**: the beta instance operated by the maintainer at krinea.org, hosted on Render in Frankfurt (Germany, EU). "We" means the maintainer, an independent developer-researcher based in France, who runs the service as a natural person. No legal entity exists yet. See the [legal notice](/legal).
 
 If you self-host Krinea (Docker Compose, Render blueprint), these terms do not apply: the licences govern your use, and you are responsible for your instance and its users.
 
@@ -39,7 +39,7 @@ Use the service for research work, lawfully and fairly. You must not:
 - circumvent limits, quotas or access controls, or access other people's reviews without an invitation;
 - resell the hosted edition or present it as your own service.
 
-The code is public. Auditing it and reporting a vulnerability on GitHub is welcome. Testing against the hosted instance without warning us is not.
+The code is public and auditing it is welcome. Report a vulnerability privately, by e-mail to contact@krinea.org or through GitHub private vulnerability reporting, never in a public issue (see the [security page](/security)). Testing against the hosted instance without warning us is not welcome.
 
 ## Your content
 
@@ -47,15 +47,15 @@ You own the references, PDFs, decisions, notes, forms, extractions and other con
 
 You grant us a licence limited to operating the service: storing and backing up your content, showing it to the people you invite, and processing it when you ask (deduplication, exports, AI features). It ends when you delete the content or your account, subject to the backup cycle described in the [privacy policy](/privacy).
 
-You can export everything at any time (RIS, CSV, Excel, PRISMA). The owner of a review can delete it from its danger zone, which deletes its references, PDFs, decisions and extractions. Account deletion is requested through the [contact page](/contact) and done within 30 days.
+You can export everything at any time (RIS, CSV, Excel, PRISMA). The owner of a review can delete it from its danger zone, which deletes its references, PDFs, decisions, AI answers and extractions. Account deletion is requested through the [contact page](/contact) and done within 30 days.
 
 AI suggestions are stored apart from human decisions and never count as a decision. You are responsible for your review: its criteria, the number of screeners, how conflicts are resolved, what is extracted and what is reported. Krinea is a tool, not a methods authority.
 
 ## AI features
 
-Nothing is sent to an AI provider unless a user with reviewer rights triggers a suggestion or an extraction in a review. Then the title and abstract (screening) or the text of the PDF (extraction), plus the review's criteria or form, go to the provider configured for that review: Anthropic (Claude), Google (Gemini) or DeepSeek.
+Nothing is sent to an AI provider unless a user with reviewer rights triggers a suggestion or an extraction in a review. Then the provider configured for that review, Anthropic (Claude), Google (Gemini) or DeepSeek, receives: for title and abstract screening, the record's bibliographic fields (title, authors, year, journal, keywords, abstract) with the review question and criteria; for full-text screening, the same plus the text of the PDF; for extraction, the text of the PDF with the review question and the extraction form.
 
-Today, AI features run with your own API key. It is encrypted at rest, never written to logs, and you can remove it at any time. You are responsible for that key, for the costs the provider bills you, and for complying with the provider's terms. We keep usage counters (token counts, never the texts). On paid plans, once they open, keys held by the service may be used instead.
+Today, AI features run with your own API key. It is encrypted at rest, never written to logs, and you can remove it at any time. You are responsible for that key, for the costs the provider bills you, and for complying with the provider's terms. Krinea stores the provider's answers (suggestions and rationales, extracted values and quotes) and the PDF text used for an extraction, and counts the tokens of each request; see the [privacy policy](/privacy). On paid plans, once they open, keys held by the service may be used instead.
 
 AI output can be wrong. Check it; never include, exclude or extract on a suggestion alone.
 
@@ -65,7 +65,7 @@ The hosted edition is free today. Pro and Institution plans are announced on the
 
 ## Availability and changes
 
-The hosted edition is a beta, provided as is and best effort, with no uptime guarantee. We may carry out maintenance, change or remove features, set limits, and move the service to another address (a proper domain will come).
+The hosted edition is a beta, provided as is and best effort, with no uptime guarantee. We may carry out maintenance, change or remove features, set limits, and move the service to another address.
 
 If we discontinue the hosted edition, or change it in a way that removes something essential, we will give at least 60 days' notice by e-mail or in the application and keep an export window open during that period. The software remains available under AGPL-3.0, so you can self-host it and import your exports.
 
@@ -75,7 +75,7 @@ The hosted edition is provided "as is" and "as available", without warranty of a
 
 To the extent permitted by law, we are not liable for indirect damage, loss of data or research time, or the consequences of your methodological choices or of AI output. Nothing here excludes liability that cannot be excluded under French law, such as for gross negligence, wilful misconduct or personal injury.
 
-No external security audit or certification has been carried out yet. The security measures are described in the [privacy policy](/privacy), and the code is public for anyone to audit.
+No external security audit or certification has been carried out yet. The security measures are described in the [privacy policy](/privacy) and on the [security page](/security), and the code is public for anyone to audit.
 
 ## Termination
 

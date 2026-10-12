@@ -29,11 +29,11 @@ For reporting, Krinea follows the PRISMA 2020 statement. The templates are repro
 
 The application is released under the AGPL-3.0 licence. The core engine, the Python package `krinea_core` with the parsers, deduplication, screening rules and extraction schema, is released under the MIT licence so that it can be reused in other tools.
 
-The source code is at [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Anyone can self-host Krinea with Docker Compose or the Render blueprint. Issues, pull requests and discussions are welcome.
+The source code is at [github.com/aymardino/krinea](https://github.com/aymardino/krinea). Anyone can self-host Krinea with Docker Compose or the Render blueprint. Issues, pull requests and discussions are welcome.
 
 ## The hosted edition
 
-A hosted edition exists so that you can try Krinea without installing anything. It is a beta, currently served from a .onrender.com address; a proper domain will come. The web app, the API, the background worker and the database run on Render in Frankfurt, Germany, in the EU.
+A hosted edition exists so that you can try Krinea without installing anything. It is a beta, served at krinea.org. The web app, the API, the background worker and the database run on Render in Frankfurt, Germany, in the EU.
 
 The hosted edition is operated by the maintainer as a private individual. It is non-commercial for now and provided as is, best effort, with no uptime guarantee. No paid plan is sold yet. Pro and Institution plans are announced on the [pricing page](/pricing) and will open only once billing and legal documents are ready. When they do, paid hosted plans will fund the hosting and the maintainer's time. Whatever happens to the hosted edition, the code stays free under AGPL-3.0.
 
@@ -45,10 +45,10 @@ Krinea is an independent project by an individual developer-researcher based in 
 
 ## How to cite
 
-Cite the version number shown in the app and the repository URL.
+Cite the release you used (the version is shown in the site footer) and the repository URL. A `CITATION.cff` file in the repository holds the full citation metadata, and GitHub offers it as "Cite this repository".
 
-> Krinea, version X.Y.Z. https://github.com/aymardino/systematic_review
+> Krinea, version 0.1.0. https://github.com/aymardino/krinea
 
 ## Contact
 
-For bugs and public questions, use GitHub issues and discussions. For private matters, see the [contact page](/contact).
+For bugs and public questions, use GitHub issues and discussions. For private matters, see the [contact page](/contact). Security issues are reported privately, never in a public issue: see the [security page](/security).

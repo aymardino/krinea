@@ -1,4 +1,4 @@
-*Version 0.1, en cours de relecture juridique. Dernière mise à jour : 8 octobre 2026.*
+*Version 0.1, en cours de relecture juridique. Dernière mise à jour : 12 octobre 2026.*
 
 ## Éditeur
 
@@ -22,7 +22,7 @@ L'application web, l'API, le processus de tâches en arrière-plan et la base de
 
 Le nom « Krinea » et le logo (un cercle partagé par un trait) identifient le projet. Merci de ne pas les utiliser d'une manière qui laisserait croire à une édition officielle ou à un soutien de notre part.
 
-Le logiciel est libre. L'application est publiée sous licence AGPL-3.0. Son moteur, le paquet Python `krinea_core` (lecture des formats de références, dédoublonnage, règles de sélection, schéma d'extraction), est publié sous licence MIT. Code source : [github.com/aymardino/systematic_review](https://github.com/aymardino/systematic_review). Chacun peut l'héberger lui-même.
+Le logiciel est libre. L'application est publiée sous licence AGPL-3.0. Son moteur, le paquet Python `krinea_core` (lecture des formats de références, dédoublonnage, règles de sélection, schéma d'extraction), est publié sous licence MIT. Code source : [github.com/aymardino/krinea](https://github.com/aymardino/krinea). Chacun peut l'héberger lui-même.
 
 Les modèles de diagramme de flux PRISMA 2020 sont reproduits sous licence CC BY 4.0 depuis prisma-statement.org. Si vous les utilisez, citez : Page MJ et al., BMJ 2021;372:n71.
 
@@ -34,5 +34,5 @@ Le traitement de vos données, les cookies utilisés et vos droits sont décrits
 
 ## Crédits
 
-- Polices : Inter et Source Serif 4, sous licence SIL Open Font License 1.1.
+- Police : Inter, SIL Open Font License 1.1.
 - Icônes : Lucide, sous licence ISC.
