@@ -11,9 +11,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY apps/web ./
 # The browser reaches the API through this app's /api proxy (API_URL at run time), so nothing
-# is baked in; NEXT_PUBLIC_API_URL is only for a separately hosted API.
+# is baked in; NEXT_PUBLIC_API_URL is only for a separately hosted API. NEXT_PUBLIC_* values
+# are build arguments (Next.js inlines them); API_URL, PROXY_KEY and PUBLIC_ORIGIN (the public
+# origin the proxy reports to the API in production) are read at run time.
 ARG NEXT_PUBLIC_API_URL=
-ARG NEXT_PUBLIC_CONTACT_EMAIL=
+ARG NEXT_PUBLIC_CONTACT_EMAIL=contact@krinea.org
 ARG NEXT_PUBLIC_SITE_URL=https://krinea.org
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_PUBLIC_CONTACT_EMAIL=$NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build

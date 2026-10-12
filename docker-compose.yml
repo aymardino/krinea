@@ -1,4 +1,5 @@
-# Krinea: full stack on one machine. `docker compose up --build` then open http://localhost:3000
+# Krinea: full stack on one machine. Copy .env.example to .env, set SECRET_KEY (at least 16
+# random characters), then `docker compose up --build` and open http://localhost:3000
 services:
   db:
     image: postgres:16-alpine
@@ -18,24 +19,49 @@ services:
     depends_on: { db: { condition: service_healthy } }
     environment: &api_env
       KRINEA_ENV: production
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      # Required: the API refuses to start in production without a real secret
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env (at least 16 random characters)}
       DATABASE_URL: postgresql+psycopg://krinea:${POSTGRES_PASSWORD:-krinea}@db:5432/krinea
       DATA_DIR: /data
       BASE_URL: ${BASE_URL:-http://localhost:3000}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       INLINE_JOBS: "0"
+      # E-mail (sign-in links, invitations): smtp or resend; console only logs and cannot
+      # deliver in production. Empty values count as "not set" for the API, except
+      # SMTP_PORT (a number) and EMAIL_FROM (the sender), which therefore get real defaults.
       EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_TLS: ${SMTP_TLS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-Krinea <no-reply@krinea.org>}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
+      # PDFs in S3-compatible storage (empty S3_BUCKET = the pdfs volume below)
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-}
+      S3_REGION: ${S3_REGION:-auto}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       UNPAYWALL_EMAIL: ${UNPAYWALL_EMAIL:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # Optional tuning; the defaults repeat the API's own (numbers cannot be left empty)
+      CORS_ORIGINS: ${CORS_ORIGINS:-${BASE_URL:-http://localhost:3000}}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-200}
+      SESSION_DAYS: ${SESSION_DAYS:-30}
+      MAGIC_LINK_MINUTES: ${MAGIC_LINK_MINUTES:-20}
+      FREE_AI_TOKENS_PER_MONTH: ${FREE_AI_TOKENS_PER_MONTH:-0}
+      PRO_AI_TOKENS_PER_MONTH: ${PRO_AI_TOKENS_PER_MONTH:-5000000}
     volumes:
       - pdfs:/data
     ports:
-      - "8000:8000"
+      # Debugging only: browsers go through the web app's /api proxy, so the API is not
+      # exposed beyond this machine.
+      - "127.0.0.1:8000:8000"
 
   worker:
     build: { context: ., dockerfile: apps/api/Dockerfile }
@@ -44,13 +70,18 @@ services:
     environment: *api_env
     volumes:
       - pdfs:/data
+    # The image's healthcheck probes the API's /health endpoint, which the worker does not serve
+    healthcheck:
+      disable: true
 
   web:
     build: { context: ., dockerfile: apps/web/Dockerfile }
     depends_on: [api]
     environment:
       API_URL: http://api:8000                                # the web app proxies /api/* to it (D-23)
-      PROXY_KEY: ${SECRET_KEY:-change-me-in-production}
+      PROXY_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env (at least 16 random characters)}
+      # Public origin the proxy reports to the API (never taken from request headers)
+      PUBLIC_ORIGIN: ${BASE_URL:-http://localhost:3000}
     ports:
       - "3000:3000"
 

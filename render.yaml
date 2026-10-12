@@ -1,18 +1,23 @@
 # Render blueprint for Krinea (decisions D-17, D-21, D-23).
 #
 # Services: PostgreSQL, API, worker, web. Browsers only talk to `tamis-web`; it proxies
-# `/api/*` to the API over Render's private network, so the deployment works on the
-# default *.onrender.com address with no domain and no extra configuration.
+# `/api/*` to the API over Render's private network, so the deployment also works on the
+# default *.onrender.com address, without a domain of your own.
 #
-# Custom domain: add it to `tamis-web` (Settings → Custom domains), then set BASE_URL on
-# `tamis-api` to that https URL (optional: links already use the origin the proxy reports).
+# Public URL (required): set BASE_URL on `tamis-api` and PUBLIC_ORIGIN on `tamis-web` to the
+# site's https URL, e.g. https://krinea.org (or the *.onrender.com address of tamis-web).
+# Links in e-mails and Google sign-in use it; the proxy never trusts client Host headers.
+# Custom domain: add it to `tamis-web` (Settings → Custom domains), then update both values.
 # `fromService` values are filled in when the Blueprint syncs: if a service failed to build
 # during a sync, run "Manual sync" once everything is green so tamis-web gets API_URL.
 # Cheaper test setup: `plan: free` on tamis-web and tamis-api, INLINE_JOBS=1 on the API, no
 # worker. Free instances cannot receive private-network traffic, so then set API_URL on
 # tamis-web to the API's public https URL by hand (and expect 50 s cold starts).
-# PDFs: set S3_BUCKET / S3_ENDPOINT_URL (Cloudflare R2, Backblaze B2…) so the API needs no
-# persistent disk; otherwise attach a disk to the API at /data.
+# PDFs: set S3_BUCKET / S3_ENDPOINT_URL / S3_REGION (Cloudflare R2, Backblaze B2, OVHcloud…)
+# on tamis-api and tamis-worker. A Render disk attaches to one service only, so a disk on
+# tamis-api at /data works only with INLINE_JOBS=1 and no worker; with the worker, use S3.
+# E-mail: the hosted service uses an OVHcloud mailbox (EMAIL_PROVIDER=smtp,
+# SMTP_HOST=ssl0.ovh.net, SMTP_PORT=465); without a provider the API refuses to send.
 databases:
   - name: tamis-db
     plan: basic-256mb
@@ -40,17 +45,32 @@ services:
         value: "true"
       - key: INLINE_JOBS
         value: "0"
-      # E-mail: set in the dashboard (console | resend | smtp, plus RESEND_API_KEY or the
-      # SMTP_* variables); never overwritten by a sync.
+      # required: public https URL of the site, e.g. https://krinea.org
+      - key: BASE_URL
+        sync: false
+      # E-mail: set in the dashboard (smtp | resend, plus the SMTP_* variables or
+      # RESEND_API_KEY); never overwritten by a sync.
       - key: EMAIL_PROVIDER
         sync: false
-      - key: RESEND_API_KEY
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_TLS
         sync: false
       - key: EMAIL_FROM
+        sync: false
+      - key: RESEND_API_KEY
         sync: false
       - key: S3_BUCKET
         sync: false
       - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_REGION
         sync: false
       - key: AWS_ACCESS_KEY_ID
         sync: false
@@ -88,6 +108,8 @@ services:
         sync: false
       - key: S3_ENDPOINT_URL
         sync: false
+      - key: S3_REGION
+        sync: false
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY
@@ -113,3 +135,11 @@ services:
         fromService: { type: web, name: tamis-api, property: hostport }
       - key: PROXY_KEY
         fromService: { type: web, name: tamis-api, envVarKey: SECRET_KEY }
+      # required: the same public https URL as BASE_URL on tamis-api (sent to the API as the
+      # origin of every request; client headers are never trusted for it)
+      - key: PUBLIC_ORIGIN
+        sync: false
+      # Public contact address shown on the site (default contact@krinea.org). NEXT_PUBLIC_*
+      # values are read at build time: redeploy after changing it.
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
