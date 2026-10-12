@@ -128,11 +128,11 @@
         "price": "0 €",
         "tagline": "Pour un relecteur qui démarre",
         "features": [
-          "1 revue active",
-          "Jusqu'à 2 collaborateurs",
+          "Toutes les fonctionnalités, double lecture en aveugle et conflits compris",
           "Notices illimitées",
           "Votre propre clé IA",
-          "Exports PRISMA 2020"
+          "Exports PRISMA 2020",
+          "Prévu à l'ouverture des offres payantes : 1 revue active, jusqu'à 2 collaborateurs"
         ],
         "cta": "Commencer gratuitement"
       },
@@ -141,10 +141,10 @@
         "price": "9 €",
         "tagline": "Pour les équipes de recherche",
         "features": [
+          "Tout ce qu'inclut l'offre Gratuit",
           "Revues illimitées",
           "Collaborateurs illimités",
           "Crédits IA inclus chaque mois",
-          "Double lecture en aveugle et conflits",
           "Support prioritaire"
         ],
         "cta": "Rejoindre la liste d'attente"
@@ -406,7 +406,7 @@
       "addField": "Ajouter un champ",
       "templates": "Modèles",
       "templateDefault": "PICO (par défaut)",
-      "templateEnergy": "Modélisation énergétique (52 champs)",
+      "templateEnergy": "Modélisation énergétique (51 champs)",
       "ai": "IA",
       "aiProvider": "Fournisseur",
       "aiModelScreening": "Modèle de tri",

@@ -128,11 +128,11 @@
         "price": "€0",
         "tagline": "For a single reviewer getting started",
         "features": [
-          "1 active review",
-          "Up to 2 collaborators",
+          "Every feature, blind double screening and conflicts included",
           "Unlimited records",
           "Bring your own AI key",
-          "PRISMA 2020 exports"
+          "PRISMA 2020 exports",
+          "Planned once paid plans open: 1 active review, up to 2 collaborators"
         ],
         "cta": "Start free"
       },
@@ -141,10 +141,10 @@
         "price": "€9",
         "tagline": "For research teams",
         "features": [
+          "Everything in Free",
           "Unlimited reviews",
           "Unlimited collaborators",
           "Included AI credits each month",
-          "Blind double screening and conflicts",
           "Priority support"
         ],
         "cta": "Join the waitlist"
@@ -406,7 +406,7 @@
       "addField": "Add field",
       "templates": "Templates",
       "templateDefault": "PICO (default)",
-      "templateEnergy": "Energy modelling (52 fields)",
+      "templateEnergy": "Energy modelling (51 fields)",
       "ai": "AI",
       "aiProvider": "Provider",
       "aiModelScreening": "Screening model",
