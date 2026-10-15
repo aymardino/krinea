@@ -3,18 +3,24 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Krinea design tokens (decision D-18) ─────────────────────────────────────── */
+/* Krinea design tokens. White page, one blue family (brand), one warm ink family (ink).
+   The semantic screening colours (include, maybe, exclude, conflict, pending) belong to the
+   application and are not marketing accents. */
 :root {
-  --brand-50: #effcf8;  --brand-100: #d4f7ec; --brand-200: #a9eed9; --brand-300: #71dfc2;
-  --brand-400: #3cc8a8; --brand-500: #1fae90; --brand-600: #178c76; --brand-700: #16705f;
-  --brand-800: #16594d; --brand-900: #154a41; --brand-950: #082b26;
+  --brand-50: #f2f6fc;  --brand-100: #e3ecf9; --brand-200: #c4d8f3; --brand-300: #93b8e8;
+  --brand-400: #5f93da; --brand-500: #3672c6; --brand-600: #2459a9; --brand-700: #1e478a;
+  --brand-800: #1b3c70; --brand-900: #19325a; --brand-950: #0f1f3a;
+
+  --ink-50: #faf9f7;  --ink-100: #f4f3f0; --ink-200: #e4e2dd; --ink-300: #cdcbc5; --ink-400: #86857f;
+  --ink-500: #67665f; --ink-700: #403f3b; --ink-800: #2b2a27; --ink-950: #171716;
+
   --amber-500: #d97706; --amber-100: #fef3c7; --amber-700: #b45309;
 
-  --background: #fbfcfc; --foreground: #0f172a;
-  --card: #ffffff; --card-foreground: #0f172a;
-  --muted: #f1f5f9; --muted-foreground: #64748b;
-  --border: #e2e8f0; --input: #e2e8f0; --ring: var(--brand-500);
-  --primary: var(--brand-700); --primary-foreground: #ffffff;
+  --background: #ffffff; --foreground: var(--ink-950);
+  --card: #ffffff; --card-foreground: var(--ink-950);
+  --muted: var(--ink-100); --muted-foreground: var(--ink-500);
+  --border: var(--ink-200); --input: var(--ink-200); --ring: var(--brand-500);
+  --primary: var(--brand-600); --primary-foreground: #ffffff;
   --accent: var(--brand-50); --accent-foreground: var(--brand-900);
   --destructive: #b91c1c; --destructive-foreground: #ffffff;
 
@@ -25,15 +31,23 @@
   --pending: #475569; --pending-bg: #f1f5f9;
 
   --radius: 10px;
+
+  /* Site container: 1280px of content at 1440, 1360 at 1536, 1440 at 1920. */
+  --gutter: 16px; --container: 1280px;
 }
+
+@media (min-width: 640px)  { :root { --gutter: 24px; } }
+@media (min-width: 1024px) { :root { --gutter: 32px; } }
+@media (min-width: 1536px) { :root { --gutter: 40px; --container: 1360px; } }
+@media (min-width: 1920px) { :root { --container: 1440px; } }
 
 .dark {
   --background: #0b1220; --foreground: #e5edf3;
   --card: #111a2b; --card-foreground: #e5edf3;
   --muted: #1a2538; --muted-foreground: #93a3b8;
   --border: #243049; --input: #243049; --ring: var(--brand-400);
-  --primary: var(--brand-400); --primary-foreground: #06211c;
-  --accent: #10302a; --accent-foreground: var(--brand-200);
+  --primary: var(--brand-400); --primary-foreground: var(--brand-950);
+  --accent: #16253d; --accent-foreground: var(--brand-200);
   --destructive: #ef4444; --destructive-foreground: #ffffff;
   --include: #16a34a; --include-bg: #0f2e1d;
   --maybe: #d97706;   --maybe-bg: #3a2a08;
@@ -62,6 +76,9 @@
   --color-brand-300: var(--brand-300); --color-brand-400: var(--brand-400); --color-brand-500: var(--brand-500);
   --color-brand-600: var(--brand-600); --color-brand-700: var(--brand-700); --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900); --color-brand-950: var(--brand-950);
+  --color-ink-50: var(--ink-50); --color-ink-100: var(--ink-100); --color-ink-200: var(--ink-200);
+  --color-ink-300: var(--ink-300); --color-ink-400: var(--ink-400); --color-ink-500: var(--ink-500);
+  --color-ink-700: var(--ink-700); --color-ink-800: var(--ink-800); --color-ink-950: var(--ink-950);
   --color-amber-500: var(--amber-500); --color-amber-100: var(--amber-100); --color-amber-700: var(--amber-700);
   --color-include: var(--include); --color-include-bg: var(--include-bg);
   --color-maybe: var(--maybe); --color-maybe-bg: var(--maybe-bg);
@@ -74,14 +91,16 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 6px);
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
-  --shadow-pop: 0 10px 30px -10px rgb(15 23 42 / 0.25);
+  --shadow-card: 0 1px 2px rgb(15 31 58 / 0.04), 0 1px 3px rgb(15 31 58 / 0.06);
+  --shadow-pop: 0 10px 30px -10px rgb(15 31 58 / 0.25);
 }
 
 @layer base {
   * { @apply border-border; }
-  html { scroll-behavior: smooth; }
-  body { @apply bg-background text-foreground font-sans antialiased; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+  body { @apply bg-background text-foreground font-sans antialiased; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; font-optical-sizing: auto; }
   h1, h2, h3 { @apply tracking-tight; }
   ::selection { background: var(--brand-200); color: var(--brand-950); }
   mark.kw-include { background: var(--include-bg); color: var(--include); border-radius: 3px; padding: 0 2px; }
@@ -91,26 +110,61 @@
 
 @layer utilities {
   .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
-  /* Faint grid behind a section. Drawn on a pseudo-element so the fade-out mask never
-     touches the section's own content. */
-  .mesh-bg { position: relative; isolation: isolate; }
-  .mesh-bg::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-      linear-gradient(to right, rgb(22 112 95 / 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(22 112 95 / 0.06) 1px, transparent 1px);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(120% 90% at 40% 0%, #000 35%, transparent 100%);
-  }
   .text-balance { text-wrap: balance; }
   .scrollbar-thin { scrollbar-width: thin; }
+
+  /* Site container and full-bleed helpers (marketing layout). */
+  .container-site { width: min(100% - 2 * var(--gutter), var(--container)); margin-inline: auto; }
+  .bleed { width: 100vw; margin-inline: calc(50% - 50vw); }
+  .bleed-right { margin-right: calc(50% - 50vw); }
+
+  /* Nav and text links grow a 1px underline from the left on hover. */
+  .link-grow {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 150ms ease;
+  }
+  .link-grow:hover, .link-grow[aria-current="page"] { background-size: 100% 1px; }
+
+  /* Browser frame lift on hover: 2px, larger shadow. */
+  .frame-lift { transition: transform 150ms ease, box-shadow 150ms ease; }
+  .frame-lift:hover { transform: translateY(-2px); box-shadow: 0 28px 56px -24px rgb(15 31 58 / 0.3); }
 }
 
-/* ── Reading pages (about, privacy, terms, legal notice) ──────────────────────── */
+/* Motion. Sections fade and lift once when they enter the viewport (the Reveal component
+   flips data-shown); the hero and tab panels animate on mount. Everything is off under
+   prefers-reduced-motion. */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal[data-shown] { opacity: 1; transform: none; }
+.reveal > .reveal-item { opacity: 0; transform: translateY(8px); transition: inherit; }
+.reveal[data-shown] > .reveal-item { opacity: 1; transform: none; }
+.reveal[data-shown] > .reveal-item:nth-child(2) { transition-delay: 60ms; }
+.reveal[data-shown] > .reveal-item:nth-child(3) { transition-delay: 120ms; }
+.reveal[data-shown] > .reveal-item:nth-child(4) { transition-delay: 180ms; }
+.reveal[data-shown] > .reveal-item:nth-child(5) { transition-delay: 240ms; }
+.reveal[data-shown] > .reveal-item:nth-child(n+6) { transition-delay: 300ms; }
+
+.hero-in { animation: hero-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes hero-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.tab-in { animation: tab-in 200ms ease-out both; }
+@keyframes tab-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal > .reveal-item { opacity: 1; transform: none; transition: none; }
+  .hero-in, .tab-in { animation: none; }
+  .link-grow { transition: none; }
+  .frame-lift, .frame-lift:hover { transition: none; transform: none; }
+  details summary svg { transition: none; }
+}
+
+/* Reading pages (about, privacy, terms, legal notice, security). */
 .prose-krinea { @apply text-[15px] leading-7 text-foreground; }
 .prose-krinea > :first-child { @apply mt-0; }
 .prose-krinea h2 { @apply font-display mt-10 text-2xl font-semibold tracking-tight; }
@@ -120,7 +174,7 @@
 .prose-krinea ul { @apply mt-4 list-disc space-y-1.5 pl-6; }
 .prose-krinea ol { @apply mt-4 list-decimal space-y-1.5 pl-6; }
 .prose-krinea li > p { @apply mt-1; }
-.prose-krinea a { @apply font-medium text-primary underline underline-offset-4; }
+.prose-krinea a { @apply font-medium text-brand-700 underline underline-offset-4 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200; }
 .prose-krinea strong { @apply font-semibold; }
 .prose-krinea blockquote { @apply mt-4 border-l-4 border-brand-300 bg-brand-50 px-4 py-3 text-foreground dark:bg-brand-950; }
 .prose-krinea hr { @apply my-8 border-border; }
@@ -129,3 +183,25 @@
 .prose-krinea th { @apply border-b border-border py-2 pr-4 text-left font-semibold; }
 .prose-krinea td { @apply border-b border-border py-2 pr-4 align-top; }
 .prose-krinea h2 + p, .prose-krinea h3 + p { @apply mt-3; }
+
+/* Marketing motion: the hero screening demo and the hero bleed. The card enters, leaves or
+   crossfades through a data attribute set by the ScreeningDemo component; decision buttons
+   and key caps change colour in place. Everything is off under prefers-reduced-motion. */
+.demo-card[data-anim="in"] { animation: demo-in 360ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.demo-card[data-anim="out"] { animation: demo-out 240ms ease-in both; }
+.demo-card[data-anim="fade"] { animation: demo-fade 300ms ease both; }
+@keyframes demo-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes demo-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-8px); } }
+@keyframes demo-fade { from { opacity: 0; } to { opacity: 1; } }
+.demo-decision { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
+.demo-kbd { transition: background-color 80ms ease, color 80ms ease, border-color 80ms ease; }
+
+/* The hero demo panel runs to the right edge of the viewport from lg, whatever the gutter. */
+@media (min-width: 1024px) {
+  .hero-bleed-right { margin-right: min(calc(-1 * var(--gutter)), calc((var(--container) - 100vw) / 2)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-card[data-anim] { animation: none; }
+  .demo-decision, .demo-kbd { transition: none; }
+}
