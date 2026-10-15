@@ -88,7 +88,7 @@ Quelques prestataires traitent des données pour notre compte :
 | Google | Connexion facultative avec un compte Google | États-Unis |
 | Anthropic, Google ou DeepSeek | Suggestions et extractions par IA, uniquement lorsqu'un relecteur les déclenche | Selon le fournisseur, possiblement hors UE |
 
-Certaines de ces sociétés sont établies aux États-Unis. Lorsque des données quittent l'UE, le transfert s'appuie sur les clauses contractuelles types de la Commission européenne ou, le cas échéant, sur le cadre de protection des données UE–États-Unis (Data Privacy Framework).
+Certaines de ces sociétés sont établies aux États-Unis. Lorsque des données quittent l'UE, le transfert s'appuie sur les clauses contractuelles types de la Commission européenne ou, le cas échéant, sur le cadre de protection des données UE-États-Unis (Data Privacy Framework).
 
 ## Fournisseurs d'IA
 

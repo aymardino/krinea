@@ -39,9 +39,10 @@
     }
   },
   "nav": {
-    "features": "Features",
+    "howItWorks": "How it works",
     "pricing": "Pricing",
     "docs": "Docs",
+    "source": "Source",
     "github": "Source code on GitHub",
     "app": "Open the app",
     "about": "About",
@@ -58,69 +59,201 @@
       "legalNotice": "Legal notice",
       "independence": "An independent open-source project, not affiliated with or endorsed by any institution. Hosted in Frankfurt (EU).",
       "licences": "Application AGPL-3.0, core engine MIT · PRISMA 2020 templates reproduced under CC BY 4.0 (prisma-statement.org)",
-      "security": "Security"
+      "security": "Security",
+      "resources": "Resources",
+      "prisma": "PRISMA 2020 statement",
+      "cite": "How to cite"
     }
   },
   "marketing": {
-    "heroEyebrow": "Open source · PRISMA 2020 · AI you verify",
-    "heroTitle": "The systematic review workbench that keeps you in control",
-    "heroText": "Import your searches, remove duplicates, screen with your team, extract data with an AI that quotes its sources, and report with the official PRISMA flow. Free to self-host, ready to use online.",
-    "ctaPrimary": "Start a review",
-    "ctaSecondary": "See how it works",
-    "trust": "Built by researchers, for research teams in Africa and Europe. AGPL-3.0 licensed.",
-    "stepsTitle": "From search export to PRISMA diagram",
-    "steps": {
-      "import": {
-        "title": "Import",
-        "text": "RIS, BibTeX, PubMed, Web of Science, Scopus CSV, Excel. Format detected automatically, every file kept as a batch."
+    "hero": {
+      "title": "From search export to PRISMA diagram, in one place.",
+      "lede": "Krinea imports your references, removes duplicates, lets two reviewers screen blind, extracts data with quotes you verify, and draws the PRISMA 2020 diagram from the counts. Open source, free to start.",
+      "primary": "Create a free account",
+      "secondary": "See how it works",
+      "note": "No credit card. AGPL-3.0. Hosted in Frankfurt (EU) or on your own server.",
+      "demoCaption": "Live demo built from the real screening view, on a sample review of 55 fictitious records."
+    },
+    "demo": {
+      "stage": "Title and abstract",
+      "progress": "{done} / {total} screened by you",
+      "reason": "Exclusion reason",
+      "note": "Note",
+      "hint": "I include · M maybe · E exclude",
+      "pause": "Pause the demo",
+      "play": "Play the demo"
+    },
+    "facts": {
+      "licence": {
+        "label": "Licence",
+        "value": "AGPL-3.0, engine under MIT"
       },
-      "dedup": {
-        "title": "Deduplicate",
-        "text": "DOI and title matches merge on their own. Near matches wait for your call, with the evidence side by side."
+      "imports": {
+        "label": "Imports",
+        "value": "RIS, BibTeX, PubMed, Web of Science, CSV, TSV, Excel"
       },
-      "screen": {
-        "title": "Screen",
-        "text": "Title and abstract, then full text. Blind double screening, conflicts, keyboard shortcuts, highlighted keywords."
+      "screening": {
+        "label": "Screening",
+        "value": "Single or double, blind, with conflicts"
       },
-      "extract": {
-        "title": "Extract",
-        "text": "You design the form. The AI fills it from each PDF with a verbatim quote per field. You verify, next to the paper."
+      "reporting": {
+        "label": "Reporting",
+        "value": "PRISMA 2020 counts and diagram"
       },
-      "report": {
-        "title": "Report",
-        "text": "PRISMA 2020 counts and diagram, exactly as the official template, plus RIS, CSV and Excel exports."
+      "hosting": {
+        "label": "Hosting",
+        "value": "Frankfurt (EU), or your own server"
       }
     },
-    "aiTitle": "AI that suggests, never decides",
-    "aiText": "Suggestions are stored apart from decisions and always need a human click. Bring your own API key, or use the credits included in paid plans.",
-    "teamTitle": "Built for teams",
-    "teamText": "Invite reviewers by email, choose single or double screening, hide decisions in blind mode, resolve conflicts, follow each reviewer's progress and time.",
-    "openTitle": "Open source, yours to host",
-    "openText": "The whole application is AGPL-3.0; the parsing and deduplication engine is MIT. Run it on your laptop, your lab server or our hosted service.",
-    "footer": "Made for evidence synthesis. © {year} Krinea.",
-    "trustStrip": {
-      "eu": "Hosted in Frankfurt (EU)",
-      "oss": "AGPL-3.0 · self-host for free",
-      "prisma": "PRISMA 2020 official template",
-      "export": "Export everything, any time"
+    "how": {
+      "title": "One review, five stages.",
+      "lede": "Everything stays in one workspace, and everything exports. Every screen below is the real application, on a sample review of 55 fictitious records.",
+      "stage": "Stage {n} of 5",
+      "tabs": {
+        "import": "Import",
+        "dedup": "Deduplicate",
+        "screen": "Screen",
+        "extract": "Extract",
+        "report": "Report"
+      },
+      "import": {
+        "title": "Import every search export.",
+        "b1": "RIS, BibTeX, PubMed, Web of Science, CSV, TSV or Excel, format detected on upload.",
+        "b2": "Each file is kept as a batch with its source database and date.",
+        "b3": "The counts per source feed the PRISMA diagram from the first import.",
+        "alt": "Data page of a review: three count tiles, the import box and a table of two imported files"
+      },
+      "dedup": {
+        "title": "Remove duplicates, keep the evidence.",
+        "b1": "Identical DOIs and titles merge on their own.",
+        "b2": "Near matches wait for you, both records side by side with their similarity score.",
+        "b3": "Every merge can be undone.",
+        "alt": "Duplicates panel with two similarity sliders and pairs of near-identical records to check"
+      },
+      "screen": {
+        "title": "Screen with a colleague, blind.",
+        "b1": "Title and abstract, then full text, with the keys I, M and E and your keywords highlighted.",
+        "b2": "Two reviewers decide without seeing each other, then conflicts are listed and settled.",
+        "b3": "Each decision keeps its reason, its reviewer and its time.",
+        "alt": "Screening view: the record list with progress, a record card with highlighted keywords and the Include, Maybe and Exclude buttons"
+      },
+      "extract": {
+        "title": "Extract with quotes you can check.",
+        "b1": "You design the form. The AI fills it from the PDF.",
+        "b2": "Every value comes with the sentence it was taken from.",
+        "b3": "Nothing counts until a person saves it as verified.",
+        "alt": "Extraction form with values and, under each value, the sentence it was taken from"
+      },
+      "report": {
+        "title": "Report with the official PRISMA 2020 diagram.",
+        "b1": "Counts are computed from your decisions, never typed.",
+        "b2": "Download the diagram as SVG, the included studies as RIS or CSV, the verified extractions as Excel.",
+        "b3": "The decision log exports too.",
+        "alt": "PRISMA 2020 page: six count tiles, the Download SVG button and the top of the flow diagram"
+      }
     },
-    "stepsLede": "Five stages, one workspace, and nothing you cannot export.",
-    "pricingTeaser": {
-      "title": "Self-host for free, forever.",
-      "text": "The hosted Free plan is open today. Pro and Institution plans open once billing and the legal documents are ready.",
-      "cta": "See pricing"
+    "photoBand": {
+      "caption": "Reading at a library desk. Photo: Tima Miroshnichenko, Pexels.",
+      "alt": "A researcher reading on a laptop at a library desk, open books beside him"
     },
-    "closingTitle": "Free to try, free to leave.",
-    "closingText": "Everything you build in Krinea exports as RIS, CSV, Excel and a PRISMA 2020 diagram. The code is AGPL-3.0: if we ever stop, you can host it yourself.",
-    "preview": {
-      "stage": "Title & abstract",
-      "aiSuggests": "AI suggests",
-      "aiReason": "cost outcomes for a solar mini-grid in sub-Saharan Africa"
-    }
+    "story": {
+      "title": "Built by a researcher who needed it.",
+      "p1": "Krinea began as a script written during a real systematic review on long-term energy-system models in Africa. Its author needed to pull structured data out of hundreds of PDFs without losing track of where each value came from. The script grew a form, then a quote next to every value, then a screening step so the same team could decide which papers to read at all.",
+      "p2": "Today Krinea is an independent open-source project maintained by one developer-researcher based in France, with no company behind it. The hosted edition runs in Frankfurt and is free while it is in beta. The code is AGPL-3.0, so whatever happens to the hosted edition, you can run it yourself.",
+      "link": "Read the full story"
+    },
+    "two": {
+      "title": "Made for two people who do not always agree.",
+      "lede": "Most reviews are screened in pairs. Krinea is built around that: two independent reads, a blind mode, a conflict list, and progress per reviewer so nobody is left behind.",
+      "f1": "Single or double screening, chosen per review.",
+      "f2": "Blind mode per stage: title and abstract, then full text.",
+      "f3": "Conflicts settled with both decisions and both reasons on screen, and logged.",
+      "link": "Invite a colleague from the review settings",
+      "credit": "Photo: Kaboompics, Pexels.",
+      "alt": "Two colleagues going through a printed report together at a desk"
+    },
+    "principles": {
+      "title": "Six things Krinea will not change its mind about.",
+      "ai": {
+        "title": "The AI suggests. A person decides.",
+        "text": "Suggestions are stored apart from decisions and never count as one."
+      },
+      "reason": {
+        "title": "Every decision keeps its reason.",
+        "text": "Include, exclude, maybe, the reason, the reviewer and the time are all in the log you can export."
+      },
+      "blind": {
+        "title": "Two reviewers, blind.",
+        "text": "Double screening hides the other person's decision until both are in, then lists the conflicts."
+      },
+      "yours": {
+        "title": "Your data leaves when you want.",
+        "text": "RIS, CSV, Excel, the decision log and the PRISMA diagram, at any time, with no paid plan required."
+      },
+      "open": {
+        "title": "Open source, for good.",
+        "text": "The application is AGPL-3.0 and the engine is MIT. Self-host it with Docker Compose or the Render blueprint."
+      },
+      "lang": {
+        "title": "In French and in English.",
+        "text": "The interface, the e-mails and this site exist in both languages, written separately."
+      }
+    },
+    "open": {
+      "title": "Built in the open.",
+      "lede": "Krinea is at version {version}. Every change is public. The three most recent, from the repository:",
+      "releases": "All releases on GitHub",
+      "roadmap": "Roadmap and open issues",
+      "credit": "Photo: Kaboompics, Pexels.",
+      "alt": "A hand highlighting a passage in a textbook with a teal highlighter"
+    },
+    "faq": {
+      "title": "Questions people ask first.",
+      "more": "Anything else: <contact>write to us</contact> or <discussions>open a discussion on GitHub</discussions>.",
+      "items": {
+        "free": {
+          "q": "Is it free?",
+          "a": "Yes. The hosted edition is free during the beta, with every feature, and self-hosting is free forever. Pro and Institution plans will open once billing and the legal documents are ready, and nothing is charged before you subscribe."
+        },
+        "data": {
+          "q": "Where is my data stored?",
+          "a": "On servers in Frankfurt, Germany, in the EU, operated by Render. If you self-host, wherever you put it. The privacy policy lists exactly what is stored."
+        },
+        "import": {
+          "q": "Can I import from Zotero, EndNote or Mendeley?",
+          "a": "Export a RIS or BibTeX file from your reference manager and import it. PubMed, Web of Science and Scopus exports work directly. A direct Zotero connection does not exist yet."
+        },
+        "conflict": {
+          "q": "What happens when two reviewers disagree?",
+          "a": "The record is marked as a conflict. Both decisions and reasons are shown side by side, and the review owner settles it with a final decision. All the votes stay in the decision log."
+        },
+        "ai": {
+          "q": "Does the AI decide anything?",
+          "a": "No. It suggests a decision with a reason, or fills an extraction form with a quote per field. Suggestions are stored apart from decisions, and only a person can include, exclude or verify. You bring your own API key."
+        },
+        "selfhost": {
+          "q": "Can I self-host it?",
+          "a": "Yes. The repository ships a Docker Compose file and a Render blueprint. The application is AGPL-3.0 and the engine is MIT."
+        }
+      }
+    },
+    "closing": {
+      "title": "Start your first review. It is free.",
+      "lede": "Import a search export, invite a colleague, and keep everything exportable from day one.",
+      "primary": "Create a free account",
+      "secondary": "Read the documentation"
+    },
+    "about": {
+      "photoCredit": "The Balme Library at the University of Ghana, Accra. Photo: Maxx Sas, Pexels."
+    },
+    "footer": "Made for evidence synthesis. © {year} Krinea."
   },
   "pricing": {
-    "title": "Simple pricing, open code",
+    "title": "Simple pricing, open code.",
     "subtitle": "Self-host for free, forever. Or let us host it and keep your reviewers moving.",
+    "available": "Available now",
+    "planned": "Planned",
+    "faqTitle": "Questions about plans and hosting.",
     "monthly": "per month, billed yearly",
     "plans": {
       "free": {
@@ -190,7 +323,8 @@
     "googleError": "Google sign-in failed. Try again or use your e-mail.",
     "or": "or",
     "consent": "By creating an account you accept the <terms>terms of service</terms> and the <privacy>privacy policy</privacy>.",
-    "magicAgain": "Send another link"
+    "magicAgain": "Send another link",
+    "reassurance": "Free during the beta. No credit card. You can delete your account and its data at any time."
   },
   "reviews": {
     "title": "Your reviews",

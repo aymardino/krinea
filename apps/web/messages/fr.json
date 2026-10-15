@@ -39,9 +39,10 @@
     }
   },
   "nav": {
-    "features": "Fonctionnalités",
+    "howItWorks": "Comment ça marche",
     "pricing": "Tarifs",
     "docs": "Documentation",
+    "source": "Code source",
     "github": "Code source sur GitHub",
     "app": "Ouvrir l'application",
     "about": "À propos",
@@ -58,69 +59,201 @@
       "legalNotice": "Mentions légales",
       "independence": "Un projet open source indépendant, sans affiliation ni soutien d'aucune institution. Hébergé à Francfort (UE).",
       "licences": "Application AGPL-3.0, moteur MIT · Modèles PRISMA 2020 reproduits sous CC BY 4.0 (prisma-statement.org)",
-      "security": "Sécurité"
+      "security": "Sécurité",
+      "resources": "Ressources",
+      "prisma": "Déclaration PRISMA 2020",
+      "cite": "Comment citer"
     }
   },
   "marketing": {
-    "heroEyebrow": "Open source · PRISMA 2020 · une IA que vous vérifiez",
-    "heroTitle": "L'atelier de revue systématique qui vous laisse aux commandes",
-    "heroText": "Importez vos recherches, retirez les doublons, triez en équipe, extrayez les données avec une IA qui cite ses sources, et rapportez avec le diagramme PRISMA officiel. Gratuit à auto-héberger, prêt à l'emploi en ligne.",
-    "ctaPrimary": "Démarrer une revue",
-    "ctaSecondary": "Voir comment ça marche",
-    "trust": "Conçu par des chercheurs, pour des équipes de recherche en Afrique et en Europe. Licence AGPL-3.0.",
-    "stepsTitle": "De l'export de recherche au diagramme PRISMA",
-    "steps": {
-      "import": {
-        "title": "Importer",
-        "text": "RIS, BibTeX, PubMed, Web of Science, CSV Scopus, Excel. Format détecté automatiquement, chaque fichier conservé comme un lot."
+    "hero": {
+      "title": "De l'export de recherche au diagramme PRISMA, au même endroit.",
+      "lede": "Krinea importe vos références, retire les doublons, laisse deux relecteurs trier en aveugle, extrait les données avec des citations que vous vérifiez, et calcule le diagramme PRISMA 2020 à partir des comptages. Open source, gratuit pour commencer.",
+      "primary": "Créer un compte gratuit",
+      "secondary": "Voir comment ça marche",
+      "note": "Sans carte bancaire. Licence AGPL-3.0. Hébergé à Francfort (UE) ou sur votre propre serveur.",
+      "demoCaption": "Démonstration construite avec la vraie vue de tri, sur une revue d'exemple de 55 notices fictives."
+    },
+    "demo": {
+      "stage": "Titre et résumé",
+      "progress": "{done} / {total} triées par vous",
+      "reason": "Motif d'exclusion",
+      "note": "Note",
+      "hint": "I inclure · M peut-être · E exclure",
+      "pause": "Mettre la démonstration en pause",
+      "play": "Relancer la démonstration"
+    },
+    "facts": {
+      "licence": {
+        "label": "Licence",
+        "value": "AGPL-3.0, moteur sous MIT"
       },
-      "dedup": {
-        "title": "Dédoublonner",
-        "text": "Les DOI et titres identiques fusionnent seuls. Les cas proches attendent votre décision, preuves côte à côte."
+      "imports": {
+        "label": "Imports",
+        "value": "RIS, BibTeX, PubMed, Web of Science, CSV, TSV, Excel"
       },
-      "screen": {
-        "title": "Trier",
-        "text": "Titre et résumé, puis texte intégral. Double lecture en aveugle, conflits, raccourcis clavier, mots-clés surlignés."
+      "screening": {
+        "label": "Tri",
+        "value": "Simple ou double, en aveugle, avec conflits"
       },
-      "extract": {
-        "title": "Extraire",
-        "text": "Vous dessinez la grille. L'IA la remplit depuis chaque PDF avec une citation par champ. Vous vérifiez, à côté de l'article."
+      "reporting": {
+        "label": "Rapport",
+        "value": "Comptages et diagramme PRISMA 2020"
       },
-      "report": {
-        "title": "Rapporter",
-        "text": "Comptages et diagramme PRISMA 2020 conformes au gabarit officiel, plus exports RIS, CSV et Excel."
+      "hosting": {
+        "label": "Hébergement",
+        "value": "Francfort (UE), ou votre propre serveur"
       }
     },
-    "aiTitle": "Une IA qui suggère, jamais ne décide",
-    "aiText": "Les suggestions sont stockées à part des décisions et exigent toujours un clic humain. Apportez votre clé API, ou utilisez les crédits inclus dans les offres payantes.",
-    "teamTitle": "Pensé pour les équipes",
-    "teamText": "Invitez des relecteurs par e-mail, choisissez simple ou double lecture, masquez les décisions en mode aveugle, résolvez les conflits, suivez la progression et le temps de chacun.",
-    "openTitle": "Open source, à héberger chez vous",
-    "openText": "L'application entière est sous AGPL-3.0 ; le moteur d'analyse et de dédoublonnage sous MIT. Sur votre portable, le serveur du labo ou notre service hébergé.",
-    "footer": "Conçu pour la synthèse des preuves. © {year} Krinea.",
-    "trustStrip": {
-      "eu": "Hébergé à Francfort (UE)",
-      "oss": "AGPL-3.0 · auto-hébergement gratuit",
-      "prisma": "Modèle PRISMA 2020 officiel",
-      "export": "Tout exporter, à tout moment"
+    "how": {
+      "title": "Une revue, cinq étapes.",
+      "lede": "Tout reste dans un seul espace de travail, et tout s'exporte. Chaque écran ci-dessous est la vraie application, sur une revue d'exemple de 55 notices fictives.",
+      "stage": "Étape {n} sur 5",
+      "tabs": {
+        "import": "Importer",
+        "dedup": "Dédoublonner",
+        "screen": "Trier",
+        "extract": "Extraire",
+        "report": "Rapporter"
+      },
+      "import": {
+        "title": "Importez chaque export de recherche.",
+        "b1": "RIS, BibTeX, PubMed, Web of Science, CSV, TSV ou Excel, format détecté à l'envoi.",
+        "b2": "Chaque fichier reste un lot, avec sa base source et sa date.",
+        "b3": "Les comptages par source alimentent le diagramme PRISMA dès le premier import.",
+        "alt": "Page Données d'une revue : trois tuiles de comptage, la zone d'import et un tableau de deux fichiers importés"
+      },
+      "dedup": {
+        "title": "Retirez les doublons, gardez la preuve.",
+        "b1": "Les DOI et titres identiques fusionnent seuls.",
+        "b2": "Les cas proches vous attendent, les deux notices côte à côte avec leur score de similarité.",
+        "b3": "Chaque fusion peut être annulée.",
+        "alt": "Panneau des doublons avec deux curseurs de similarité et des paires de notices presque identiques à vérifier"
+      },
+      "screen": {
+        "title": "Triez avec un collègue, en aveugle.",
+        "b1": "Titre et résumé, puis texte intégral, avec les touches I, M et E et vos mots-clés surlignés.",
+        "b2": "Deux relecteurs décident sans se voir, puis les conflits sont listés et tranchés.",
+        "b3": "Chaque décision garde sa raison, son relecteur et son heure.",
+        "alt": "Vue de tri : la liste des notices avec la progression, une fiche avec les mots-clés surlignés et les boutons Inclure, Peut-être et Exclure"
+      },
+      "extract": {
+        "title": "Extrayez avec des citations vérifiables.",
+        "b1": "Vous dessinez la grille. L'IA la remplit depuis le PDF.",
+        "b2": "Chaque valeur vient avec la phrase dont elle est tirée.",
+        "b3": "Rien ne compte tant qu'une personne ne l'a pas enregistrée comme vérifiée.",
+        "alt": "Grille d'extraction avec des valeurs et, sous chacune, la phrase dont elle est tirée"
+      },
+      "report": {
+        "title": "Rapportez avec le diagramme PRISMA 2020 officiel.",
+        "b1": "Les comptages viennent de vos décisions, jamais saisis à la main.",
+        "b2": "Téléchargez le diagramme en SVG, les études incluses en RIS ou CSV, les extractions vérifiées en Excel.",
+        "b3": "Le journal des décisions s'exporte aussi.",
+        "alt": "Page PRISMA 2020 : six tuiles de comptage, le bouton Télécharger le SVG et le haut du diagramme de flux"
+      }
     },
-    "stepsLede": "Cinq étapes, un seul espace de travail, et rien que vous ne puissiez exporter.",
-    "pricingTeaser": {
-      "title": "Auto-hébergement gratuit, pour toujours.",
-      "text": "L'offre Gratuit hébergée est ouverte dès aujourd'hui. Les offres Pro et Institution ouvriront quand la facturation et les documents juridiques seront prêts.",
-      "cta": "Voir les tarifs"
+    "photoBand": {
+      "caption": "Lecture à une table de bibliothèque. Photo : Tima Miroshnichenko, Pexels.",
+      "alt": "Un chercheur lit sur un ordinateur portable à une table de bibliothèque, des livres ouverts à côté de lui"
     },
-    "closingTitle": "Libre d'essayer, libre de partir.",
-    "closingText": "Tout ce que vous construisez dans Krinea s'exporte en RIS, CSV, Excel et en diagramme PRISMA 2020. Le code est sous AGPL-3.0 : si nous arrêtons un jour, vous pouvez l'héberger vous-même.",
-    "preview": {
-      "stage": "Titre et résumé",
-      "aiSuggests": "L'IA suggère",
-      "aiReason": "résultats de coût pour un mini-réseau solaire en Afrique subsaharienne"
-    }
+    "story": {
+      "title": "Conçu par un chercheur qui en avait besoin.",
+      "p1": "Krinea est né d'un script écrit pendant une vraie revue systématique sur les modèles énergétiques de long terme en Afrique. Son auteur devait extraire des données structurées de centaines de PDF sans perdre la trace de l'origine de chaque valeur. Le script a gagné une grille, puis une citation à côté de chaque valeur, puis une étape de tri pour que la même équipe décide d'abord quels articles lire.",
+      "p2": "Aujourd'hui Krinea est un projet open source indépendant, maintenu par un développeur-chercheur basé en France, sans société derrière. L'édition hébergée tourne à Francfort et reste gratuite pendant la bêta. Le code est sous AGPL-3.0 : quoi qu'il arrive à l'édition hébergée, vous pouvez le faire tourner vous-même.",
+      "link": "Lire toute l'histoire"
+    },
+    "two": {
+      "title": "Pensé pour deux personnes qui ne sont pas toujours d'accord.",
+      "lede": "La plupart des revues se trient à deux. Krinea est construit autour de cela : deux lectures indépendantes, un mode aveugle, une liste de conflits et la progression de chacun, pour que personne ne reste en arrière.",
+      "f1": "Lecture simple ou double, au choix pour chaque revue.",
+      "f2": "Mode aveugle par étape : titre et résumé, puis texte intégral.",
+      "f3": "Conflits tranchés avec les deux décisions et les deux raisons sous les yeux, et consignés.",
+      "link": "Invitez un collègue depuis les réglages de la revue",
+      "credit": "Photo : Kaboompics, Pexels.",
+      "alt": "Deux collègues parcourent ensemble un rapport imprimé à un bureau"
+    },
+    "principles": {
+      "title": "Six choses sur lesquelles Krinea ne changera pas d'avis.",
+      "ai": {
+        "title": "L'IA suggère. Une personne décide.",
+        "text": "Les suggestions sont stockées à part des décisions et ne comptent jamais comme telles."
+      },
+      "reason": {
+        "title": "Chaque décision garde sa raison.",
+        "text": "Inclure, exclure, peut-être, la raison, le relecteur et l'heure sont dans le journal que vous pouvez exporter."
+      },
+      "blind": {
+        "title": "Deux relecteurs, en aveugle.",
+        "text": "La double lecture masque la décision de l'autre jusqu'à ce que les deux soient saisies, puis liste les conflits."
+      },
+      "yours": {
+        "title": "Vos données partent quand vous voulez.",
+        "text": "RIS, CSV, Excel, le journal des décisions et le diagramme PRISMA, à tout moment, sans offre payante."
+      },
+      "open": {
+        "title": "Open source, pour de bon.",
+        "text": "L'application est sous AGPL-3.0 et le moteur sous MIT. Auto-hébergez-le avec Docker Compose ou le blueprint Render."
+      },
+      "lang": {
+        "title": "En français et en anglais.",
+        "text": "L'interface, les e-mails et ce site existent dans les deux langues, écrits séparément."
+      }
+    },
+    "open": {
+      "title": "Développé au grand jour.",
+      "lede": "Krinea est en version {version}. Chaque changement est public. Les trois plus récents, tirés du dépôt :",
+      "releases": "Toutes les versions sur GitHub",
+      "roadmap": "Feuille de route et tickets ouverts",
+      "credit": "Photo : Kaboompics, Pexels.",
+      "alt": "Une main surligne un passage d'un manuel avec un surligneur turquoise"
+    },
+    "faq": {
+      "title": "Les questions qu'on pose en premier.",
+      "more": "Autre chose : <contact>écrivez-nous</contact> ou <discussions>ouvrez une discussion sur GitHub</discussions>.",
+      "items": {
+        "free": {
+          "q": "Est-ce gratuit ?",
+          "a": "Oui. L'édition hébergée est gratuite pendant la bêta, avec toutes les fonctionnalités, et l'auto-hébergement est gratuit pour toujours. Les offres Pro et Institution ouvriront quand la facturation et les documents juridiques seront prêts, et rien n'est facturé avant que vous ne souscriviez."
+        },
+        "data": {
+          "q": "Où sont stockées mes données ?",
+          "a": "Sur des serveurs à Francfort, en Allemagne, dans l'UE, opérés par Render. Si vous auto-hébergez, là où vous les mettez. La politique de confidentialité liste exactement ce qui est stocké."
+        },
+        "import": {
+          "q": "Puis-je importer depuis Zotero, EndNote ou Mendeley ?",
+          "a": "Exportez un fichier RIS ou BibTeX depuis votre gestionnaire de références et importez-le. Les exports PubMed, Web of Science et Scopus passent directement. Une connexion directe à Zotero n'existe pas encore."
+        },
+        "conflict": {
+          "q": "Que se passe-t-il quand deux relecteurs ne sont pas d'accord ?",
+          "a": "La notice est marquée en conflit. Les deux décisions et leurs raisons s'affichent côte à côte, et la personne responsable de la revue tranche par une décision finale. Tous les votes restent dans le journal des décisions."
+        },
+        "ai": {
+          "q": "L'IA décide-t-elle de quelque chose ?",
+          "a": "Non. Elle suggère une décision avec une raison, ou remplit une grille d'extraction avec une citation par champ. Les suggestions sont stockées à part des décisions, et seule une personne peut inclure, exclure ou vérifier. Vous apportez votre propre clé API."
+        },
+        "selfhost": {
+          "q": "Puis-je l'auto-héberger ?",
+          "a": "Oui. Le dépôt fournit un fichier Docker Compose et un blueprint Render. L'application est sous AGPL-3.0 et le moteur sous MIT."
+        }
+      }
+    },
+    "closing": {
+      "title": "Commencez votre première revue. C'est gratuit.",
+      "lede": "Importez un export de recherche, invitez un collègue, et gardez tout exportable dès le premier jour.",
+      "primary": "Créer un compte gratuit",
+      "secondary": "Lire la documentation"
+    },
+    "about": {
+      "photoCredit": "La bibliothèque Balme de l'Université du Ghana, à Accra. Photo : Maxx Sas, Pexels."
+    },
+    "footer": "Conçu pour la synthèse des preuves. © {year} Krinea."
   },
   "pricing": {
-    "title": "Des tarifs simples, un code ouvert",
+    "title": "Des tarifs simples, un code ouvert.",
     "subtitle": "Auto-hébergez gratuitement, pour toujours. Ou laissez-nous héberger pour que vos relecteurs avancent.",
+    "available": "Disponible",
+    "planned": "Prévu",
+    "faqTitle": "Questions sur les offres et l'hébergement.",
     "monthly": "par mois, facturé à l'année",
     "plans": {
       "free": {
@@ -190,7 +323,8 @@
     "googleError": "La connexion Google a échoué. Réessayez ou utilisez votre e-mail.",
     "or": "ou",
     "consent": "En créant un compte, vous acceptez les <terms>conditions d'utilisation</terms> et la <privacy>politique de confidentialité</privacy>.",
-    "magicAgain": "Renvoyer un lien"
+    "magicAgain": "Renvoyer un lien",
+    "reassurance": "Gratuit pendant la bêta. Sans carte bancaire. Vous pouvez supprimer votre compte et ses données à tout moment."
   },
   "reviews": {
     "title": "Vos revues",

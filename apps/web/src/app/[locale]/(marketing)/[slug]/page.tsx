@@ -11,6 +11,12 @@ import { Markdown, ProseLayout } from "@/components/marketing/prose";
 const SLUGS = ["about", "privacy", "terms", "legal", "security"] as const;
 type Slug = (typeof SLUGS)[number];
 
+/* Alt text of the About photograph, from public/photos/CREDITS.md. */
+const ABOUT_ALT: Record<string, string> = {
+  en: "The clock tower of the Balme Library at the University of Ghana in Accra, framed by palm trees",
+  fr: "La tour de l'horloge de la bibliothèque Balme de l'Université du Ghana, à Accra, entourée de palmiers",
+};
+
 export const dynamic = "force-static";
 export const dynamicParams = false;
 
@@ -41,8 +47,12 @@ export default async function ContentPage({ params }: { params: Promise<{ locale
   const source = read(locale, slug as Slug) ?? read("en", slug as Slug);
   if (!source) notFound();
   const t = await getTranslations({ locale, namespace: "pages" });
+  const m = await getTranslations({ locale, namespace: "marketing" });
+  /* About is the one reading page with a photograph: a place photo (the Balme Library in
+     Accra), credited, never presented as an affiliation. The legal pages stay text only. */
+  const image = slug === "about" ? { slug: "accra-balme-library" as const, alt: ABOUT_ALT[locale] ?? ABOUT_ALT.en, credit: m("about.photoCredit"), position: "50% 60%" } : undefined;
   return (
-    <ProseLayout title={t(`${slug}.title`)} description={t(`${slug}.description`)}>
+    <ProseLayout title={t(`${slug}.title`)} description={t(`${slug}.description`)} image={image}>
       <Markdown source={source} />
     </ProseLayout>
   );
