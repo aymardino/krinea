@@ -68,7 +68,7 @@
   "marketing": {
     "hero": {
       "title": "Revues systématiques : l'IA extrait les données, vous les vérifiez.",
-      "lede": "Krinea est un outil open source pour les revues systématiques. Importez vos références, sélectionnez les études à deux et en aveugle, puis laissez l'IA remplir votre grille d'extraction à partir de chaque PDF, avec la phrase exacte derrière chaque valeur. Le diagramme PRISMA 2020 se construit à partir de vos décisions. Gratuit pour commencer, hébergé dans l'UE ou sur votre serveur.",
+      "lede": "Krinea est un outil open source qui vous accompagne tout au long d'une revue systématique. Une fois vos références importées, il élimine les doublons, puis vous aide à sélectionner les études, seul ou en équipe, en aveugle si vous le souhaitez. Au moment de l'extraction, l'IA pré-remplit votre grille à partir de chaque PDF en indiquant, pour chaque valeur, la phrase exacte sur laquelle elle s'appuie : il ne vous reste qu'à vérifier. Le diagramme PRISMA 2020 se construit ensuite de lui-même à partir de vos décisions.",
       "primary": "Créer un compte gratuit",
       "secondary": "Voir comment ça marche",
       "note": "Sans carte bancaire. Licence AGPL-3.0. Hébergé à Francfort (UE), ou chez vous.",
@@ -94,7 +94,7 @@
       },
       "screening": {
         "label": "Sélection",
-        "value": "Simple ou double, en aveugle, avec gestion des désaccords"
+        "value": "Seul ou en équipe, en aveugle, avec gestion des désaccords"
       },
       "reporting": {
         "label": "Rapport",
@@ -107,7 +107,7 @@
     },
     "how": {
       "title": "Une revue, cinq étapes.",
-      "lede": "Tout se passe dans un seul espace de travail, et tout peut être exporté. Les écrans ci-dessous sont ceux de la vraie application, sur une revue d'exemple de 55 références fictives.",
+      "lede": "Une revue systématique passe par cinq étapes, et Krinea les réunit dans un seul espace de travail, d'où tout peut être exporté à tout moment. Les écrans ci-dessous sont ceux de la vraie application, sur une revue d'exemple composée de 55 références fictives.",
       "stage": "Étape {n} sur 5",
       "tabs": {
         "import": "Import",
@@ -118,37 +118,37 @@
       },
       "import": {
         "title": "Importez tous vos exports de recherche.",
-        "b1": "RIS, BibTeX, PubMed, Web of Science, CSV, TSV ou Excel : le format est reconnu automatiquement.",
-        "b2": "Chaque fichier reste un lot distinct, avec sa base de données d'origine et sa date.",
-        "b3": "Les effectifs par source alimentent le diagramme PRISMA dès le premier import.",
+        "b1": "Déposez vos fichiers RIS, BibTeX, PubMed, Web of Science, CSV, TSV ou Excel : le format est reconnu automatiquement.",
+        "b2": "Chaque fichier est conservé comme un lot distinct, avec sa base de données d'origine et sa date d'import.",
+        "b3": "Dès ce premier import, les effectifs par source commencent à alimenter le diagramme PRISMA.",
         "alt": "Page Données d'une revue : trois compteurs, la zone d'import et un tableau listant deux fichiers importés"
       },
       "dedup": {
         "title": "Éliminez les doublons, en gardant la trace.",
         "b1": "Les références qui partagent le même DOI ou le même titre sont fusionnées automatiquement.",
-        "b2": "Les cas douteux vous sont présentés côte à côte, avec leur score de similarité.",
-        "b3": "Toute fusion peut être annulée.",
+        "b2": "Lorsque la ressemblance est moins nette, Krinea vous présente les deux références côte à côte avec leur score de similarité, et c'est vous qui tranchez.",
+        "b3": "Toute fusion reste réversible.",
         "alt": "Panneau des doublons avec deux curseurs de similarité et des paires de références presque identiques à vérifier"
       },
       "screen": {
-        "title": "Sélectionnez les études à deux, en aveugle.",
-        "b1": "Sur titre et résumé, puis sur texte intégral, avec les raccourcis I, M et E et vos mots-clés surlignés.",
-        "b2": "Deux relecteurs décident chacun de leur côté ; les désaccords sont ensuite listés et tranchés.",
-        "b3": "Chaque décision est horodatée, avec son motif et son auteur.",
+        "title": "Sélectionnez les études, seul ou en équipe.",
+        "b1": "La sélection se fait d'abord sur titre et résumé, puis sur texte intégral, avec vos mots-clés surlignés et les raccourcis I, M et E pour aller vite.",
+        "b2": "En double lecture, chaque relecteur décide sans voir le choix des autres ; les désaccords sont ensuite réunis dans une liste pour être tranchés.",
+        "b3": "Chaque décision est enregistrée avec son motif, son auteur et son heure.",
         "alt": "Écran de sélection : la liste des références avec la progression, une fiche avec les mots-clés surlignés et les boutons Inclure, Peut-être et Exclure"
       },
       "extract": {
         "title": "Extrayez les données, citations à l'appui.",
-        "b1": "Vous définissez la grille. L'IA la remplit à partir du PDF.",
-        "b2": "Chaque valeur est accompagnée du passage exact dont elle provient.",
-        "b3": "Rien n'est pris en compte tant qu'une personne ne l'a pas vérifié et validé.",
+        "b1": "Vous définissez la grille, puis l'IA la remplit à partir de chaque PDF.",
+        "b2": "Chaque valeur proposée est accompagnée du passage exact dont elle provient, pour que vous puissiez la contrôler sans rouvrir l'article.",
+        "b3": "Tant qu'une personne ne l'a pas validée, une valeur n'est qu'une proposition.",
         "alt": "Grille d'extraction avec des valeurs et, sous chacune, le passage dont elle est tirée"
       },
       "report": {
         "title": "Produisez le diagramme PRISMA 2020 officiel.",
-        "b1": "Les effectifs sont calculés à partir de vos décisions, jamais saisis à la main.",
-        "b2": "Téléchargez le diagramme en SVG, les études incluses en RIS ou CSV, et les extractions validées en Excel.",
-        "b3": "Le journal des décisions est lui aussi exportable.",
+        "b1": "Les effectifs du diagramme sont calculés à partir de vos décisions, si bien que vous n'avez rien à ressaisir.",
+        "b2": "Vous pouvez ensuite télécharger le diagramme en SVG, les études incluses en RIS ou CSV et les extractions validées en Excel.",
+        "b3": "Le journal des décisions s'exporte lui aussi, pour la traçabilité.",
         "alt": "Page PRISMA 2020 : six compteurs, le bouton de téléchargement SVG et le haut du diagramme de flux"
       }
     },
@@ -163,11 +163,11 @@
       "link": "Lire toute l'histoire"
     },
     "two": {
-      "title": "Pensé pour le travail à deux, désaccords compris.",
-      "lede": "La plupart des revues se font à deux relecteurs. Krinea est construit pour cela : deux lectures indépendantes, un mode aveugle, une liste des désaccords et le suivi de l'avancement de chacun.",
-      "f1": "Simple ou double lecture, au choix pour chaque revue.",
-      "f2": "Mode aveugle à chaque étape : titre et résumé, puis texte intégral.",
-      "f3": "Les désaccords se règlent avec les deux décisions et leurs motifs sous les yeux, et tout est consigné.",
+      "title": "Pensé pour le travail en équipe, désaccords compris.",
+      "lede": "La plupart des revues se font à plusieurs, et c'est précisément pour cela que Krinea a été conçu. Chaque relecteur travaille de son côté, en aveugle si la revue le prévoit, puis les désaccords sont rassemblés dans une liste où l'on peut les trancher en connaissance de cause, pendant que l'avancement de chacun reste visible.",
+      "f1": "Lecture simple ou double, au choix pour chaque revue, quel que soit le nombre de membres.",
+      "f2": "Le mode aveugle s'applique à chaque étape, sur titre et résumé comme sur texte intégral.",
+      "f3": "Un désaccord se règle avec les deux décisions et leurs motifs sous les yeux, et la décision finale est consignée.",
       "link": "Invitez un collègue depuis les réglages de la revue",
       "credit": "Photo : Kaboompics, Pexels.",
       "alt": "Deux collègues examinent ensemble un rapport imprimé"
@@ -176,27 +176,27 @@
       "title": "Six principes qui ne bougeront pas.",
       "ai": {
         "title": "L'IA propose, une personne décide.",
-        "text": "Les suggestions de l'IA sont enregistrées à part et ne valent jamais décision."
+        "text": "Ses suggestions sont enregistrées à part des décisions, si bien qu'elles ne valent jamais décision tant que quelqu'un ne les a pas reprises à son compte."
       },
       "reason": {
         "title": "Chaque décision garde son motif.",
-        "text": "Inclusion, exclusion ou doute : le motif, le relecteur et l'heure figurent dans le journal, que vous pouvez exporter."
+        "text": "Qu'il s'agisse d'une inclusion, d'une exclusion ou d'un doute, le motif, l'auteur et l'heure sont consignés dans un journal que vous pouvez exporter."
       },
       "blind": {
-        "title": "Deux relecteurs, en aveugle.",
-        "text": "En double lecture, chacun décide sans voir le choix de l'autre ; les désaccords apparaissent ensuite dans une liste dédiée."
+        "title": "La double lecture se fait en aveugle.",
+        "text": "Chacun décide sans voir le choix de l'autre, et ce n'est qu'une fois les deux décisions saisies que les désaccords apparaissent."
       },
       "yours": {
         "title": "Vos données vous appartiennent.",
-        "text": "RIS, CSV, Excel, journal des décisions et diagramme PRISMA : exportez tout, à tout moment, sans abonnement."
+        "text": "Références, journal des décisions, extractions et diagramme PRISMA s'exportent en RIS, CSV ou Excel, à tout moment et sans abonnement."
       },
       "open": {
         "title": "Open source, pour de bon.",
-        "text": "L'application est sous licence AGPL-3.0 et le moteur sous licence MIT. Hébergez-la vous-même avec Docker Compose ou le blueprint Render."
+        "text": "L'application est publiée sous licence AGPL-3.0 et le moteur sous licence MIT, de sorte que vous pouvez l'héberger vous-même avec Docker Compose ou le blueprint Render."
       },
       "lang": {
         "title": "En français et en anglais.",
-        "text": "L'interface, les e-mails et ce site existent dans les deux langues, rédigés séparément, pas traduits automatiquement."
+        "text": "L'interface, les e-mails et ce site ont été rédigés dans les deux langues, séparément plutôt que traduits automatiquement."
       }
     },
     "open": {
@@ -213,33 +213,33 @@
       "items": {
         "free": {
           "q": "Est-ce que c'est gratuit ?",
-          "a": "Oui. La version hébergée est gratuite pendant la bêta, avec toutes les fonctionnalités, et l'auto-hébergement restera gratuit. Les offres Pro et Institution ouvriront quand la facturation et les documents juridiques seront prêts ; rien ne vous sera facturé sans abonnement de votre part."
+          "a": "Oui. Tant que Krinea est en bêta, la version hébergée est gratuite avec toutes les fonctionnalités, et l'auto-hébergement le restera quoi qu'il arrive. Les offres Pro et Institution n'ouvriront qu'une fois la facturation et les documents juridiques prêts, et rien ne vous sera facturé sans que vous ayez souscrit vous-même."
         },
         "data": {
           "q": "Où sont stockées mes données ?",
-          "a": "Sur des serveurs situés à Francfort, en Allemagne, exploités par Render. Si vous hébergez Krinea vous-même, là où vous le décidez. La politique de confidentialité détaille exactement ce qui est conservé."
+          "a": "Vos données sont hébergées à Francfort, en Allemagne, sur des serveurs exploités par Render. Si vous installez Krinea sur votre propre infrastructure, elles restent là où vous les mettez. La politique de confidentialité détaille ce qui est conservé et pendant combien de temps."
         },
         "import": {
           "q": "Puis-je importer depuis Zotero, EndNote ou Mendeley ?",
-          "a": "Oui, en exportant un fichier RIS ou BibTeX depuis votre logiciel de gestion de références. Les exports PubMed, Web of Science et Scopus sont lus directement. Il n'y a pas encore de connexion directe à Zotero."
+          "a": "Oui, à condition de passer par un export. Votre logiciel de gestion de références peut produire un fichier RIS ou BibTeX, que Krinea lit directement, tout comme les exports PubMed, Web of Science et Scopus. Une connexion directe à Zotero n'existe pas encore."
         },
         "conflict": {
           "q": "Que se passe-t-il quand deux relecteurs ne sont pas d'accord ?",
-          "a": "La référence est signalée comme un désaccord. Les deux décisions et leurs motifs s'affichent côte à côte, et la personne responsable de la revue tranche. Tous les votes restent dans le journal des décisions."
+          "a": "La référence est alors signalée comme un désaccord. Les deux décisions s'affichent côte à côte avec leurs motifs, et c'est la personne responsable de la revue qui tranche. Tous les votes restent consignés dans le journal des décisions."
         },
         "ai": {
           "q": "L'IA prend-elle des décisions ?",
-          "a": "Non. Elle propose une décision accompagnée d'un motif, ou pré-remplit une grille d'extraction avec une citation par champ. Ses propositions sont stockées à part des décisions, et seule une personne peut inclure, exclure ou valider. Vous utilisez votre propre clé API."
+          "a": "Non. Elle propose une décision assortie d'un motif, ou pré-remplit une grille d'extraction en citant un passage pour chaque champ, mais ses propositions sont enregistrées à part et seule une personne peut inclure, exclure ou valider. Vous utilisez pour cela votre propre clé API."
         },
         "selfhost": {
           "q": "Puis-je l'héberger moi-même ?",
-          "a": "Oui. Le dépôt contient un fichier Docker Compose et un blueprint Render. L'application est sous licence AGPL-3.0, le moteur sous licence MIT."
+          "a": "Oui. Le dépôt contient un fichier Docker Compose et un blueprint Render, et comme l'application est sous licence AGPL-3.0 et le moteur sous licence MIT, rien ne vous empêche de l'installer chez vous."
         }
       }
     },
     "closing": {
       "title": "Lancez votre première revue. C'est gratuit.",
-      "lede": "Importez un export de recherche, invitez un collègue, et gardez la main sur vos données dès le premier jour.",
+      "lede": "Importez un premier export de recherche, invitez un collègue si vous le souhaitez, et avancez en sachant que tout reste exportable, dès le premier jour.",
       "primary": "Créer un compte gratuit",
       "secondary": "Lire la documentation"
     },
@@ -250,7 +250,7 @@
   },
   "pricing": {
     "title": "Des tarifs simples, un code ouvert.",
-    "subtitle": "Hébergez Krinea vous-même, gratuitement et pour toujours. Ou laissez-nous nous en charger.",
+    "subtitle": "Vous pouvez héberger Krinea vous-même, gratuitement et pour toujours, ou nous laisser nous en charger pour que vos relecteurs n'aient qu'à travailler.",
     "available": "Disponible",
     "planned": "Prévu",
     "faqTitle": "Questions sur les offres et l'hébergement.",
@@ -601,7 +601,7 @@
   },
   "contact": {
     "title": "Contact",
-    "lede": "Chaque message est lu par une vraie personne, en français comme en anglais. Pour les bugs et les demandes de fonctionnalités, GitHub est le plus rapide ; pour les demandes institutionnelles, l'accès gratuit et tout ce qui est confidentiel, passez par e-mail.",
+    "lede": "Chaque message est lu par une vraie personne, en français comme en anglais. Pour les bugs et les demandes de fonctionnalités, le plus rapide est GitHub, tandis que les demandes institutionnelles, l'accès gratuit et tout ce qui est confidentiel passent par e-mail.",
     "institutions": {
       "title": "Institutions",
       "text": "Authentification unique, console d'administration, facturation et accord de traitement des données pour les universités et les organismes. Précisez le nombre de relecteurs, les types de revues menées et vos contraintes sur les données."

@@ -68,7 +68,7 @@
   "marketing": {
     "hero": {
       "title": "Systematic reviews: the AI extracts the data, you verify it.",
-      "lede": "Krinea is an open-source workbench for systematic reviews. Import your references, screen them in pairs and blind, then let the AI fill your extraction form from each PDF with the exact sentence behind every value. The PRISMA 2020 diagram is drawn from your decisions. Free to start, hosted in the EU or on your own server.",
+      "lede": "Krinea is an open-source workbench that stays with you through the whole systematic review. Once your references are in, it removes the duplicates and helps you screen the studies, alone or with your team, blind if you want. When it comes to extraction, the AI fills in your form from each PDF and shows, for every value, the exact sentence it relied on, so all that is left for you is to check. The PRISMA 2020 diagram then draws itself from your decisions.",
       "primary": "Create a free account",
       "secondary": "See how it works",
       "note": "No credit card. AGPL-3.0. Hosted in Frankfurt (EU) or on your own server.",
@@ -94,7 +94,7 @@
       },
       "screening": {
         "label": "Screening",
-        "value": "Single or double, blind, with conflicts"
+        "value": "Alone or as a team, blind, with disagreements handled"
       },
       "reporting": {
         "label": "Reporting",
@@ -107,7 +107,7 @@
     },
     "how": {
       "title": "One review, five stages.",
-      "lede": "Everything stays in one workspace, and everything exports. Every screen below is the real application, on a sample review of 55 fictitious records.",
+      "lede": "A systematic review goes through five stages, and Krinea keeps them in one workspace from which everything can be exported at any time. The screens below are the real application, on a sample review of 55 fictitious records.",
       "stage": "Stage {n} of 5",
       "tabs": {
         "import": "Import",
@@ -118,37 +118,37 @@
       },
       "import": {
         "title": "Import every search export.",
-        "b1": "RIS, BibTeX, PubMed, Web of Science, CSV, TSV or Excel, format detected on upload.",
-        "b2": "Each file is kept as a batch with its source database and date.",
-        "b3": "The counts per source feed the PRISMA diagram from the first import.",
+        "b1": "Drop in your RIS, BibTeX, PubMed, Web of Science, CSV, TSV or Excel files: the format is recognised on upload.",
+        "b2": "Each file is kept as a separate batch, with its source database and the date it came in.",
+        "b3": "From that first import, the counts per source start feeding the PRISMA diagram.",
         "alt": "Data page of a review: three count tiles, the import box and a table of two imported files"
       },
       "dedup": {
         "title": "Remove duplicates, keep the evidence.",
-        "b1": "Identical DOIs and titles merge on their own.",
-        "b2": "Near matches wait for you, both records side by side with their similarity score.",
-        "b3": "Every merge can be undone.",
+        "b1": "References that share a DOI or a title are merged on their own.",
+        "b2": "When the resemblance is less clear, Krinea shows you both records side by side with their similarity score, and you make the call.",
+        "b3": "Any merge can be undone.",
         "alt": "Duplicates panel with two similarity sliders and pairs of near-identical records to check"
       },
       "screen": {
-        "title": "Screen with a colleague, blind.",
-        "b1": "Title and abstract, then full text, with the keys I, M and E and your keywords highlighted.",
-        "b2": "Two reviewers decide without seeing each other, then conflicts are listed and settled.",
-        "b3": "Each decision keeps its reason, its reviewer and its time.",
+        "title": "Screen the studies, alone or as a team.",
+        "b1": "Screening starts on title and abstract and moves on to full text, with your keywords highlighted and the I, M and E shortcuts to keep the pace.",
+        "b2": "In double screening, each reviewer decides without seeing the others' choice; the disagreements are then gathered in one list to be settled.",
+        "b3": "Every decision is recorded with its reason, its author and its time.",
         "alt": "Screening view: the record list with progress, a record card with highlighted keywords and the Include, Maybe and Exclude buttons"
       },
       "extract": {
         "title": "Extract with quotes you can check.",
-        "b1": "You design the form. The AI fills it from the PDF.",
-        "b2": "Every value comes with the sentence it was taken from.",
-        "b3": "Nothing counts until a person saves it as verified.",
+        "b1": "You design the form, then the AI fills it in from each PDF.",
+        "b2": "Every proposed value comes with the exact passage it was taken from, so you can check it without reopening the paper.",
+        "b3": "Until a person has validated it, a value is only a proposal.",
         "alt": "Extraction form with values and, under each value, the sentence it was taken from"
       },
       "report": {
         "title": "Report with the official PRISMA 2020 diagram.",
-        "b1": "Counts are computed from your decisions, never typed.",
-        "b2": "Download the diagram as SVG, the included studies as RIS or CSV, the verified extractions as Excel.",
-        "b3": "The decision log exports too.",
+        "b1": "The diagram's counts are computed from your decisions, so there is nothing to retype.",
+        "b2": "You can then download the diagram as SVG, the included studies as RIS or CSV and the validated extractions as Excel.",
+        "b3": "The decision log exports too, for traceability.",
         "alt": "PRISMA 2020 page: six count tiles, the Download SVG button and the top of the flow diagram"
       }
     },
@@ -163,11 +163,11 @@
       "link": "Read the full story"
     },
     "two": {
-      "title": "Made for two people who do not always agree.",
-      "lede": "Most reviews are screened in pairs. Krinea is built around that: two independent reads, a blind mode, a conflict list, and progress per reviewer so nobody is left behind.",
-      "f1": "Single or double screening, chosen per review.",
-      "f2": "Blind mode per stage: title and abstract, then full text.",
-      "f3": "Conflicts settled with both decisions and both reasons on screen, and logged.",
+      "title": "Built for teams, disagreements included.",
+      "lede": "Most reviews are done by several people, and that is exactly what Krinea was designed for. Each reviewer works on their own, blind if the review calls for it, and the disagreements are then gathered in one list where they can be settled with full context, while everyone's progress stays visible.",
+      "f1": "Single or double screening, chosen per review, whatever the size of the team.",
+      "f2": "Blind mode applies at every stage, on title and abstract as on full text.",
+      "f3": "A disagreement is settled with both decisions and their reasons on screen, and the final call is logged.",
       "link": "Invite a colleague from the review settings",
       "credit": "Photo: Kaboompics, Pexels.",
       "alt": "Two colleagues going through a printed report together at a desk"
@@ -176,27 +176,27 @@
       "title": "Six things Krinea will not change its mind about.",
       "ai": {
         "title": "The AI suggests. A person decides.",
-        "text": "Suggestions are stored apart from decisions and never count as one."
+        "text": "Its suggestions are stored apart from the decisions, so they never count as one until someone has made them their own."
       },
       "reason": {
         "title": "Every decision keeps its reason.",
-        "text": "Include, exclude, maybe, the reason, the reviewer and the time are all in the log you can export."
+        "text": "Whether it is an inclusion, an exclusion or a doubt, the reason, the author and the time go into a log you can export."
       },
       "blind": {
-        "title": "Two reviewers, blind.",
-        "text": "Double screening hides the other person's decision until both are in, then lists the conflicts."
+        "title": "Double screening is blind.",
+        "text": "Each reviewer decides without seeing the other's choice, and only once both decisions are in do the disagreements show up."
       },
       "yours": {
         "title": "Your data leaves when you want.",
-        "text": "RIS, CSV, Excel, the decision log and the PRISMA diagram, at any time, with no paid plan required."
+        "text": "References, the decision log, extractions and the PRISMA diagram export as RIS, CSV or Excel, at any time and without a subscription."
       },
       "open": {
         "title": "Open source, for good.",
-        "text": "The application is AGPL-3.0 and the engine is MIT. Self-host it with Docker Compose or the Render blueprint."
+        "text": "The application is released under AGPL-3.0 and the engine under MIT, so you can host it yourself with Docker Compose or the Render blueprint."
       },
       "lang": {
         "title": "In French and in English.",
-        "text": "The interface, the e-mails and this site exist in both languages, written separately."
+        "text": "The interface, the e-mails and this site were written in both languages, separately rather than machine-translated."
       }
     },
     "open": {
@@ -213,33 +213,33 @@
       "items": {
         "free": {
           "q": "Is it free?",
-          "a": "Yes. The hosted edition is free during the beta, with every feature, and self-hosting is free forever. Pro and Institution plans will open once billing and the legal documents are ready, and nothing is charged before you subscribe."
+          "a": "Yes. While Krinea is in beta, the hosted edition is free with every feature, and self-hosting will stay free whatever happens. The Pro and Institution plans will only open once billing and the legal documents are ready, and nothing is charged unless you subscribe yourself."
         },
         "data": {
           "q": "Where is my data stored?",
-          "a": "On servers in Frankfurt, Germany, in the EU, operated by Render. If you self-host, wherever you put it. The privacy policy lists exactly what is stored."
+          "a": "Your data is hosted in Frankfurt, Germany, on servers run by Render. If you install Krinea on your own infrastructure, it stays wherever you put it. The privacy policy details what is kept and for how long."
         },
         "import": {
           "q": "Can I import from Zotero, EndNote or Mendeley?",
-          "a": "Export a RIS or BibTeX file from your reference manager and import it. PubMed, Web of Science and Scopus exports work directly. A direct Zotero connection does not exist yet."
+          "a": "Yes, through an export. Your reference manager can produce a RIS or BibTeX file, which Krinea reads directly, as it does PubMed, Web of Science and Scopus exports. A direct Zotero connection does not exist yet."
         },
         "conflict": {
           "q": "What happens when two reviewers disagree?",
-          "a": "The record is marked as a conflict. Both decisions and reasons are shown side by side, and the review owner settles it with a final decision. All the votes stay in the decision log."
+          "a": "The record is then flagged as a disagreement. Both decisions appear side by side with their reasons, and the person responsible for the review makes the final call. Every vote stays in the decision log."
         },
         "ai": {
           "q": "Does the AI decide anything?",
-          "a": "No. It suggests a decision with a reason, or fills an extraction form with a quote per field. Suggestions are stored apart from decisions, and only a person can include, exclude or verify. You bring your own API key."
+          "a": "No. It proposes a decision with a reason, or fills in an extraction form quoting a passage for each field, but its proposals are stored apart and only a person can include, exclude or validate. You use your own API key for this."
         },
         "selfhost": {
           "q": "Can I self-host it?",
-          "a": "Yes. The repository ships a Docker Compose file and a Render blueprint. The application is AGPL-3.0 and the engine is MIT."
+          "a": "Yes. The repository ships a Docker Compose file and a Render blueprint, and since the application is under AGPL-3.0 and the engine under MIT, nothing stops you from installing it on your own servers."
         }
       }
     },
     "closing": {
       "title": "Start your first review. It is free.",
-      "lede": "Import a search export, invite a colleague, and keep everything exportable from day one.",
+      "lede": "Import a first search export, invite a colleague if you like, and move forward knowing that everything stays exportable, from day one.",
       "primary": "Create a free account",
       "secondary": "Read the documentation"
     },
@@ -250,7 +250,7 @@
   },
   "pricing": {
     "title": "Simple pricing, open code.",
-    "subtitle": "Self-host for free, forever. Or let us host it and keep your reviewers moving.",
+    "subtitle": "You can host Krinea yourself, free forever, or let us run it so your reviewers only have to review.",
     "available": "Available now",
     "planned": "Planned",
     "faqTitle": "Questions about plans and hosting.",
@@ -601,7 +601,7 @@
   },
   "contact": {
     "title": "Contact",
-    "lede": "A real person reads every message, in English or French. Bugs and feature requests move fastest through GitHub; institutional questions, free-access requests and anything private go by e-mail.",
+    "lede": "Every message is read by a real person, in French or in English. Bugs and feature requests move fastest on GitHub, while institutional requests, free access and anything private go by e-mail.",
     "institutions": {
       "title": "Institutions",
       "text": "Single sign-on, admin console, invoicing and a data processing agreement for universities and organisations. Tell us the number of reviewers, the review types and your data requirements."
