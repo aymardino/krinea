@@ -67,8 +67,8 @@
   },
   "marketing": {
     "hero": {
-      "title": "From search export to PRISMA diagram, in one place.",
-      "lede": "Krinea imports your references, removes duplicates, lets two reviewers screen blind, extracts data with quotes you verify, and draws the PRISMA 2020 diagram from the counts. Open source, free to start.",
+      "title": "Systematic reviews: the AI extracts the data, you verify it.",
+      "lede": "Krinea is an open-source workbench for systematic reviews. Import your references, screen them in pairs and blind, then let the AI fill your extraction form from each PDF with the exact sentence behind every value. The PRISMA 2020 diagram is drawn from your decisions. Free to start, hosted in the EU or on your own server.",
       "primary": "Create a free account",
       "secondary": "See how it works",
       "note": "No credit card. AGPL-3.0. Hosted in Frankfurt (EU) or on your own server.",
