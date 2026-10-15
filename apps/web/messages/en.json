@@ -68,7 +68,7 @@
   "marketing": {
     "hero": {
       "title": "Systematic reviews: the AI extracts the data, you verify it.",
-      "lede": "Krinea is an open-source workbench that stays with you through the whole systematic review. Once your references are in, it removes the duplicates and helps you screen the studies, alone or with your team, blind if you want. When it comes to extraction, the AI fills in your form from each PDF and shows, for every value, the exact sentence it relied on, so all that is left for you is to check. The PRISMA 2020 diagram then draws itself from your decisions.",
+      "lede": "Krinea keeps your whole systematic review in one place, from importing references to the PRISMA 2020 diagram. For extraction, the AI fills in your form and quotes the exact sentence behind each value, so you only have to check. Open source, alone or as a team.",
       "primary": "Create a free account",
       "secondary": "See how it works",
       "note": "No credit card. AGPL-3.0. Hosted in Frankfurt (EU) or on your own server.",

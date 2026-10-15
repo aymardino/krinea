@@ -68,7 +68,7 @@
   "marketing": {
     "hero": {
       "title": "Revues systématiques : l'IA extrait les données, vous les vérifiez.",
-      "lede": "Krinea est un outil open source qui vous accompagne tout au long d'une revue systématique. Une fois vos références importées, il élimine les doublons, puis vous aide à sélectionner les études, seul ou en équipe, en aveugle si vous le souhaitez. Au moment de l'extraction, l'IA pré-remplit votre grille à partir de chaque PDF en indiquant, pour chaque valeur, la phrase exacte sur laquelle elle s'appuie : il ne vous reste qu'à vérifier. Le diagramme PRISMA 2020 se construit ensuite de lui-même à partir de vos décisions.",
+      "lede": "Krinea réunit toute votre revue systématique au même endroit, de l'import des références au diagramme PRISMA 2020. Pour l'extraction, l'IA pré-remplit votre grille en citant la phrase exacte derrière chaque valeur, et vous n'avez plus qu'à vérifier. Open source, seul ou en équipe.",
       "primary": "Créer un compte gratuit",
       "secondary": "Voir comment ça marche",
       "note": "Sans carte bancaire. Licence AGPL-3.0. Hébergé à Francfort (UE), ou chez vous.",
