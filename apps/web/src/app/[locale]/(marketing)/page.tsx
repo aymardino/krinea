@@ -6,6 +6,7 @@ import { Changelog } from "@/components/marketing/changelog";
 import { Faq } from "@/components/marketing/faq";
 import { HowItWorksTabs, type Stage } from "@/components/marketing/how-it-works-tabs";
 import { Photo, PhotoCredit } from "@/components/marketing/photo";
+import { ProductVideo } from "@/components/marketing/product-video";
 import { Reveal } from "@/components/marketing/reveal";
 import { ScreeningDemo } from "@/components/marketing/screening-demo";
 import { APP_VERSION, REPO_URL, SITE_URL } from "@/lib/site";
@@ -112,6 +113,20 @@ function Landing() {
                 </dd>
               </div>
             ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* The product tour: forty seconds of the real screens, silent, one file per language. */}
+      <section id="video" className="scroll-mt-16 bg-white py-14 md:py-20 lg:py-24 2xl:py-28">
+        <div className="container-site">
+          <Reveal className="max-w-[640px]">
+            <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-brand-700">{t("video.kicker")}</p>
+            <h2 className={`${h2} mt-3`}>{t("video.title")}</h2>
+            <p className={lede}>{t("video.text")}</p>
+          </Reveal>
+          <Reveal className="mt-10" delay={90}>
+            <ProductVideo className="mx-auto max-w-[1200px]" />
           </Reveal>
         </div>
       </section>

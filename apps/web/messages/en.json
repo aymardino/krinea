@@ -246,7 +246,16 @@
     "about": {
       "photoCredit": "The Balme Library at the University of Ghana, Accra. Photo: Maxx Sas, Pexels."
     },
-    "footer": "Made for evidence synthesis. © {year} Krinea."
+    "footer": "Made for evidence synthesis. © {year} Krinea.",
+    "video": {
+      "kicker": "Krinea in 40 seconds",
+      "title": "One complete review, from import to PRISMA diagram.",
+      "text": "The screens are the real application, on a sample review of 55 fictitious records. No sound.",
+      "play": "Play the video",
+      "pause": "Pause",
+      "aria": "Krinea presented in 40 seconds, without sound",
+      "caption": "Video made from real screenshots of the application. Names, papers and figures are fictitious."
+    }
   },
   "pricing": {
     "title": "Simple pricing, open code.",

@@ -246,7 +246,16 @@
     "about": {
       "photoCredit": "La bibliothèque Balme de l'Université du Ghana, à Accra. Photo : Maxx Sas, Pexels."
     },
-    "footer": "Conçu pour la synthèse des connaissances. © {year} Krinea."
+    "footer": "Conçu pour la synthèse des connaissances. © {year} Krinea.",
+    "video": {
+      "kicker": "Krinea en 40 secondes",
+      "title": "Une revue complète, de l'import au diagramme PRISMA.",
+      "text": "Les écrans sont ceux de la vraie application, sur une revue d'exemple de 55 références fictives. Sans son.",
+      "play": "Lire la vidéo",
+      "pause": "Mettre en pause",
+      "aria": "Présentation de Krinea en 40 secondes, sans son",
+      "caption": "Vidéo réalisée à partir de captures réelles de l'application. Les noms, les articles et les chiffres sont fictifs."
+    }
   },
   "pricing": {
     "title": "Des tarifs simples, un code ouvert.",
