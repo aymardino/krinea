@@ -40,3 +40,8 @@ out/
 *.egg-info/
 build/
 dist/
+
+# Product video (apps/video): generated artefacts; the published MP4s live in apps/web/public/video
+apps/video/.hyperframes/
+apps/video/renders/
+apps/video/node_modules/
