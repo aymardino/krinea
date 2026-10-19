@@ -42,6 +42,13 @@ def current_user(user: models.User | None = Depends(optional_user)) -> models.Us
     return user
 
 
+def admin_user(user: models.User = Depends(current_user)) -> models.User:
+    """The operator dashboard: only addresses listed in ADMIN_EMAILS."""
+    if user.email.lower() not in get_settings().admin_emails:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Administrators only")
+    return user
+
+
 class ReviewAccess:
     """Dependency factory: `Depends(ReviewAccess("reviewer"))` loads the review
     and checks the caller's role is at least the one required."""

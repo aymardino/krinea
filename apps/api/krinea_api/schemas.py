@@ -41,6 +41,7 @@ class UserOut(BaseModel):
     plan: str
     created_at: dt.datetime
     email_verified: bool = False
+    is_admin: bool = False
 
     class Config:
         from_attributes = True

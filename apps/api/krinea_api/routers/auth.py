@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session as DBSession
@@ -18,6 +18,7 @@ from krinea_api.security import (decrypt_secret, encrypt_secret, expires_in, has
                                 new_token, token_hash, verify_password)
 from krinea_api.services import ai as ai_service
 from krinea_api.services import email as email_service
+from krinea_api.services import notify
 from krinea_api.services import oauth
 
 log = logging.getLogger("krinea.auth")
@@ -60,11 +61,13 @@ def _dev_link_allowed(url: str) -> bool:
 
 def user_out(user: models.User) -> schemas.UserOut:
     return schemas.UserOut(id=user.id, email=user.email, name=user.name, locale=user.locale, plan=user.plan,
-                           created_at=user.created_at, email_verified=user.email_verified_at is not None)
+                           created_at=user.created_at, email_verified=user.email_verified_at is not None,
+                           is_admin=user.email.lower() in get_settings().admin_emails)
 
 
 @router.post("/register", response_model=schemas.UserOut, status_code=201)
-def register(body: schemas.RegisterIn, request: Request, response: Response, db: DBSession = Depends(get_db)):
+def register(body: schemas.RegisterIn, request: Request, response: Response, background: BackgroundTasks,
+             db: DBSession = Depends(get_db)):
     email = body.email.lower().strip()
     if db.scalar(select(models.User).where(models.User.email == email)):
         raise HTTPException(409, "An account already exists for this email")
@@ -72,6 +75,7 @@ def register(body: schemas.RegisterIn, request: Request, response: Response, db:
                        locale=body.locale if body.locale in ("en", "fr") else "en")
     db.add(user)
     db.flush()
+    background.add_task(notify.signup_notice, user.email, user.name, "password", user.locale)
     start_session(db, user, request, response)
     return user_out(user)
 
@@ -116,7 +120,8 @@ def magic_link(body: schemas.MagicLinkIn, request: Request, db: DBSession = Depe
 
 
 @router.post("/magic-link/verify", response_model=schemas.UserOut)
-def magic_verify(body: schemas.TokenIn, request: Request, response: Response, db: DBSession = Depends(get_db)):
+def magic_verify(body: schemas.TokenIn, request: Request, response: Response, background: BackgroundTasks,
+                 db: DBSession = Depends(get_db)):
     lt = db.scalar(select(models.LoginToken).where(models.LoginToken.token_hash == token_hash(body.token)))
     now = models.now()
     if not lt or lt.used_at or lt.expires_at < now:
@@ -129,6 +134,7 @@ def magic_verify(body: schemas.TokenIn, request: Request, response: Response, db
         user = models.User(email=lt.email, name="", password_hash=None)
         db.add(user)
         db.flush()
+        background.add_task(notify.signup_notice, user.email, "", "e-mail link", user.locale)
     mark_email_verified(db, user)
     start_session(db, user, request, response)
     return user_out(user)
@@ -208,7 +214,7 @@ def google_start(request: Request, next: str = "/app", locale: str = "en"):
 
 
 @router.get("/google/callback")
-def google_callback(request: Request, code: str = "", state: str = "", error: str = "",
+def google_callback(request: Request, background: BackgroundTasks, code: str = "", state: str = "", error: str = "",
                     db: DBSession = Depends(get_db)):
     s = get_settings()
     try:
@@ -239,6 +245,7 @@ def google_callback(request: Request, code: str = "", state: str = "", error: st
                                locale=locale)
             db.add(user)
             db.flush()
+            background.add_task(notify.signup_notice, user.email, user.name, "Google", locale)
         db.add(models.OAuthAccount(user_id=user.id, provider="google", subject=str(claims["sub"]), email=email))
     if not user or not user.is_active:
         return failure

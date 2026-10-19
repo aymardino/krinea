@@ -36,7 +36,8 @@
       "exclude": "Exclude",
       "conflict": "Conflict",
       "pending": "Pending"
-    }
+    },
+    "admin": "Administration"
   },
   "nav": {
     "howItWorks": "How it works",
@@ -631,5 +632,63 @@
   "seo": {
     "title": "Krinea: open-source systematic review software",
     "description": "Import references, remove duplicates, screen titles and abstracts with your team, extract data with an AI that quotes its sources, and report with the official PRISMA 2020 diagram. Free to self-host, hosted in the EU."
+  },
+  "admin": {
+    "title": "Administration",
+    "description": "What happens on this Krinea instance. Visible only to the addresses listed in ADMIN_EMAILS on the API.",
+    "adminsOnly": "This page is reserved for administrators.",
+    "generated": "Figures at {time}",
+    "activeHint": "An account counts as active on a day it signed in or recorded a decision.",
+    "totals": {
+      "users": "Accounts",
+      "verified": "Verified e-mail",
+      "google": "Google sign-in",
+      "signups7": "Sign-ups, 7 days",
+      "signups30": "Sign-ups, 30 days",
+      "active7": "Active, 7 days",
+      "active30": "Active, 30 days",
+      "reviews": "Reviews",
+      "imports": "Imports",
+      "records": "Records",
+      "decisions": "Decisions",
+      "extractions": "Extractions",
+      "extractionsVerified": "{n} verified",
+      "aiCalls": "AI calls",
+      "aiTokens": "AI tokens"
+    },
+    "charts": {
+      "signups": "Sign-ups per day",
+      "active": "Active accounts per day",
+      "decisions": "Screening decisions per day",
+      "days": "last 30 days"
+    },
+    "users": {
+      "title": "Latest accounts",
+      "email": "E-mail",
+      "name": "Name",
+      "method": "Sign-up",
+      "verified": "Verified",
+      "reviews": "Reviews",
+      "created": "Created",
+      "lastLogin": "Last sign-in",
+      "never": "never",
+      "yes": "yes",
+      "no": "no",
+      "methods": {
+        "google": "Google",
+        "password": "password",
+        "email_link": "e-mail link"
+      }
+    },
+    "reviews": {
+      "title": "Latest reviews",
+      "review": "Review",
+      "owner": "Owner",
+      "records": "Records",
+      "decisions": "Decisions",
+      "members": "Members",
+      "updated": "Updated",
+      "archived": "archived"
+    }
   }
 }

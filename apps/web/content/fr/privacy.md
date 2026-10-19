@@ -30,6 +30,7 @@ Pour joindre le responsable du traitement, passez par la [page de contact](/cont
 - La date de création de votre compte, la date de votre dernière connexion et la date de la première vérification de votre adresse e-mail.
 - Les liens de connexion à usage unique envoyés par e-mail : stockés sous forme d'empreinte, avec l'adresse à laquelle ils ont été envoyés ; valables 20 minutes.
 - La langue de l'interface et le nom de votre offre.
+- À la création d'un compte, le mainteneur reçoit un court e-mail avec l'adresse, le mode d'inscription et la langue de l'interface, afin d'accueillir les nouveaux utilisateurs et de veiller au bon fonctionnement du service. Il dispose aussi d'une page d'administration qui affiche des comptages de comptes et d'usage.
 
 ### Le contenu de vos revues
 

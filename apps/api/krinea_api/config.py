@@ -99,6 +99,10 @@ class Settings:
         self.max_upload_mb = int(_env("MAX_UPLOAD_MB", "200"))
         self.google_client_id = _env("GOOGLE_CLIENT_ID", "")
         self.google_client_secret = _env("GOOGLE_CLIENT_SECRET", "")
+        # Operator accounts: the /admin dashboard and the sign-up notifications. Comma-separated
+        # addresses; NOTIFY_SIGNUPS_TO defaults to the first administrator.
+        self.admin_emails = frozenset(e.strip().lower() for e in _env("ADMIN_EMAILS").split(",") if e.strip())
+        self.notify_signups_to = _env("NOTIFY_SIGNUPS_TO").lower() or (min(self.admin_emails) if self.admin_emails else "")
         if self.env == "production":
             check_secret_key(self.secret_key)
 

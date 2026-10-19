@@ -39,6 +39,8 @@ placeholder (`change-me`, `change-me-in-production`, `dev-secret-change-me`).
 | `MAGIC_LINK_MINUTES` | `20` | Validity of a sign-in link sent by e-mail. |
 | `EMAIL_PROVIDER` | `console` | `console` (log only, development), `smtp` or `resend`. In production only `smtp` or `resend` with complete settings can send; otherwise sending fails with `502` and the sign-in page hides the e-mail-link option. |
 | `EMAIL_FROM` | see meaning | Sender. Default: `Krinea <SMTP_USER>` when `EMAIL_PROVIDER=smtp` and `SMTP_USER` is an address, otherwise `Krinea <no-reply@krinea.org>`. With Resend it must be on a verified domain. |
+| `ADMIN_EMAILS` | empty | Comma-separated addresses allowed on the operator dashboard (`/app/admin`, API `GET /admin/overview`). |
+| `NOTIFY_SIGNUPS_TO` | first administrator | Receives a short e-mail at each account creation (address, method, language). Empty with no administrator: no notice. |
 | `RESEND_API_KEY` | empty | Resend API key (`EMAIL_PROVIDER=resend`). |
 | `SMTP_HOST` | empty | SMTP server, e.g. `ssl0.ovh.net` (OVHcloud) or `smtp.gmail.com`. |
 | `SMTP_PORT` | `587` | `465` means implicit TLS; other ports use STARTTLS. |

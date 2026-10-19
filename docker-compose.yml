@@ -36,6 +36,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_TLS: ${SMTP_TLS:-}
       EMAIL_FROM: ${EMAIL_FROM:-Krinea <no-reply@krinea.org>}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      NOTIFY_SIGNUPS_TO: ${NOTIFY_SIGNUPS_TO:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       # PDFs in S3-compatible storage (empty S3_BUCKET = the pdfs volume below)
       S3_BUCKET: ${S3_BUCKET:-}

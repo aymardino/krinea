@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { LogOut, Settings, LayoutGrid } from "lucide-react";
+import { LogOut, Settings, LayoutGrid, ShieldCheck } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { KrineaWordmark } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/marketing/site-header";
@@ -44,6 +44,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <DropdownMenuLabel className="truncate font-normal">{me.name ? <span className="block text-sm font-medium text-foreground">{me.name}</span> : null}<span className="block truncate text-xs">{me.email}</span></DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => router.push("/app/settings")}><Settings />{t("settings")}</DropdownMenuItem>
+                {me.is_admin ? <DropdownMenuItem onSelect={() => router.push("/app/admin")}><ShieldCheck />{t("admin")}</DropdownMenuItem> : null}
                 <DropdownMenuItem onSelect={async () => { await signOut(); router.push("/"); }}><LogOut />{t("signOut")}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

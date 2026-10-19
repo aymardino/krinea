@@ -45,7 +45,14 @@ export const api = {
 };
 
 // ── Types mirroring krinea_api.schemas ─────────────────────────────────────────
-export type User = { id: string; email: string; name: string; locale: string; plan: string; created_at: string; email_verified: boolean };
+export type User = { id: string; email: string; name: string; locale: string; plan: string; created_at: string; email_verified: boolean; is_admin: boolean };
+export type AdminOverview = {
+  generated_at: string;
+  totals: { users: number; verified: number; google: number; signups_7d: number; signups_30d: number; active_7d: number; active_30d: number; reviews: number; imports: number; records: number; decisions: number; extractions: number; extractions_verified: number; ai_calls: number; ai_tokens: number };
+  series: { days: string[]; signups: number[]; active: number[]; decisions: number[] };
+  recent_users: { id: string; email: string; name: string; plan: string; is_active: boolean; created_at: string; last_login_at: string | null; email_verified: boolean; method: "google" | "password" | "email_link"; reviews: number }[];
+  recent_reviews: { id: string; title: string; owner_email: string; is_archived: boolean; created_at: string; updated_at: string; records: number; decisions: number; members: number }[];
+};
 export type Member = { user_id: string; email: string; name: string; role: string; created_at: string };
 export type Invitation = { id: string; email: string; role: string; created_at: string; expires_at: string; accepted_at: string | null; accept_url: string | null };
 export type ReviewSummary = { id: string; title: string; review_type: string; my_role: string; is_archived: boolean; updated_at: string; n_records: number; n_members: number; progress: number };

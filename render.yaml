@@ -64,6 +64,12 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      # Operator: comma-separated addresses allowed on /app/admin; sign-up notices go to the
+      # first one unless NOTIFY_SIGNUPS_TO says otherwise.
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: NOTIFY_SIGNUPS_TO
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: S3_BUCKET

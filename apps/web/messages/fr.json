@@ -36,7 +36,8 @@
       "exclude": "Exclure",
       "conflict": "Conflit",
       "pending": "En attente"
-    }
+    },
+    "admin": "Administration"
   },
   "nav": {
     "howItWorks": "Comment ça marche",
@@ -631,5 +632,63 @@
   "seo": {
     "title": "Krinea : logiciel open source pour revues systématiques",
     "description": "Importez vos références, éliminez les doublons, sélectionnez les études en équipe, extrayez les données avec une IA qui cite ses sources et produisez le diagramme PRISMA 2020. Gratuit à héberger soi-même, version en ligne hébergée dans l'UE."
+  },
+  "admin": {
+    "title": "Administration",
+    "description": "Ce qui se passe sur cette instance de Krinea. Visible uniquement par les adresses listées dans ADMIN_EMAILS sur l'API.",
+    "adminsOnly": "Cette page est réservée aux administrateurs.",
+    "generated": "Chiffres au {time}",
+    "activeHint": "Un compte est compté comme actif un jour où il s'est connecté ou a enregistré une décision.",
+    "totals": {
+      "users": "Comptes",
+      "verified": "E-mail vérifié",
+      "google": "Connexion Google",
+      "signups7": "Inscriptions, 7 jours",
+      "signups30": "Inscriptions, 30 jours",
+      "active7": "Actifs, 7 jours",
+      "active30": "Actifs, 30 jours",
+      "reviews": "Revues",
+      "imports": "Imports",
+      "records": "Références",
+      "decisions": "Décisions",
+      "extractions": "Extractions",
+      "extractionsVerified": "{n} vérifiées",
+      "aiCalls": "Appels à l'IA",
+      "aiTokens": "Jetons d'IA"
+    },
+    "charts": {
+      "signups": "Inscriptions par jour",
+      "active": "Comptes actifs par jour",
+      "decisions": "Décisions de sélection par jour",
+      "days": "30 derniers jours"
+    },
+    "users": {
+      "title": "Derniers comptes",
+      "email": "E-mail",
+      "name": "Nom",
+      "method": "Inscription",
+      "verified": "Vérifié",
+      "reviews": "Revues",
+      "created": "Créé le",
+      "lastLogin": "Dernière connexion",
+      "never": "jamais",
+      "yes": "oui",
+      "no": "non",
+      "methods": {
+        "google": "Google",
+        "password": "mot de passe",
+        "email_link": "lien par e-mail"
+      }
+    },
+    "reviews": {
+      "title": "Dernières revues",
+      "review": "Revue",
+      "owner": "Propriétaire",
+      "records": "Références",
+      "decisions": "Décisions",
+      "members": "Membres",
+      "updated": "Modifiée le",
+      "archived": "archivée"
+    }
   }
 }

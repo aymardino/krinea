@@ -30,6 +30,7 @@ To contact the controller, use the [contact page](/contact).
 - The date your account was created, the date of your last sign-in and the date your e-mail address was first verified.
 - One-time sign-in links sent by e-mail: stored hashed, with the address they were sent to; valid for 20 minutes.
 - Your interface language and the name of your plan.
+- When an account is created, the maintainer receives a short e-mail with the address, the sign-up method and the interface language, so that new users can be welcomed and the service kept in order. The maintainer also has an administration page showing account and usage counts.
 
 ### Review content
 
