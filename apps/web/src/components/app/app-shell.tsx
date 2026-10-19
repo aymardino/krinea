@@ -31,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur">
         <div className="flex h-14 items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-6">
-            <Link href="/app"><KrineaWordmark size={24} /></Link>
+            <Link href="/" title="krinea.org"><KrineaWordmark size={24} /></Link>
             <nav className="hidden items-center gap-1 text-sm md:flex">
               <Link href="/app" className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"><LayoutGrid className="size-4" />{t("reviews")}</Link>
             </nav>
@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <DropdownMenu>
               <DropdownMenuTrigger className="rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"><Avatar name={me.name || me.email} /></DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="truncate font-normal"><span className="block text-sm font-medium text-foreground">{me.name || "—"}</span><span className="block truncate text-xs">{me.email}</span></DropdownMenuLabel>
+                <DropdownMenuLabel className="truncate font-normal">{me.name ? <span className="block text-sm font-medium text-foreground">{me.name}</span> : null}<span className="block truncate text-xs">{me.email}</span></DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => router.push("/app/settings")}><Settings />{t("settings")}</DropdownMenuItem>
                 <DropdownMenuItem onSelect={async () => { await signOut(); router.push("/"); }}><LogOut />{t("signOut")}</DropdownMenuItem>
