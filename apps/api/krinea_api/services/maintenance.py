@@ -16,6 +16,7 @@ log = logging.getLogger("krinea.maintenance")
 
 LOGIN_TOKEN_RETENTION = dt.timedelta(days=1)     # sign-in links are kept a day, then purged
 PURGE_INTERVAL_SECONDS = 3600                    # the worker purges at most once an hour
+AUDIENCE_RETENTION = dt.timedelta(days=400)      # audience counts: thirteen months, as the privacy page says
 
 
 def purge_expired(db: Session, now: dt.datetime | None = None) -> dict[str, int]:
@@ -25,8 +26,9 @@ def purge_expired(db: Session, now: dt.datetime | None = None) -> dict[str, int]
     tokens = db.execute(delete(models.LoginToken).where(models.LoginToken.created_at < now - LOGIN_TOKEN_RETENTION,
                                                         models.LoginToken.expires_at < now)).rowcount
     sessions = db.execute(delete(models.Session).where(models.Session.expires_at < now)).rowcount
+    views = db.execute(delete(models.PageView).where(models.PageView.day < (now - AUDIENCE_RETENTION).date())).rowcount
     db.commit()
-    return {"login_tokens": int(tokens or 0), "sessions": int(sessions or 0)}
+    return {"login_tokens": int(tokens or 0), "sessions": int(sessions or 0), "page_views": int(views or 0)}
 
 
 def purge_if_due(last_run: float | None, clock: Callable[[], float] = time.monotonic) -> float | None:
@@ -40,7 +42,7 @@ def purge_if_due(last_run: float | None, clock: Callable[[], float] = time.monot
     try:
         counts = purge_expired(db)
         if any(counts.values()):
-            log.info("purged %(login_tokens)d sign-in token(s) and %(sessions)d expired session(s)", counts)
+            log.info("purged %(login_tokens)d sign-in token(s), %(sessions)d expired session(s) and %(page_views)d old page view(s)", counts)
     except Exception:                                # noqa: BLE001
         db.rollback()
         log.exception("purge of expired tokens and sessions failed")

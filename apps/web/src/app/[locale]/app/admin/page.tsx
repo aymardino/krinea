@@ -89,6 +89,47 @@ export default function AdminPage() {
           </div>
 
           <Card>
+            <CardHeader>
+              <CardTitle>{t("audience.title")}</CardTitle>
+              <CardDescription>{t("audience.description")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat label={t("audience.views7")} value={n(d.audience.views_7d)} />
+                <Stat label={t("audience.views30")} value={n(d.audience.views_30d)} />
+                <Stat label={t("audience.visitors7")} value={n(d.audience.visitors_7d)} hint={t("audience.visitorsHint")} tone="brand" />
+                <Stat label={t("audience.visitors30")} value={n(d.audience.visitors_30d)} hint={t("audience.visitorsHint")} tone="brand" />
+              </div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-sm font-medium">{t("audience.viewsChart")} <span className="font-normal text-muted-foreground">({t("charts.days")})</span></p>
+                  <Bars days={d.series.days} values={d.audience.series.views} label={t("audience.viewsChart")} format={fmtDay} />
+                </div>
+                <div>
+                  <p className="mb-2 text-sm font-medium">{t("audience.visitorsChart")} <span className="font-normal text-muted-foreground">({t("charts.days")})</span></p>
+                  <Bars days={d.series.days} values={d.audience.series.visitors} label={t("audience.visitorsChart")} format={fmtDay} />
+                </div>
+              </div>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Table>
+                  <THead><TR><TH>{t("audience.page")}</TH><TH className="text-right">{t("audience.views")}</TH></TR></THead>
+                  <TBody>
+                    {d.audience.pages.map((p) => <TR key={p.path}><TD className="font-medium">{p.path}</TD><TD className="text-right tabular-nums">{n(p.views)}</TD></TR>)}
+                    {d.audience.pages.length === 0 ? <TR><TD colSpan={2} className="text-muted-foreground">{t("audience.empty")}</TD></TR> : null}
+                  </TBody>
+                </Table>
+                <Table>
+                  <THead><TR><TH>{t("audience.source")}</TH><TH className="text-right">{t("audience.views")}</TH></TR></THead>
+                  <TBody>
+                    {d.audience.referrers.map((r) => <TR key={r.host || "direct"}><TD className="font-medium">{r.host || t("audience.direct")}</TD><TD className="text-right tabular-nums">{n(r.views)}</TD></TR>)}
+                    {d.audience.referrers.length === 0 ? <TR><TD colSpan={2} className="text-muted-foreground">{t("audience.empty")}</TD></TR> : null}
+                  </TBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader><CardTitle>{t("users.title")}</CardTitle></CardHeader>
             <CardContent className="overflow-x-auto">
               <Table>

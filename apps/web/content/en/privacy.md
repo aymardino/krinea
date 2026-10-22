@@ -6,7 +6,7 @@
 
 - Krinea stores what you give it: your account details and the content of your reviews (references, PDFs, decisions, extractions).
 - Your data is hosted in Frankfurt (Germany, EU). E-mails are sent from France (EU).
-- We use three cookies, none for analytics or advertising. No tracking, no banner.
+- We use three cookies, none for analytics or advertising, and no banner. Visits to the public pages are counted on the server, without cookies and without keeping your IP address.
 - Nothing goes to an AI provider unless a reviewer in your team asks for a suggestion or an extraction.
 - You can export everything at any time, delete a review yourself, and ask for your account to be deleted.
 - The hosted edition is a non-commercial beta run by the maintainer, an individual based in France. This page has not yet been reviewed by a lawyer.
@@ -52,6 +52,8 @@ If you add your own AI provider key, it is encrypted at rest (Fernet: AES-128-CB
 ### Technical data
 
 Server logs are kept for 30 days for security purposes (detecting abuse, diagnosing incidents). They include IP addresses and may contain the e-mail address entered when someone asks for a sign-in link.
+
+Audience of the public pages (home, pricing, about, contact, security, the legal pages, sign-in and sign-up): the server counts each visit with the page, the day, the interface language, the domain of the site that linked to us and a daily fingerprint computed from your IP address and browser signature with a secret that changes every day. Neither the address nor the signature is stored, and the fingerprint cannot be turned back into them. Nothing is counted inside the application, and no third party is involved.
 
 ## Why and on what legal basis
 
@@ -113,6 +115,7 @@ Krinea stores the answers: the suggestion and its rationale for screening, the e
 | Sessions | 30 days, or until you sign out; expired sessions are deleted |
 | Activity log | With the review |
 | Server logs (IP addresses, e-mail addresses of sign-in requests) | 30 days |
+| Audience counts of the public pages | 13 months |
 | Backups | A limited period after deletion, as part of the host's backup cycle |
 
 ## Your rights

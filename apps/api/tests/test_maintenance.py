@@ -46,7 +46,7 @@ def test_purge_expired():
         assert old_used not in tokens
         assert {old_still_valid, recent_expired, fresh} <= tokens
         assert expired not in sessions and live in sessions
-        assert maintenance.purge_expired(db, now=now) == {"login_tokens": 0, "sessions": 0}
+        assert maintenance.purge_expired(db, now=now) == {"login_tokens": 0, "sessions": 0, "page_views": 0}
     finally:
         db.close()
 

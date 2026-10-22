@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session as DBSession
 from krinea_api import models
 from krinea_api.db import get_db
 from krinea_api.deps import admin_user
+from krinea_api.routers.stats import audience
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 DAYS = 30
@@ -107,5 +108,5 @@ def overview(db: DBSession = Depends(get_db), _admin: models.User = Depends(admi
             "members": int(members_per_review.get(r.id, 0)),
         })
 
-    return {"generated_at": now, "totals": totals, "series": series,
+    return {"generated_at": now, "totals": totals, "series": series, "audience": audience(db, days),
             "recent_users": recent_users, "recent_reviews": recent_reviews}

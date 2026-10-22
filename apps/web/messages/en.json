@@ -689,6 +689,22 @@
       "members": "Members",
       "updated": "Updated",
       "archived": "archived"
+    },
+    "audience": {
+      "title": "Audience of the public site",
+      "description": "Counted on the server, without cookies: the page, the day, the language, the referring domain and a daily fingerprint that keeps no IP address. The application itself is not counted.",
+      "views7": "Page views, 7 days",
+      "views30": "Page views, 30 days",
+      "visitors7": "Visitors, 7 days",
+      "visitors30": "Visitors, 30 days",
+      "visitorsHint": "Distinct visitors per day, added up",
+      "viewsChart": "Page views per day",
+      "visitorsChart": "Visitors per day",
+      "page": "Page",
+      "source": "Source",
+      "views": "Views",
+      "direct": "Direct or internal",
+      "empty": "Nothing counted yet."
     }
   }
 }

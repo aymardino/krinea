@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from sqlalchemy import (JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text,
+from sqlalchemy import (JSON, Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text,
                         UniqueConstraint)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -274,3 +274,17 @@ class ActivityLog(Base):
     kind: Mapped[str] = mapped_column(String(40))
     detail: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now, index=True)
+
+
+class PageView(Base):
+    """One full load of a public page, counted without cookies. No IP address and no user
+    agent are stored: `visitor_hash` is a daily fingerprint that cannot be turned back into
+    either (see routers/stats.py)."""
+    __tablename__ = "page_views"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    day: Mapped[dt.date] = mapped_column(Date, index=True)
+    path: Mapped[str] = mapped_column(String(200))
+    lang: Mapped[str] = mapped_column(String(8), default="")
+    referrer_host: Mapped[str] = mapped_column(String(120), default="")
+    visitor_hash: Mapped[str] = mapped_column(String(32))
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now)

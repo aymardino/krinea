@@ -38,6 +38,7 @@ services:
       EMAIL_FROM: ${EMAIL_FROM:-Krinea <no-reply@krinea.org>}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       NOTIFY_SIGNUPS_TO: ${NOTIFY_SIGNUPS_TO:-}
+      AUDIENCE_STATS: ${AUDIENCE_STATS:-1}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       # PDFs in S3-compatible storage (empty S3_BUCKET = the pdfs volume below)
       S3_BUCKET: ${S3_BUCKET:-}
@@ -84,6 +85,7 @@ services:
       PROXY_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env (at least 16 random characters)}
       # Public origin the proxy reports to the API (never taken from request headers)
       PUBLIC_ORIGIN: ${BASE_URL:-http://localhost:3000}
+      AUDIENCE_STATS: ${AUDIENCE_STATS:-1}
     ports:
       - "3000:3000"
 

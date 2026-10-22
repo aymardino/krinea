@@ -50,6 +50,7 @@ export type AdminOverview = {
   generated_at: string;
   totals: { users: number; verified: number; google: number; signups_7d: number; signups_30d: number; active_7d: number; active_30d: number; reviews: number; imports: number; records: number; decisions: number; extractions: number; extractions_verified: number; ai_calls: number; ai_tokens: number };
   series: { days: string[]; signups: number[]; active: number[]; decisions: number[] };
+  audience: { views_7d: number; views_30d: number; visitors_7d: number; visitors_30d: number; series: { views: number[]; visitors: number[] }; pages: { path: string; views: number }[]; referrers: { host: string; views: number }[] };
   recent_users: { id: string; email: string; name: string; plan: string; is_active: boolean; created_at: string; last_login_at: string | null; email_verified: boolean; method: "google" | "password" | "email_link"; reviews: number }[];
   recent_reviews: { id: string; title: string; owner_email: string; is_archived: boolean; created_at: string; updated_at: string; records: number; decisions: number; members: number }[];
 };

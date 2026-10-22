@@ -103,6 +103,8 @@ class Settings:
         # addresses; NOTIFY_SIGNUPS_TO defaults to the first administrator.
         self.admin_emails = frozenset(e.strip().lower() for e in _env("ADMIN_EMAILS").split(",") if e.strip())
         self.notify_signups_to = _env("NOTIFY_SIGNUPS_TO").lower() or (min(self.admin_emails) if self.admin_emails else "")
+        # Cookie-free audience counts of the public pages (routers/stats.py); AUDIENCE_STATS=0 stores nothing.
+        self.audience_stats = _bool(os.environ.get("AUDIENCE_STATS"), True)
         if self.env == "production":
             check_secret_key(self.secret_key)
 

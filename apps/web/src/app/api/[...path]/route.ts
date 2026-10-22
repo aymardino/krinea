@@ -23,7 +23,7 @@ const HOP = new Set([
 ]);
 // Client-supplied forwarding headers are not passed on: anyone can forge them, and the API
 // learns the public origin from x-krinea-origin only.
-const FORGEABLE = new Set(["x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "forwarded"]);
+const FORGEABLE = new Set(["x-forwarded-host", "x-forwarded-proto", "x-forwarded-port", "forwarded", "x-krinea-internal"]);
 const BUFFER_LIMIT = 2 * 1024 * 1024;        // bodies up to 2 MB are buffered so a request can be retried
 const RETRY_DELAYS_MS = [500, 1000, 2000, 4000];   // ~7.5 s of connection errors (API restarting, cold start)
 const TIMEOUT_MS = 20_000;                   // per attempt, buffered requests

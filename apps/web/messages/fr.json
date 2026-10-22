@@ -689,6 +689,22 @@
       "members": "Membres",
       "updated": "Modifiée le",
       "archived": "archivée"
+    },
+    "audience": {
+      "title": "Audience du site public",
+      "description": "Comptée par le serveur, sans cookie : la page, le jour, la langue, le domaine du site référent et une empreinte journalière sans adresse IP. L'application elle-même n'est pas comptée.",
+      "views7": "Pages vues, 7 jours",
+      "views30": "Pages vues, 30 jours",
+      "visitors7": "Visiteurs, 7 jours",
+      "visitors30": "Visiteurs, 30 jours",
+      "visitorsHint": "Visiteurs distincts par jour, additionnés",
+      "viewsChart": "Pages vues par jour",
+      "visitorsChart": "Visiteurs par jour",
+      "page": "Page",
+      "source": "Source",
+      "views": "Vues",
+      "direct": "Accès direct ou interne",
+      "empty": "Rien de compté pour le moment."
     }
   }
 }

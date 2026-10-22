@@ -6,7 +6,7 @@
 
 - Krinea conserve ce que vous lui confiez : les informations de votre compte et le contenu de vos revues (références, PDF, décisions, extractions).
 - Vos données sont hébergées à Francfort (Allemagne, Union européenne). Les e-mails partent de France (UE).
-- Nous utilisons trois cookies, aucun pour la mesure d'audience ou la publicité. Pas de pistage, pas de bandeau.
+- Nous utilisons trois cookies, aucun pour la mesure d'audience ou la publicité, et pas de bandeau. Les visites des pages publiques sont comptées par le serveur, sans cookie et sans conserver votre adresse IP.
 - Rien n'est envoyé à un fournisseur d'IA tant qu'un relecteur de votre équipe ne demande pas une suggestion ou une extraction.
 - Vous pouvez tout exporter à tout moment, supprimer vous-même une revue et demander la suppression de votre compte.
 - L'édition hébergée est une bêta non commerciale, gérée par le mainteneur du projet, une personne physique établie en France. Cette page n'a pas encore été relue par un juriste.
@@ -52,6 +52,8 @@ Si vous enregistrez votre propre clé de fournisseur d'IA, elle est chiffrée au
 ### Données techniques
 
 Les journaux du serveur sont conservés 30 jours à des fins de sécurité (détection des abus, diagnostic des incidents). Ils contiennent les adresses IP et peuvent contenir l'adresse e-mail saisie lors d'une demande de lien de connexion.
+
+Audience des pages publiques (accueil, tarifs, à propos, contact, sécurité, pages légales, connexion et inscription) : le serveur compte chaque visite avec la page, le jour, la langue de l'interface, le domaine du site qui a mené chez nous et une empreinte journalière calculée à partir de votre adresse IP et de la signature de votre navigateur, avec un secret qui change chaque jour. Ni l'adresse ni la signature ne sont conservées, et l'empreinte ne permet pas de les retrouver. Rien n'est compté à l'intérieur de l'application, et aucun tiers n'intervient.
 
 ## Pourquoi, et sur quelle base légale
 
@@ -113,6 +115,7 @@ Krinea conserve les réponses : la suggestion et sa justification pour la sélec
 | Sessions | 30 jours, ou jusqu'à la déconnexion ; les sessions expirées sont supprimées |
 | Journal d'activité | Avec la revue |
 | Journaux du serveur (adresses IP, adresses e-mail des demandes de connexion) | 30 jours |
+| Comptages d'audience des pages publiques | 13 mois |
 | Sauvegardes | Une période limitée après suppression, selon le cycle de sauvegarde de l'hébergeur |
 
 ## Vos droits
