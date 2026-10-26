@@ -5,6 +5,7 @@ The 42-second product tour shown on krinea.org, written as a [HyperFrames](https
 ## Files
 
 - `index.html`: the composition (six scenes, 1920x1080, 42 s). The `lang` variable selects the captions: `fr` (default) or `en`.
+- `square.html`: the same six scenes cut for social feeds (1080x1080), rendered with `npm run render -- -c square.html ...`.
 - `assets/screens`: screenshots copied from `apps/web/public/screens`.
 - `assets/fonts`: Inter (variable weight), the site's typeface.
 - `assets/brand`: the Krinea mark and wordmark.

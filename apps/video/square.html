@@ -1,0 +1,383 @@
+<!doctype html>
+<html
+  lang="fr"
+  data-composition-variables='[
+    {"id":"lang","type":"enum","label":"Language","default":"fr","options":[{"value":"fr","label":"Français"},{"value":"en","label":"English"}]}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <title>Krinea in 40 seconds (square)</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/inter-latin-wght-normal.woff2") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: block;
+      }
+      /* Square cut of index.html for social feeds: the caption sits above the product panel. */
+      :root {
+        --brand-50: #f2f6fc; --brand-100: #e3ecf9; --brand-200: #c4d8f3; --brand-500: #3672c6;
+        --brand-600: #2459a9; --brand-700: #1e478a; --brand-800: #1b3c70;
+        --ink-50: #faf9f7; --ink-100: #f4f3f0; --ink-200: #e4e2dd; --ink-400: #86857f;
+        --ink-500: #67665f; --ink-700: #403f3b; --ink-950: #171716;
+        --include: #15803d; --include-bg: #dcfce7; --exclude: #b91c1c; --exclude-bg: #fee2e2;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: #ffffff; }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden;
+        background: #ffffff; color: var(--ink-950);
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+        -webkit-font-smoothing: antialiased;
+      }
+      .clip { position: absolute; inset: 0; }
+      .inner { position: absolute; inset: 0; background: #ffffff; }
+
+      .copy { position: absolute; left: 72px; top: 64px; width: 936px; }
+      .kicker { display: block; margin: 0 0 12px; font-size: 18px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand-600); }
+      .title { display: block; margin: 0 0 14px; font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-950); }
+      .text { display: block; margin: 0; font-size: 21px; line-height: 1.4; color: var(--ink-500); }
+
+      .panel { position: absolute; left: 48px; top: 330px; width: 984px; height: 702px; background: var(--brand-50); border-radius: 22px; }
+      .frame { position: absolute; background: #ffffff; border: 1px solid var(--ink-200); border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px -30px rgba(23, 23, 22, 0.28); }
+      .bar { position: absolute; z-index: 2; left: 0; top: 0; right: 0; height: 40px; border-bottom: 1px solid var(--ink-200); background: var(--ink-50); display: flex; align-items: center; padding: 0 14px; gap: 6px; }
+      .dot { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-200); }
+      .url { margin: 0 auto; font-size: 13px; color: var(--ink-500); background: var(--ink-100); border-radius: 6px; padding: 3px 12px; }
+      .shot { position: absolute; display: block; }
+
+      .chip { position: absolute; display: block; height: 42px; line-height: 40px; padding: 0 14px 0 42px; border: 1px solid var(--ink-200); border-radius: 10px; background: #ffffff; color: var(--ink-950); font-size: 17px; font-weight: 500; box-shadow: 0 10px 30px -14px rgba(23, 23, 22, 0.35); white-space: nowrap; }
+      .chip::before { content: ""; position: absolute; left: 13px; top: 10px; width: 17px; height: 21px; border: 2px solid var(--brand-600); border-radius: 3px; }
+      .badge { position: absolute; display: block; height: 38px; line-height: 36px; padding: 0 15px; border-radius: 999px; font-size: 16px; font-weight: 600; white-space: nowrap; }
+      .badge-blue { background: var(--brand-600); color: #ffffff; }
+      .badge-ink { background: #ffffff; color: var(--ink-700); border: 1px solid var(--ink-200); }
+      .cursor { position: absolute; left: 0; top: 0; display: block; width: 34px; height: 34px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); }
+      .ring { position: absolute; display: block; width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--brand-600); }
+
+      .pill { position: absolute; display: block; background: #ffffff; border: 1px solid var(--ink-200); border-radius: 12px; padding: 14px 16px; box-shadow: 0 10px 30px -14px rgba(23, 23, 22, 0.35); }
+      .pill-label { display: block; font-size: 14px; color: var(--ink-500); margin-bottom: 8px; }
+      .pill-value { display: block; font-size: 22px; font-weight: 700; color: var(--ink-950); }
+      .track { display: block; width: 100%; height: 8px; border-radius: 4px; background: var(--ink-100); margin-top: 10px; overflow: hidden; }
+      .fill { display: block; width: 100%; height: 8px; border-radius: 4px; background: var(--brand-600); transform-origin: 0 50%; }
+
+      .card { position: absolute; display: block; background: #ffffff; border: 1px solid var(--ink-200); border-radius: 14px; box-shadow: 0 24px 60px -30px rgba(23, 23, 22, 0.35); }
+      .card-h { display: block; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand-600); margin: 0 0 10px; }
+      .row { display: flex; align-items: center; gap: 12px; height: 52px; }
+      .avatar { display: block; width: 34px; height: 34px; border-radius: 50%; background: var(--brand-100); color: var(--brand-800); font-size: 12px; font-weight: 700; line-height: 34px; text-align: center; }
+      .who { flex: 1; font-size: 17px; color: var(--ink-950); }
+      .dec { display: block; height: 34px; line-height: 32px; padding: 0 13px; border-radius: 8px; font-size: 15px; font-weight: 600; border: 1px solid transparent; }
+      .dec-in { background: var(--include-bg); color: var(--include); border-color: rgba(21, 128, 61, 0.3); }
+      .dec-out { background: var(--exclude-bg); color: var(--exclude); border-color: rgba(185, 28, 28, 0.3); }
+      .sep { display: block; height: 1px; background: var(--ink-200); margin: 6px 0 12px; }
+      .verdict { position: absolute; left: 18px; right: 18px; height: 40px; }
+      .verdict .badge { position: absolute; left: 0; top: 0; }
+
+      .hl { position: absolute; display: block; border: 2px solid var(--brand-500); border-radius: 8px; background: rgba(54, 114, 198, 0.08); }
+      .quote { position: absolute; display: block; width: 452px; background: #ffffff; border: 1px solid var(--ink-200); border-left: 4px solid var(--brand-600); border-radius: 12px; padding: 13px 16px; box-shadow: 0 16px 40px -24px rgba(23, 23, 22, 0.35); }
+      .qf { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-500); margin-bottom: 4px; }
+      .qv { display: block; font-size: 19px; font-weight: 700; color: var(--ink-950); margin-bottom: 6px; }
+      .qt { display: block; font-size: 16px; line-height: 1.35; color: var(--ink-700); }
+      .qp { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--brand-700); background: var(--brand-50); border-radius: 6px; padding: 2px 7px; }
+      .btn { position: absolute; display: block; height: 44px; line-height: 42px; padding: 0 18px 0 42px; border-radius: 10px; font-size: 16px; font-weight: 600; white-space: nowrap; }
+      .btn-primary { background: var(--brand-600); color: #ffffff; }
+      .btn-done { background: var(--include-bg); color: var(--include); border: 1px solid rgba(21, 128, 61, 0.3); }
+      .btn svg { position: absolute; left: 14px; top: 12px; width: 18px; height: 18px; }
+
+      .exports { position: absolute; left: 616px; top: 60px; width: 320px; }
+      .export { display: flex; align-items: center; gap: 12px; height: 58px; margin-bottom: 12px; padding: 0 14px; background: #ffffff; border: 1px solid var(--ink-200); border-radius: 12px; font-size: 17px; color: var(--ink-950); }
+      .ext { display: block; width: 44px; height: 30px; border-radius: 6px; background: var(--brand-50); color: var(--brand-700); font-size: 11px; font-weight: 700; line-height: 30px; text-align: center; letter-spacing: 0.04em; }
+
+      .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 60px; }
+      .mark { display: block; width: 110px; height: 110px; margin-bottom: 32px; color: var(--brand-700); }
+      .h1 { display: block; width: 940px; margin: 0 0 20px; font-size: 54px; line-height: 1.12; font-weight: 700; letter-spacing: -0.025em; color: var(--ink-950); }
+      .sub { display: block; margin: 0; font-size: 24px; color: var(--ink-500); }
+      .wordmark { display: flex; align-items: center; gap: 12px; margin-bottom: 36px; }
+      .wordmark svg { display: block; width: 52px; height: 52px; color: var(--brand-700); }
+      .wordmark span { display: block; font-size: 40px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink-950); }
+      .site { display: block; margin-top: 30px; font-size: 28px; font-weight: 600; color: var(--brand-600); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="42" data-width="1080" data-height="1080">
+      <section id="s1" class="clip" data-start="0" data-duration="4.5" data-track-index="0">
+        <div class="inner" data-layout-allow-overlap>
+          <div class="center">
+            <svg class="mark" id="s1-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.12" />
+              <circle class="draw" cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="2.2" pathLength="1" />
+              <path class="draw" d="M24.5 7.5 L7.5 24.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" pathLength="1" />
+              <circle class="dotf" cx="11" cy="11" r="2.4" fill="currentColor" />
+              <circle class="dotf" cx="16.5" cy="7.5" r="1.7" fill="currentColor" />
+              <circle class="dotf" cx="21" cy="21" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+            <h1 class="h1" id="s1-title">Revues systématiques : l'IA extrait les données, vous les vérifiez.</h1>
+            <p class="sub" id="s1-sub">Krinea, outil open source pour les revues systématiques</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="s2" class="clip" data-start="4" data-duration="7.5" data-track-index="0">
+        <div class="inner" data-layout-allow-overlap>
+          <div class="copy">
+            <span class="kicker" id="s2-kicker">Import</span>
+            <h2 class="title" id="s2-title">Importez vos exports de recherche.</h2>
+            <p class="text" id="s2-text">RIS, BibTeX, PubMed, Web of Science, CSV ou Excel : le format est reconnu automatiquement, et les doublons sont repérés dès l'import.</p>
+          </div>
+          <div class="panel">
+            <div class="frame" style="left: 24px; top: 24px; width: 936px; height: 460px;">
+              <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">krinea.org/app/reviews/solar-mini-grids/data</span></div>
+              <img class="shot" src="assets/screens/imports.png" alt="" data-layout-allow-overflow style="left: -79px; top: -91px; width: 1094px;" />
+            </div>
+            <span class="chip" id="s2-chip1" style="left: 48px; top: 540px;">wos_sciencedirect_export.ris</span>
+            <span class="chip" id="s2-chip2" style="left: 48px; top: 596px;">scopus_export.ris</span>
+            <span class="badge badge-blue" id="s2-badge" style="left: 700px; top: 104px;">4 doublons repérés</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="s3" class="clip" data-start="11" data-duration="10.5" data-track-index="0">
+        <div class="inner" data-layout-allow-overlap>
+          <div class="copy">
+            <span class="kicker" id="s3-kicker">Sélection</span>
+            <h2 class="title" id="s3-title">Sélectionnez les études, seul ou en équipe.</h2>
+            <p class="text" id="s3-text">Mots-clés surlignés, raccourcis clavier, et en double lecture chacun décide sans voir le choix de l'autre.</p>
+          </div>
+          <div class="panel">
+            <div class="frame" style="left: 24px; top: 24px; width: 620px; height: 653px;">
+              <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">krinea.org/app/reviews/solar-mini-grids/screening</span></div>
+              <img class="shot" src="assets/screens/screening-card.png" alt="" style="left: 0; top: 40px; width: 618px;" />
+            </div>
+            <span class="ring" id="s3-ring" style="left: 69px; top: 622px;"></span>
+            <svg class="cursor" id="s3-cursor" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8.5-6.2 1.5L9.5 19z" fill="#171716" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" /></svg>
+            <div class="pill" id="s3-progress" style="left: 666px; top: 24px; width: 294px;">
+              <span class="pill-label" id="s3-progress-label">Titre et résumé</span>
+              <span class="pill-value" id="s3-progress-value">22 / 51</span>
+              <span class="track"><span class="fill" id="s3-fill"></span></span>
+            </div>
+            <div class="card" id="s3-card" style="left: 404px; top: 380px; width: 556px; height: 292px; padding: 18px;">
+              <span class="card-h" id="s3-card-h">Double lecture, en aveugle</span>
+              <div class="row"><span class="avatar">AD</span><span class="who" id="s3-who-a">Relectrice A</span><span class="dec dec-in" id="s3-dec-a">Inclure</span></div>
+              <div class="row"><span class="avatar">JW</span><span class="who" id="s3-who-b">Relecteur B</span><span class="dec dec-out" id="s3-dec-b">Exclure</span></div>
+              <span class="sep"></span>
+              <div class="verdict">
+                <span class="badge badge-ink" id="s3-badge-conflict">Désaccord à trancher</span>
+                <span class="badge badge-blue" id="s3-badge-settled">Tranché : inclus, motif consigné</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="s4" class="clip" data-start="21" data-duration="10.5" data-track-index="0">
+        <div class="inner" data-layout-allow-overlap>
+          <div class="copy">
+            <span class="kicker" id="s4-kicker">Extraction</span>
+            <h2 class="title" id="s4-title">L'IA remplit la grille, avec la phrase exacte.</h2>
+            <p class="text" id="s4-text">Chaque valeur proposée vient avec le passage du PDF dont elle est tirée. Vous vérifiez, puis vous validez.</p>
+          </div>
+          <div class="panel">
+            <div class="frame" style="left: 24px; top: 24px; width: 440px; height: 654px;">
+              <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">extraction</span></div>
+              <img class="shot" src="assets/screens/extraction-form.png" alt="" data-layout-allow-overflow style="left: -75px; top: -235px; width: 1037px;" />
+              <span class="hl" id="s4-hl1" style="left: 9px; top: 104px; width: 418px; height: 60px;"></span>
+              <span class="hl" id="s4-hl2" style="left: 9px; top: 319px; width: 418px; height: 38px;"></span>
+              <span class="hl" id="s4-hl3" style="left: 9px; top: 581px; width: 418px; height: 60px;"></span>
+            </div>
+            <span class="btn btn-primary" id="s4-btn" style="left: 484px; top: 24px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg><span id="s4-btn-label">Enregistrer comme vérifié</span></span>
+            <span class="btn btn-done" id="s4-done" style="left: 484px; top: 24px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg><span id="s4-done-label">Vérifié par Amina Diallo</span></span>
+            <div class="quote" id="s4-q1" style="left: 484px; top: 96px;">
+              <span class="qf" id="s4-q1-f">Pays de l'étude</span>
+              <span class="qv">Kenya</span>
+              <span class="qt">“24 solar PV mini-grids operating in rural Kenya between 2015 and 2018”</span>
+              <span class="qp" id="s4-q1-p">PDF, p. 2</span>
+            </div>
+            <div class="quote" id="s4-q2" style="left: 484px; top: 300px;">
+              <span class="qf" id="s4-q2-f">LCOE (USD/kWh)</span>
+              <span class="qv">0.62</span>
+              <span class="qt">“we find a median LCOE of 0.62 USD/kWh, with a range of 0.41 to 1.15 USD/kWh”</span>
+              <span class="qp" id="s4-q2-p">PDF, p. 7</span>
+            </div>
+            <div class="quote" id="s4-q3" style="left: 484px; top: 504px;">
+              <span class="qf" id="s4-q3-f">Résumé des résultats</span>
+              <span class="qv" id="s4-q3-v">LCOE médian de 0,62 USD/kWh sur 24 sites</span>
+              <span class="qt">“driven mainly by load factor rather than by installed cost”</span>
+              <span class="qp" id="s4-q3-p">PDF, p. 9</span>
+            </div>
+            <span class="ring" id="s4-ring" style="left: 612px; top: 24px;"></span>
+            <svg class="cursor" id="s4-cursor" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8.5-6.2 1.5L9.5 19z" fill="#171716" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" /></svg>
+          </div>
+        </div>
+      </section>
+
+      <section id="s5" class="clip" data-start="31" data-duration="6.5" data-track-index="0">
+        <div class="inner" data-layout-allow-overlap>
+          <div class="copy">
+            <span class="kicker" id="s5-kicker">Rapport</span>
+            <h2 class="title" id="s5-title">Le diagramme PRISMA 2020 se dessine tout seul.</h2>
+            <p class="text" id="s5-text">Les effectifs viennent de vos décisions, jamais saisis à la main. Tout s'exporte, à tout moment.</p>
+          </div>
+          <div class="panel">
+            <div class="card" style="left: 24px; top: 24px; width: 560px; height: 654px;">
+              <img class="shot" id="s5-diagram" src="assets/screens/prisma-diagram.png" alt="" style="left: 33px; top: 22px; width: 493px;" />
+            </div>
+            <div class="exports">
+              <div class="export" id="s5-e1"><span class="ext">SVG</span><span id="s5-e1-t">Diagramme PRISMA 2020</span></div>
+              <div class="export" id="s5-e2"><span class="ext">RIS</span><span id="s5-e2-t">Études incluses</span></div>
+              <div class="export" id="s5-e3"><span class="ext">XLSX</span><span id="s5-e3-t">Extractions vérifiées</span></div>
+              <div class="export" id="s5-e4"><span class="ext">CSV</span><span id="s5-e4-t">Journal des décisions</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="s6" class="clip" data-start="37" data-duration="5" data-track-index="0">
+        <div class="inner" data-layout-allow-overlap>
+          <div class="center">
+            <div class="wordmark" id="s6-wordmark">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.12" />
+                <circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="2.2" />
+                <path d="M24.5 7.5 L7.5 24.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                <circle cx="11" cy="11" r="2.4" fill="currentColor" />
+                <circle cx="16.5" cy="7.5" r="1.7" fill="currentColor" />
+                <circle cx="21" cy="21" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8" />
+              </svg>
+              <span>Krinea</span>
+            </div>
+            <h2 class="h1" id="s6-title">Open source. Gratuit pour commencer.</h2>
+            <p class="sub" id="s6-sub">Hébergé dans l'Union européenne, ou sur votre propre serveur.</p>
+            <span class="site" id="s6-site">krinea.org</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const COPY = {
+        "s1-title": ["Revues systématiques : l'IA extrait les données, vous les vérifiez.", "Systematic reviews: the AI extracts the data, you verify it."],
+        "s1-sub": ["Krinea, outil open source pour les revues systématiques", "Krinea, open-source software for systematic reviews"],
+        "s2-kicker": ["Import", "Import"],
+        "s2-title": ["Importez vos exports de recherche.", "Import your search exports."],
+        "s2-text": ["RIS, BibTeX, PubMed, Web of Science, CSV ou Excel : le format est reconnu automatiquement, et les doublons sont repérés dès l'import.", "RIS, BibTeX, PubMed, Web of Science, CSV or Excel: the format is recognised on upload, and duplicates are spotted right away."],
+        "s2-badge": ["4 doublons repérés", "4 duplicates found"],
+        "s3-kicker": ["Sélection", "Screening"],
+        "s3-title": ["Sélectionnez les études, seul ou en équipe.", "Screen the studies, alone or as a team."],
+        "s3-text": ["Mots-clés surlignés, raccourcis clavier, et en double lecture chacun décide sans voir le choix de l'autre.", "Highlighted keywords, keyboard shortcuts, and in double screening each reviewer decides without seeing the other's choice."],
+        "s3-progress-label": ["Titre et résumé, triées par vous", "Title and abstract, screened by you"],
+        "s3-card-h": ["Double lecture, en aveugle", "Double screening, blind"],
+        "s3-who-a": ["Relectrice A", "Reviewer A"],
+        "s3-who-b": ["Relecteur B", "Reviewer B"],
+        "s3-dec-a": ["Inclure", "Include"],
+        "s3-dec-b": ["Exclure", "Exclude"],
+        "s3-badge-conflict": ["Désaccord à trancher", "Disagreement to settle"],
+        "s3-badge-settled": ["Tranché : inclus, motif consigné", "Settled: included, reason logged"],
+        "s4-kicker": ["Extraction", "Extraction"],
+        "s4-title": ["L'IA remplit la grille, avec la phrase exacte.", "The AI fills the form, with the exact sentence."],
+        "s4-text": ["Chaque valeur proposée vient avec le passage du PDF dont elle est tirée. Vous vérifiez, puis vous validez.", "Every proposed value comes with the passage of the PDF it was taken from. You check it, then you validate."],
+        "s4-btn-label": ["Enregistrer comme vérifié", "Save as verified"],
+        "s4-done-label": ["Vérifié par Amina Diallo", "Verified by Amina Diallo"],
+        "s4-q1-f": ["Pays de l'étude", "Study country"],
+        "s4-q2-f": ["LCOE (USD/kWh)", "LCOE (USD/kWh)"],
+        "s4-q3-f": ["Résumé des résultats", "Outcome summary"],
+        "s4-q3-v": ["LCOE médian de 0,62 USD/kWh sur 24 sites", "Median LCOE of 0.62 USD/kWh across 24 sites"],
+        "s4-q1-p": ["PDF, p. 2", "PDF, p. 2"],
+        "s4-q2-p": ["PDF, p. 7", "PDF, p. 7"],
+        "s4-q3-p": ["PDF, p. 9", "PDF, p. 9"],
+        "s5-kicker": ["Rapport", "Report"],
+        "s5-title": ["Le diagramme PRISMA 2020 se dessine tout seul.", "The PRISMA 2020 diagram draws itself."],
+        "s5-text": ["Les effectifs viennent de vos décisions, jamais saisis à la main. Tout s'exporte, à tout moment.", "The counts come from your decisions, never typed by hand. Everything exports, at any time."],
+        "s5-e1-t": ["Diagramme PRISMA 2020", "PRISMA 2020 diagram"],
+        "s5-e2-t": ["Études incluses", "Included studies"],
+        "s5-e3-t": ["Extractions vérifiées", "Verified extractions"],
+        "s5-e4-t": ["Journal des décisions", "Decision log"],
+        "s6-title": ["Open source. Gratuit pour commencer.", "Open source. Free to start."],
+        "s6-sub": ["Hébergé dans l'Union européenne, ou sur votre propre serveur.", "Hosted in the European Union, or on your own server."],
+      };
+      const vars = (window.__hyperframes && window.__hyperframes.getVariables) ? window.__hyperframes.getVariables() : {};
+      const lang = vars.lang === "en" ? "en" : "fr";
+      const idx = lang === "en" ? 1 : 0;
+      document.documentElement.lang = lang;
+      for (const id in COPY) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = COPY[id][idx];
+      }
+
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } });
+      const S = { s2: 4, s3: 11, s4: 21, s5: 31, s6: 37 };
+
+      function sceneIn(id, t) {
+        tl.fromTo(`#${id} .inner`, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, t);
+        tl.fromTo(`#${id} .kicker, #${id} .title, #${id} .text`, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, stagger: 0.1 }, t + 0.1);
+        tl.fromTo(`#${id} .panel`, { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, t + 0.2);
+      }
+      function click(ringSel, cursorSel, t) {
+        tl.fromTo(cursorSel, { scale: 1 }, { scale: 0.86, duration: 0.08, yoyo: true, repeat: 1, ease: "power1.inOut" }, t);
+        tl.fromTo(ringSel, { scale: 0.3, opacity: 0.9 }, { scale: 1.5, opacity: 0, duration: 0.55, ease: "power2.out" }, t);
+      }
+
+      tl.set("#s1-mark .draw", { strokeDasharray: 1, strokeDashoffset: 1 }, 0);
+      tl.set("#s1-mark .dotf", { opacity: 0 }, 0);
+      tl.fromTo("#s1-mark", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.5 }, 0.1);
+      tl.to("#s1-mark .draw", { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut", stagger: 0.15 }, 0.2);
+      tl.to("#s1-mark .dotf", { opacity: 1, duration: 0.3, stagger: 0.1 }, 1.0);
+      tl.fromTo("#s1-title", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, 0.7);
+      tl.fromTo("#s1-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, 1.2);
+      tl.to("#s1 .inner", { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 4.0);
+
+      sceneIn("s2", S.s2);
+      tl.set("#s2-badge", { opacity: 0 }, S.s2);
+      tl.fromTo("#s2-chip1", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, S.s2 + 1.0);
+      tl.fromTo("#s2-chip2", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, S.s2 + 1.25);
+      tl.to("#s2-chip1", { x: 110, y: -264, scale: 0.7, opacity: 0, duration: 0.9, ease: "power2.in" }, S.s2 + 2.0);
+      tl.to("#s2-chip2", { x: 110, y: -320, scale: 0.7, opacity: 0, duration: 0.9, ease: "power2.in" }, S.s2 + 2.25);
+      tl.fromTo("#s2-badge", { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }, S.s2 + 3.5);
+
+      sceneIn("s3", S.s3);
+      tl.set("#s3-ring", { opacity: 0 }, S.s3);
+      tl.set("#s3-progress, #s3-card", { opacity: 0 }, S.s3);
+      tl.fromTo("#s3-cursor", { x: 480, y: 330, opacity: 0 }, { opacity: 1, duration: 0.3 }, S.s3 + 0.9);
+      tl.to("#s3-cursor", { x: 84, y: 640, duration: 1.3, ease: "power2.inOut" }, S.s3 + 1.2);
+      click("#s3-ring", "#s3-cursor", S.s3 + 2.6);
+      tl.fromTo("#s3-progress", { x: 24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, S.s3 + 3.0);
+      tl.fromTo("#s3-fill", { scaleX: 0.41 }, { scaleX: 0.45, duration: 0.6, ease: "power2.out" }, S.s3 + 3.2);
+      tl.to("#s3-cursor", { x: 330, y: 320, opacity: 0, duration: 0.8, ease: "power2.inOut" }, S.s3 + 3.4);
+      tl.set("#s3-dec-a, #s3-dec-b, #s3-badge-conflict, #s3-badge-settled", { opacity: 0 }, S.s3);
+      tl.fromTo("#s3-card", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6 }, S.s3 + 4.6);
+      tl.fromTo("#s3-dec-a", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }, S.s3 + 5.4);
+      tl.fromTo("#s3-dec-b", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" }, S.s3 + 6.2);
+      tl.fromTo("#s3-badge-conflict", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, S.s3 + 7.0);
+      tl.to("#s3-badge-conflict", { opacity: 0, duration: 0.3 }, S.s3 + 8.6);
+      tl.fromTo("#s3-badge-settled", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, S.s3 + 8.8);
+
+      sceneIn("s4", S.s4);
+      tl.set("#s4-hl1, #s4-hl2, #s4-hl3, #s4-q1, #s4-q2, #s4-q3, #s4-done, #s4-ring", { opacity: 0 }, S.s4);
+      const fields = [["#s4-hl1", "#s4-q1", 1.2], ["#s4-hl2", "#s4-q2", 3.0], ["#s4-hl3", "#s4-q3", 4.8]];
+      for (const [hl, q, at] of fields) {
+        tl.fromTo(hl, { opacity: 0 }, { opacity: 1, duration: 0.35 }, S.s4 + at);
+        tl.fromTo(q, { x: 36, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6 }, S.s4 + at + 0.15);
+      }
+      tl.fromTo("#s4-cursor", { x: 760, y: 640, opacity: 0 }, { opacity: 1, duration: 0.3 }, S.s4 + 6.6);
+      tl.to("#s4-cursor", { x: 627, y: 42, duration: 1.1, ease: "power2.inOut" }, S.s4 + 6.9);
+      click("#s4-ring", "#s4-cursor", S.s4 + 8.1);
+      tl.to("#s4-btn", { opacity: 0, duration: 0.25 }, S.s4 + 8.3);
+      tl.fromTo("#s4-done", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" }, S.s4 + 8.35);
+      tl.to("#s4-cursor", { x: 700, y: 120, opacity: 0, duration: 0.6, ease: "power2.inOut" }, S.s4 + 8.8);
+
+      sceneIn("s5", S.s5);
+      tl.fromTo("#s5-diagram", { clipPath: "inset(0px 0px 100% 0px)" }, { clipPath: "inset(0px 0px 0% 0px)", duration: 2.4, ease: "power2.inOut" }, S.s5 + 0.7);
+      tl.fromTo("#s5-e1, #s5-e2, #s5-e3, #s5-e4", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, stagger: 0.22 }, S.s5 + 2.0);
+
+      tl.fromTo("#s6 .inner", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, S.s6);
+      tl.fromTo("#s6-wordmark", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7 }, S.s6 + 0.2);
+      tl.fromTo("#s6-title", { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, S.s6 + 0.6);
+      tl.fromTo("#s6-sub", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, S.s6 + 1.0);
+      tl.fromTo("#s6-site", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, S.s6 + 1.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
