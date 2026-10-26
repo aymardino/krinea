@@ -28,6 +28,10 @@ The PRISMA 2020 flow diagram templates are reproduced under the CC BY 4.0 licenc
 
 You may quote the text of this site with a link to its source. The content of your reviews remains yours.
 
+## Donations
+
+The site links to a Buy Me a Coffee page (https://www.buymeacoffee.com/aymardinho) for voluntary donations to the maintainer as a private individual. A donation is not a purchase: it gives no right to any feature, support or level of service, and it is not tax deductible. Payments are handled by Buy Me a Coffee under its own terms and privacy policy; Krinea receives no payment details.
+
 ## Personal data
 
 How we handle your data, which cookies we use and what your rights are is explained in the [privacy policy](/privacy). The rules of the hosted edition are in the [terms of use](/terms).

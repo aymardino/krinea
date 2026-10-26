@@ -147,6 +147,10 @@ Cite the release (version shown in the site footer, currently 0.1.0) and the
 repository URL. `CITATION.cff` holds the metadata; GitHub shows it as "Cite
 this repository".
 
+## Supporting the project
+
+Krinea is free and self-hosting stays free. The hosted edition costs money every month (servers, domain name, mailbox); if it saves you time, you can [buy the maintainer a coffee](https://www.buymeacoffee.com/aymardinho). Donations are voluntary, unlock nothing and are not tax deductible.
+
 ## Licence
 
 Application: AGPL-3.0-only (`LICENSE`). `packages/core`: MIT

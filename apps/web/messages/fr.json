@@ -63,7 +63,8 @@
       "security": "Sécurité",
       "resources": "Ressources",
       "prisma": "Déclaration PRISMA 2020",
-      "cite": "Comment citer"
+      "cite": "Comment citer",
+      "support": "Soutenir le projet"
     }
   },
   "marketing": {
@@ -309,7 +310,13 @@
     "selfhost": "Vous préférez votre propre serveur ? L'image Docker et le blueprint Render sont dans le dépôt.",
     "lowIncome": "Offre Pro gratuite pour les relecteurs rattachés à une institution d'un pays à faible revenu.",
     "paidSoon": "Les offres payantes ouvriront une fois nos conditions d'utilisation, notre politique de confidentialité et notre accord de traitement des données publiés. Rien n'est facturé sans un abonnement explicite de votre part.",
-    "lowIncomeCta": "Écrivez-nous."
+    "lowIncomeCta": "Écrivez-nous.",
+    "support": {
+      "title": "Soutenir le projet",
+      "text": "Krinea est gratuit, et l'auto-hébergement le restera. La version hébergée coûte pourtant chaque mois : serveurs, nom de domaine, boîte e-mail. Si Krinea vous fait gagner du temps et que vous voulez aider, vous pouvez offrir un café au mainteneur.",
+      "cta": "Offrir un café",
+      "note": "Les dons sont volontaires, ne débloquent rien et ne sont pas déductibles des impôts."
+    }
   },
   "auth": {
     "signInTitle": "Bon retour",

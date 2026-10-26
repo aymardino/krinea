@@ -37,6 +37,8 @@ A hosted edition exists so that you can try Krinea without installing anything. 
 
 The hosted edition is operated by the maintainer as a private individual. It is non-commercial for now and provided as is, best effort, with no uptime guarantee. No paid plan is sold yet. Pro and Institution plans are announced on the [pricing page](/pricing) and will open only once billing and legal documents are ready. When they do, paid hosted plans will fund the hosting and the maintainer's time. Whatever happens to the hosted edition, the code stays free under AGPL-3.0.
 
+If you want to support the hosted edition, you can [buy the maintainer a coffee](https://www.buymeacoffee.com/aymardinho). Donations are voluntary, unlock nothing and are not tax deductible; they go towards the servers, the domain name and the mailbox.
+
 See the [privacy policy](/privacy), the [terms of use](/terms) and the [legal notice](/legal) for details on data, responsibilities and publication.
 
 ## Who is behind it

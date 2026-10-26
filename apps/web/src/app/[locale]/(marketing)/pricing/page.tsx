@@ -1,10 +1,10 @@
 import { setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
-import { Check } from "lucide-react";
+import { Check, Coffee } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Faq } from "@/components/marketing/faq";
-import { REPO_URL } from "@/lib/site";
+import { REPO_URL, SUPPORT_URL } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export default async function PricingPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -77,6 +77,15 @@ function Pricing() {
                 {t("lowIncome")} <Link href="/contact" className={textLink}>{t("lowIncomeCta")}</Link>
               </li>
             </ul>
+            {/* Voluntary support of the hosted edition: a donation buys nothing and unlocks nothing. */}
+            <aside id="support" className="mt-8 scroll-mt-16 rounded-2xl border border-ink-200 bg-brand-50 p-6 lg:col-span-4 lg:col-start-9 lg:mt-0">
+              <h2 className="text-lg font-semibold text-ink-950">{t("support.title")}</h2>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink-700">{t("support.text")}</p>
+              <Button variant="outline" className="mt-5 bg-white" asChild>
+                <a href={SUPPORT_URL} target="_blank" rel="noreferrer noopener"><Coffee />{t("support.cta")}</a>
+              </Button>
+              <p className="mt-3 text-[13px] leading-5 text-ink-500">{t("support.note")}</p>
+            </aside>
           </div>
         </div>
       </section>

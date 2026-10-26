@@ -63,7 +63,8 @@
       "security": "Security",
       "resources": "Resources",
       "prisma": "PRISMA 2020 statement",
-      "cite": "How to cite"
+      "cite": "How to cite",
+      "support": "Support the project"
     }
   },
   "marketing": {
@@ -309,7 +310,13 @@
     "selfhost": "Prefer your own server? The Docker image and Render blueprint are in the repository.",
     "lowIncome": "Free Pro access for reviewers at institutions in low-income countries.",
     "paidSoon": "Paid plans open once our terms, privacy policy and data processing agreement are published. Nothing is charged before you explicitly subscribe.",
-    "lowIncomeCta": "Write to us."
+    "lowIncomeCta": "Write to us.",
+    "support": {
+      "title": "Support the project",
+      "text": "Krinea is free, and self-hosting will stay free. The hosted edition still costs money every month: servers, domain name, mailbox. If Krinea saves you time and you want to help, you can buy the maintainer a coffee.",
+      "cta": "Buy me a coffee",
+      "note": "Donations are voluntary, unlock nothing and are not tax deductible."
+    }
   },
   "auth": {
     "signInTitle": "Welcome back",

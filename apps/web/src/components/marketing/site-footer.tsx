@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { KrineaWordmark } from "@/components/brand/logo";
 import { LanguageSwitch } from "@/components/marketing/site-header";
-import { APP_VERSION, REPO_URL } from "@/lib/site";
+import { APP_VERSION, REPO_URL, SUPPORT_URL } from "@/lib/site";
 
 type FooterLink = { label: string; href: string; external?: boolean };
 
@@ -30,6 +30,7 @@ export function SiteFooter() {
       { label: t("footer.contact"), href: "/contact" },
       { label: t("github"), href: REPO_URL, external: true },
       { label: t("footer.cite"), href: "/about#how-to-cite" },
+      { label: t("footer.support"), href: SUPPORT_URL, external: true },
     ] },
     { key: "legal", title: t("footer.legal"), links: [
       { label: t("footer.privacy"), href: "/privacy" },

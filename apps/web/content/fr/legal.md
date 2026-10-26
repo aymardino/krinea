@@ -28,6 +28,10 @@ Les modèles de diagramme de flux PRISMA 2020 sont reproduits sous licence CC BY
 
 Vous pouvez citer les textes de ce site en indiquant un lien vers leur source. Le contenu de vos revues vous appartient.
 
+## Dons
+
+Le site renvoie vers une page Buy Me a Coffee (https://www.buymeacoffee.com/aymardinho) pour des dons volontaires au mainteneur, personne physique. Un don n'est pas un achat : il n'ouvre droit à aucune fonctionnalité, assistance ou niveau de service, et il n'est pas déductible des impôts. Les paiements sont traités par Buy Me a Coffee selon ses propres conditions et sa propre politique de confidentialité ; Krinea ne reçoit aucune donnée de paiement.
+
 ## Données personnelles
 
 Le traitement de vos données, les cookies utilisés et vos droits sont décrits dans la [politique de confidentialité](/privacy). Les règles de l'édition hébergée figurent dans les [conditions d'utilisation](/terms).

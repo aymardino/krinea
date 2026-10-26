@@ -37,6 +37,8 @@ Une édition hébergée existe pour que vous puissiez essayer Krinea sans rien i
 
 L'édition hébergée est exploitée par le mainteneur en tant que personne physique. Elle est non commerciale pour l'instant et fournie en l'état, au mieux des possibilités, sans garantie de disponibilité. Aucune offre payante n'est vendue à ce jour. Les offres Pro et Institution sont annoncées sur la page [tarifs](/pricing) et n'ouvriront qu'une fois la facturation et les documents juridiques prêts. Elles financeront alors l'hébergement et le temps du mainteneur. Quoi qu'il advienne de l'édition hébergée, le code reste libre sous AGPL-3.0.
 
+Si vous souhaitez soutenir l'édition hébergée, vous pouvez [offrir un café au mainteneur](https://www.buymeacoffee.com/aymardinho). Les dons sont volontaires, ne débloquent rien et ne sont pas déductibles des impôts ; ils servent aux serveurs, au nom de domaine et à la boîte e-mail.
+
 Les pages [confidentialité](/privacy), [conditions d'utilisation](/terms) et [mentions légales](/legal) détaillent le traitement des données, les responsabilités et la publication du site.
 
 ## Qui est derrière Krinea
