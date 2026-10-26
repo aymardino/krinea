@@ -9,7 +9,8 @@ import { Photo, PhotoCredit } from "@/components/marketing/photo";
 import { ProductVideo } from "@/components/marketing/product-video";
 import { Reveal } from "@/components/marketing/reveal";
 import { ScreeningDemo } from "@/components/marketing/screening-demo";
-import { APP_VERSION, REPO_URL, SITE_URL } from "@/lib/site";
+import { Coffee } from "lucide-react";
+import { APP_VERSION, REPO_URL, SITE_URL, SUPPORT_URL } from "@/lib/site";
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -58,6 +59,7 @@ const textLink = "link-grow inline-block text-[15px] font-medium text-brand-700 
 
 function Landing() {
   const t = useTranslations("marketing");
+  const support = useTranslations("pricing.support");
   const locale = useLocale();
   const stages: Stage[] = SCREENS.map((s, i) => ({
     key: s.key,
@@ -244,17 +246,27 @@ function Landing() {
         </div>
       </section>
 
-      {/* Closing band: one last calm ask. */}
+      {/* Closing band: one last calm ask, and the honest way to support the hosted edition. */}
       <section id="start" className="bg-brand-50 py-20">
-        <Reveal className="container-site">
-          <div className="max-w-[640px]">
-            <h2 className={h2}>{t("closing.title")}</h2>
-            <p className={lede}>{t("closing.lede")}</p>
+        <Reveal className="container-site grid gap-10 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-7">
+            <div className="max-w-[640px]">
+              <h2 className={h2}>{t("closing.title")}</h2>
+              <p className={lede}>{t("closing.lede")}</p>
+            </div>
+            <div className="reveal-item mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button size="lg" asChild><Link href="/sign-up">{t("closing.primary")}</Link></Button>
+              <Button size="lg" variant="outline" asChild><a href={`${REPO_URL}#readme`} target="_blank" rel="noreferrer">{t("closing.secondary")}</a></Button>
+            </div>
           </div>
-          <div className="reveal-item mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button size="lg" asChild><Link href="/sign-up">{t("closing.primary")}</Link></Button>
-            <Button size="lg" variant="outline" asChild><a href={`${REPO_URL}#readme`} target="_blank" rel="noreferrer">{t("closing.secondary")}</a></Button>
-          </div>
+          <aside id="support" className="reveal-item scroll-mt-16 rounded-2xl border border-ink-200 bg-white p-6 shadow-[0_24px_60px_-30px_rgba(23,23,22,0.18)] lg:col-span-4 lg:col-start-9">
+            <h2 className="text-lg font-semibold text-ink-950">{support("title")}</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-ink-700">{support("text")}</p>
+            <Button variant="outline" className="mt-5" asChild>
+              <a href={SUPPORT_URL} target="_blank" rel="noreferrer noopener"><Coffee />{support("cta")}</a>
+            </Button>
+            <p className="mt-3 text-[13px] leading-5 text-ink-500">{support("note")}</p>
+          </aside>
         </Reveal>
       </section>
     </>
