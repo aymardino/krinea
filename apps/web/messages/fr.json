@@ -497,7 +497,13 @@
       "aiCredits": "Crédits inclus : {n} jetons restants ce mois-ci.",
       "aiKeyMore": "Comment les clés sont protégées",
       "allFiles": "Tous les fichiers",
-      "fileFilter": "Fichier importé"
+      "fileFilter": "Fichier importé",
+      "kwReview": "Toute la revue",
+      "kwSearch": "Cette recherche : {file}",
+      "kwSearchHint": "Surlignés en plus, sur les notices trouvées par cette recherche.",
+      "kwSearchFilterHint": "Certaines recherches ont leurs propres mots-clés : choisissez un fichier ci-dessus pour les voir ou les modifier.",
+      "allLabels": "Toutes les étiquettes",
+      "labelFilter": "Étiquette"
     },
     "extraction": {
       "title": "Extraction des données",
@@ -530,7 +536,9 @@
       "shown": "{n, plural, one {# étude} other {# études}} sur {total}",
       "noMatch": "Aucune étude ne correspond à ces filtres.",
       "study": "Étude",
-      "statusCol": "Statut"
+      "statusCol": "Statut",
+      "allLabels": "Toutes les étiquettes",
+      "labelFilter": "Étiquette"
     },
     "prisma": {
       "title": "PRISMA 2020",

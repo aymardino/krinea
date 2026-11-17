@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Bot, Check, FileText, Search } from "lucide-react";
-import { api, ApiError, type Extraction, type Field, type ImportRow, type Job, type RecordPage, type StudyRecord as Rec } from "@/lib/api";
+import { api, ApiError, type Extraction, type Field, type ImportRow, type Job, type LabelCount, type RecordPage, type StudyRecord as Rec } from "@/lib/api";
 import { canReview, useReview } from "@/components/app/review-context";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -56,10 +56,16 @@ export default function ExtractionPage() {
   const [search, setSearch] = useState("");
   const [fileId, setFileId] = useState("all");
   const [status, setStatus] = useState("all");
+  const [labelFilter, setLabelFilter] = useState("all");
   const onError = (e: unknown) => toast.error(e instanceof ApiError ? e.message : c("error"));
 
-  const qs = new URLSearchParams({ stage: "extract", view: "all", limit: "500", search, ...(fileId !== "all" ? { import_id: fileId } : {}) }).toString();
-  const pool = useQuery<RecordPage>({ queryKey: ["records", rid, "extract", search, fileId], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const qs = new URLSearchParams({
+    stage: "extract", view: "all", limit: "500", search,
+    ...(fileId !== "all" ? { import_id: fileId } : {}),
+    ...(labelFilter !== "all" ? { label: labelFilter } : {}),
+  }).toString();
+  const pool = useQuery<RecordPage>({ queryKey: ["records", rid, "extract", search, fileId, labelFilter], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const labelList = useQuery<LabelCount[]>({ queryKey: ["labels", rid], queryFn: () => api.get(`/reviews/${rid}/labels`) });
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const list = useQuery<Extraction[]>({ queryKey: ["extractions", rid], queryFn: () => api.get(`/reviews/${rid}/extraction`) });
   const one = useQuery<Extraction>({ queryKey: ["extraction", rid, open], queryFn: () => api.get(`/reviews/${rid}/extraction/${open}`), enabled: open !== null && !!list.data?.some((e) => e.record_id === open) });
@@ -84,7 +90,7 @@ export default function ExtractionPage() {
     const st = byRecord.get(r.id)?.status ?? "none";
     return status === "all" || (status === "nopdf" ? !r.has_pdf : st === status);
   });
-  const filtered = search.trim() !== "" || fileId !== "all" || status !== "all";
+  const filtered = search.trim() !== "" || fileId !== "all" || status !== "all" || labelFilter !== "all";
   const todo = items.filter((r) => r.has_pdf && !byRecord.has(r.id)).map((r) => r.id);
   const current: Rec | undefined = all.find((r) => r.id === open);
   const ex = one.data;
@@ -142,6 +148,15 @@ export default function ExtractionPage() {
               <SelectContent>
                 <SelectItem value="all">{t("allFiles")}</SelectItem>
                 {imports.data!.map((i) => <SelectItem key={i.id} value={i.id}>{i.filename}{i.source_db ? ` · ${i.source_db}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          {!!labelList.data?.length && (
+            <Select value={labelFilter} onValueChange={setLabelFilter}>
+              <SelectTrigger className="w-full sm:w-48" aria-label={t("labelFilter")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allLabels")}</SelectItem>
+                {labelList.data.map((l) => <SelectItem key={l.label} value={l.label}>{l.label} ({l.n})</SelectItem>)}
               </SelectContent>
             </Select>
           )}

@@ -9,41 +9,31 @@ import { api, ApiError, type KeywordCounts, type Review } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type Kind = "include" | "exclude";
+type Lists = { [k in Kind]: string[] };
+const EMPTY: Lists = { include: [], exclude: [] };
 
-/** Highlight keywords, editable right where they are used (the screening rail).
- *  Green ones mark text to include, red ones text to exclude; `*` is a wildcard. */
-export function KeywordsCard({ review, counts, editable, onPick, onChanged }: {
-  review: Review; counts?: KeywordCounts; editable: boolean; onPick: (keyword: string) => void; onChanged: () => void;
+/** One pair of keyword lists (green to include, red to exclude), editable in place. */
+function KeywordLists({ title, lists, counts, editable, pending, onSave, onPick }: {
+  title?: string; lists: Lists; counts?: KeywordCounts | KeywordCounts["search"]; editable: boolean; pending: boolean;
+  onSave: (next: Lists) => void; onPick: (keyword: string) => void;
 }) {
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
-  const qc = useQueryClient();
   const [draft, setDraft] = useState<{ [k in Kind]: string }>({ include: "", exclude: "" });
-  const lists: { [k in Kind]: string[] } = { include: review.criteria.highlight_include, exclude: review.criteria.highlight_exclude };
   const n = (kind: Kind, kw: string) => counts?.[kind].find((k) => k.keyword === kw)?.n;
-
-  const save = useMutation({
-    mutationFn: (next: { [k in Kind]: string[] }) =>
-      api.patch<Review>(`/reviews/${review.id}`, { criteria: { highlight_include: next.include, highlight_exclude: next.exclude } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["keywords", review.id] }); onChanged(); toast.success(c("saved")); },
-    onError: (e) => toast.error(e instanceof ApiError ? e.message : c("error")),
-  });
   const add = (kind: Kind) => {
-    const value = draft[kind].trim().replace(/,+$/, "").trim();
-    if (!value) return;
-    const items = value.split(",").map((s) => s.trim()).filter(Boolean);
-    const next = { ...lists, [kind]: Array.from(new Set([...lists[kind], ...items])) };
+    const items = draft[kind].trim().replace(/,+$/, "").split(",").map((s) => s.trim()).filter(Boolean);
+    if (!items.length) return;
     setDraft((d) => ({ ...d, [kind]: "" }));
-    save.mutate(next);
+    onSave({ ...lists, [kind]: Array.from(new Set([...lists[kind], ...items])) });
   };
-  const remove = (kind: Kind, kw: string) => save.mutate({ ...lists, [kind]: lists[kind].filter((k) => k !== kw) });
+  const remove = (kind: Kind, kw: string) => onSave({ ...lists, [kind]: lists[kind].filter((k) => k !== kw) });
 
-  if (!editable && !lists.include.length && !lists.exclude.length) return null;
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("keywordsTitle")}</p>
+    <div className="mt-3 first:mt-2">
+      {title && <p className="text-xs font-medium text-foreground">{title}</p>}
       {(["include", "exclude"] as Kind[]).map((kind) => (
-        <div key={kind} className="mt-3">
+        <div key={kind} className="mt-2">
           <p className="text-[11px] font-medium text-muted-foreground">{t(kind === "include" ? "includeKw" : "excludeKw")}</p>
           <ul className="mt-1.5 flex flex-wrap gap-1.5">
             {lists[kind].map((kw) => (
@@ -51,7 +41,7 @@ export function KeywordsCard({ review, counts, editable, onPick, onChanged }: {
                 <button type="button" className="truncate hover:underline" title={t("filterBy", { keyword: kw })} onClick={() => onPick(kw.replace("*", ""))}>{kw}</button>
                 {n(kind, kw) !== undefined && <span className="tabular-nums opacity-70">{n(kind, kw)}</span>}
                 {editable && (
-                  <button type="button" aria-label={`${c("delete")} ${kw}`} className="rounded-r-md px-1 py-0.5 hover:bg-black/10" onClick={() => remove(kind, kw)} disabled={save.isPending}><X className="size-3" /></button>
+                  <button type="button" aria-label={`${c("delete")} ${kw}`} className="rounded-r-md px-1 py-0.5 hover:bg-black/10" onClick={() => remove(kind, kw)} disabled={pending}><X className="size-3" /></button>
                 )}
               </li>
             ))}
@@ -64,13 +54,59 @@ export function KeywordsCard({ review, counts, editable, onPick, onChanged }: {
                 placeholder={t(kind === "include" ? "addInclude" : "addExclude")}
                 value={draft[kind]}
                 onChange={(e) => setDraft((d) => ({ ...d, [kind]: e.target.value }))}
-                disabled={save.isPending}
+                disabled={pending}
               />
-              <button type="submit" aria-label={c("save")} className="inline-flex size-7 items-center justify-center rounded-md border border-input text-muted-foreground hover:bg-muted" disabled={!draft[kind].trim() || save.isPending}><Plus className="size-3.5" /></button>
+              <button type="submit" aria-label={c("save")} className="inline-flex size-7 items-center justify-center rounded-md border border-input text-muted-foreground hover:bg-muted" disabled={!draft[kind].trim() || pending}><Plus className="size-3.5" /></button>
             </form>
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Highlight keywords, editable right where they are used (the screening rail). The review's
+ *  own keywords apply to every record; when one search (imported file) is selected, its own
+ *  keywords are shown too, and they are highlighted on the records that search found.
+ *  Green ones mark text to include, red ones text to exclude; `*` is a wildcard. */
+export function KeywordsCard({ review, counts, editable, onPick, onChanged, search }: {
+  review: Review; counts?: KeywordCounts; editable: boolean; onPick: (keyword: string) => void; onChanged: () => void;
+  search?: { importId: string; label: string };
+}) {
+  const t = useTranslations("review.screening");
+  const c = useTranslations("common");
+  const qc = useQueryClient();
+  const general: Lists = { include: review.criteria.highlight_include, exclude: review.criteria.highlight_exclude };
+  const bySearch = review.criteria.search_keywords ?? {};
+  const own: Lists = search ? (bySearch[search.importId] ?? EMPTY) : EMPTY;
+  const hasSearchKeywords = Object.values(bySearch).some((l) => l.include.length || l.exclude.length);
+  const done = { onSuccess: () => { qc.invalidateQueries({ queryKey: ["keywords", review.id] }); onChanged(); toast.success(c("saved")); },
+                 onError: (e: unknown) => toast.error(e instanceof ApiError ? e.message : c("error")) };
+
+  const saveGeneral = useMutation({
+    mutationFn: (next: Lists) => api.patch<Review>(`/reviews/${review.id}`, { criteria: { highlight_include: next.include, highlight_exclude: next.exclude } }),
+    ...done,
+  });
+  const saveSearch = useMutation({
+    mutationFn: (next: Lists) => api.put<Lists>(`/reviews/${review.id}/imports/${search!.importId}/keywords`, next),
+    ...done,
+  });
+
+  const empty = !general.include.length && !general.exclude.length && !own.include.length && !own.exclude.length;
+  if (!editable && empty && !hasSearchKeywords) return null;
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("keywordsTitle")}</p>
+      <KeywordLists title={search ? t("kwReview") : undefined} lists={general} counts={counts} editable={editable}
+                    pending={saveGeneral.isPending} onSave={(next) => saveGeneral.mutate(next)} onPick={onPick} />
+      {search && (
+        <div className="mt-4 border-t border-border pt-3">
+          <KeywordLists key={search.importId} title={t("kwSearch", { file: search.label })} lists={own} counts={counts?.search} editable={editable}
+                        pending={saveSearch.isPending} onSave={(next) => saveSearch.mutate(next)} onPick={onPick} />
+          <p className="mt-2 text-[11px] text-muted-foreground">{t("kwSearchHint")}</p>
+        </div>
+      )}
+      {!search && hasSearchKeywords && <p className="mt-3 text-[11px] text-muted-foreground">{t("kwSearchFilterHint")}</p>}
       {editable && <p className="mt-2 text-[11px] text-muted-foreground">{t("keywordHint")}</p>}
     </div>
   );

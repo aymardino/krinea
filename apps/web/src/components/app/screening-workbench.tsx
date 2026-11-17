@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, XCircle } from "lucide-react";
-import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type StudyRecord, type RecordPage } from "@/lib/api";
+import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type LabelCount, type StudyRecord, type RecordPage } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
 import { canEdit, canReview, useReview } from "@/components/app/review-context";
@@ -35,6 +35,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const [view, setView] = useState("todo");
   const [search, setSearch] = useState("");
   const [fileId, setFileId] = useState("all");
+  const [labelFilter, setLabelFilter] = useState("all");
   const [current, setCurrent] = useState<number | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -42,10 +43,18 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const openedAt = useRef<number>(Date.now());
   const onError = (e: unknown) => toast.error(e instanceof ApiError && e.status === 402 ? t("aiNeedKey") : e instanceof ApiError ? e.message : c("error"));
 
-  const qs = new URLSearchParams({ stage, view, search, limit: "200", ...(fileId !== "all" ? { import_id: fileId } : {}) }).toString();
-  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const qs = new URLSearchParams({
+    stage, view, search, limit: "200",
+    ...(fileId !== "all" ? { import_id: fileId } : {}),
+    ...(labelFilter !== "all" ? { label: labelFilter } : {}),
+  }).toString();
+  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
-  const kw = useQuery<KeywordCounts>({ queryKey: ["keywords", rid], queryFn: () => api.get(`/reviews/${rid}/keywords`) });
+  const labelList = useQuery<LabelCount[]>({ queryKey: ["labels", rid], queryFn: () => api.get(`/reviews/${rid}/labels`) });
+  const kw = useQuery<KeywordCounts>({
+    queryKey: ["keywords", rid, fileId],
+    queryFn: () => api.get(`/reviews/${rid}/keywords${fileId !== "all" ? `?import_id=${fileId}` : ""}`),
+  });
   const items = useMemo(() => page.data?.items ?? [], [page.data]);
   const index = Math.max(0, items.findIndex((r) => r.id === current));
   const rec: StudyRecord | undefined = items[index] ?? items[0];
@@ -78,7 +87,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
         seconds: Math.min(3600, (Date.now() - openedAt.current) / 1000), as_consensus: !!consensus,
       }),
     onSuccess: (_r, vars) => {
-      if (labels !== (rec?.labels ?? "")) api.patch(`/reviews/${rid}/records/${vars.id}`, { labels }).catch(() => undefined);
+      if (labels !== (rec?.labels ?? "")) api.patch(`/reviews/${rid}/records/${vars.id}`, { labels }).then(() => qc.invalidateQueries({ queryKey: ["labels", rid] })).catch(() => undefined);
       const next = items[index + 1]?.id ?? items[index - 1]?.id ?? null;
       if (view === "todo" || view === "conflict") setCurrent(next);
       qc.invalidateQueries({ queryKey: ["records", rid] });
@@ -118,8 +127,11 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [rec, editable, decide, goto, rid]);
 
-  const inc = review.criteria.highlight_include;
-  const exc = review.criteria.highlight_exclude;
+  // The review's keywords, plus those of every search (imported file) that found this record.
+  const ownSets = (rec?.found_in ?? []).map((i) => review.criteria.search_keywords?.[i]).filter((x) => !!x);
+  const inc = Array.from(new Set([...review.criteria.highlight_include, ...ownSets.flatMap((x) => x.include)]));
+  const exc = Array.from(new Set([...review.criteria.highlight_exclude, ...ownSets.flatMap((x) => x.exclude)]));
+  const fileLabel = imports.data?.find((i) => i.id === fileId)?.filename;
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
@@ -137,6 +149,15 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
               <SelectContent>
                 <SelectItem value="all">{t("allFiles")}</SelectItem>
                 {imports.data!.map((i) => <SelectItem key={i.id} value={i.id}>{i.filename}{i.source_db ? ` · ${i.source_db}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          {!!labelList.data?.length && (
+            <Select value={labelFilter} onValueChange={(v: string) => { setLabelFilter(v); setCurrent(null); }}>
+              <SelectTrigger aria-label={t("labelFilter")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allLabels")}</SelectItem>
+                {labelList.data.map((l) => <SelectItem key={l.label} value={l.label}>{l.label} ({l.n})</SelectItem>)}
               </SelectContent>
             </Select>
           )}
@@ -263,7 +284,8 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
         {editable && <AiCard review={review} onRun={() => aiRun.mutate()} running={aiRun.isPending} label={t("runAi")} />}
-        <KeywordsCard review={review} counts={kw.data} editable={admin} onPick={(k) => { setSearch(k); setCurrent(null); }} onChanged={refresh} />
+        <KeywordsCard review={review} counts={kw.data} editable={admin} onPick={(k) => { setSearch(k); setCurrent(null); }} onChanged={refresh}
+                      search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">
           <p className="font-semibold uppercase tracking-wide text-muted-foreground">{c("decision.conflict")}</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-conflict">{stageStats.conflict}</p>
