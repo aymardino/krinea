@@ -73,6 +73,11 @@ def test_source_priority_decides_the_keeper():
     assert dedup.choose_keeper(RECS, group, ["pubmed"]) == 2
     assert dedup.choose_keeper(RECS, group, ["Embase"]) == 0             # nobody listed: most complete
     assert dedup.choose_keeper(RECS, group, []) == dedup.choose_keeper(RECS, group) == 0
+    # A file (search) order comes first, then the source order, then completeness.
+    recs = [dict(r, import_id=f"imp{i}") for i, r in enumerate(RECS)]
+    assert dedup.choose_keeper(recs, group, ["Scopus"], ["imp2", "imp1"]) == 2
+    assert dedup.choose_keeper(recs, group, ["PubMed"], ["imp9"]) == 2            # unlisted files: the source order decides
+    assert dedup.file_rank(recs[1], ["imp2", "imp1"]) == 1 and dedup.file_rank(recs[0], ["imp2"]) == 1
     merged = dedup.merge_records(RECS, 2, group)
     assert merged["year"] == "2020" and merged["doi"] == "10.1016/j.esd.2019.07.009"   # kept values win, gaps filled
     assert merged["source_db"] == "PubMed; Scopus; Web of Science"                       # the kept record's source first

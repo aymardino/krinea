@@ -1,6 +1,8 @@
 """Duplicate detection for a review, on top of krinea_core.dedup."""
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session
 
@@ -24,23 +26,54 @@ def _record_dicts(db: Session, review_id: str) -> list[dict]:
     return [dict(zip(["id", "import_id"] + FIELDS, r)) | {"origin_source": labels.get(r[1]) or ""} for r in rows]
 
 
-def priority(review: models.Review) -> list[str]:
-    """The review's source order for choosing which duplicate to keep (empty: completeness only)."""
-    return [str(s).strip() for s in (review.settings or {}).get("source_priority") or [] if str(s).strip()]
+KEEPER_RULES = ("complete", "file", "database")
+
+
+@dataclass(frozen=True)
+class KeepRule:
+    """How a review chooses the record to keep among duplicates: by imported file, by
+    database, or (both empty) the most complete record."""
+    files: tuple[str, ...] = ()
+    databases: tuple[str, ...] = ()
+
+
+def keeper_rule(settings: dict | None) -> str:
+    """complete | file | database. A review that saved a source order before the rule existed
+    keeps using it."""
+    s = settings or {}
+    if s.get("keeper_rule") in KEEPER_RULES:
+        return s["keeper_rule"]
+    return "database" if s.get("source_priority") else "complete"
+
+
+def priority(review: models.Review) -> KeepRule:
+    s = review.settings or {}
+    rule = keeper_rule(s)
+    if rule == "file":
+        return KeepRule(files=tuple(str(f) for f in s.get("file_priority") or [] if str(f)))
+    if rule == "database":
+        return KeepRule(databases=tuple(str(x).strip() for x in s.get("source_priority") or [] if str(x).strip()))
+    return KeepRule()
+
+
+def _keep(records: list[dict], idxs, rule: KeepRule | None) -> int:
+    rule = rule or KeepRule()
+    return core.choose_keeper(records, idxs, list(rule.databases), list(rule.files))
 
 
 def _as_dicts(db: Session, *recs: models.Record) -> list[dict]:
     out = []
     for r in recs:
         imp = db.get(models.Import, r.import_id) if r.import_id else None
-        out.append({f: getattr(r, f) for f in FIELDS} | {"id": r.id, "origin_source": imp.source_db if imp else ""})
+        out.append({f: getattr(r, f) for f in FIELDS} | {"id": r.id, "import_id": r.import_id,
+                                                          "origin_source": imp.source_db if imp else ""})
     return out
 
 
-def suggested_keep(db: Session, ra: models.Record, rb: models.Record, prio: list[str]) -> int:
-    """Id of the record the rule would keep in a pair (source order, then completeness)."""
+def suggested_keep(db: Session, ra: models.Record, rb: models.Record, rule: KeepRule) -> int:
+    """Id of the record the review's rule would keep in a pair."""
     both = _as_dicts(db, ra, rb)
-    return both[core.choose_keeper(both, [0, 1], prio)]["id"]
+    return both[_keep(both, [0, 1], rule)]["id"]
 
 
 def sources(db: Session, review_id: str) -> list[dict]:
@@ -57,11 +90,71 @@ def sources(db: Session, review_id: str) -> list[dict]:
     return [{"source": names[k], "n": n} for k, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
 
 
-def reset(db: Session, review_id: str) -> None:
+def _own_source(db: Session, rec: models.Record) -> str:
+    """The source a record was imported with: the one matching its import's label, otherwise
+    the first it lists (a kept record lists its own source first)."""
+    tokens = [s.strip() for s in str(rec.source_db or "").split(";") if s.strip()]
+    imp = db.get(models.Import, rec.import_id) if rec.import_id else None
+    label = (imp.source_db or "").strip().lower() if imp else ""
+    return next((t for t in tokens if label and t.lower() == label), tokens[0] if tokens else "")
+
+
+def _keep_original(db: Session, keeper_id: int) -> None:
+    """Remembers a record's own values before a merge first fills its gaps."""
+    if db.get(models.RecordOriginal, keeper_id) is not None:
+        return
+    row = db.execute(select(models.Record.review_id, *[getattr(models.Record, f) for f in FIELDS])
+                     .where(models.Record.id == keeper_id)).first()
+    if row:
+        db.add(models.RecordOriginal(record_id=keeper_id, review_id=row[0], values=dict(zip(FIELDS, row[1:]))))
+        db.flush()
+
+
+def rebuild(db: Session, rec: models.Record) -> None:
+    """A kept record, recomputed from its own values and the duplicates still merged into it;
+    back to its own values when none is left. Records merged before originals were kept only
+    get their list of sources put right."""
+    orig = db.get(models.RecordOriginal, rec.id)
+    dups = db.scalars(select(models.Record).where(models.Record.duplicate_of == rec.id)
+                      .order_by(models.Record.id)).all()
+    if orig is None:
+        sources = [_own_source(db, rec)] + [s for d in dups for s in str(d.source_db or "").split(";")]
+        rec.source_db = "; ".join(dict.fromkeys(s.strip() for s in sources if s.strip()))
+        return
+    values = dict(orig.values)
+    if dups:
+        group = [values] + [{f: getattr(d, f) for f in FIELDS} for d in dups]
+        values = core.merge_records(group, 0, list(range(len(group))))
+    else:
+        db.delete(orig)
+    for f in FIELDS:
+        if f in values:
+            setattr(rec, f, values[f])
+
+
+def reset(db: Session, review_id: str) -> int:
+    """Forgets every merge of the review: duplicates come back, kept records get their own
+    values back, pairs to check are cleared. Pairs answered "different" stay answered.
+    Returns how many records came back."""
+    keepers = set(db.scalars(select(models.Record.duplicate_of).where(
+        models.Record.review_id == review_id, models.Record.is_duplicate.is_(True),
+        models.Record.duplicate_of.is_not(None))))
+    n = db.execute(update(models.Record).where(models.Record.review_id == review_id,
+                                               models.Record.is_duplicate.is_(True))
+                   .values(is_duplicate=False, duplicate_of=None, dup_score=None, dup_reason="")).rowcount
     db.execute(update(models.Record).where(models.Record.review_id == review_id)
-               .values(is_duplicate=False, duplicate_of=None, dup_score=None, dup_reason=""))
+               .values(duplicate_of=None, dup_score=None, dup_reason=""))
+    db.flush()
+    with_original = set(db.scalars(select(models.RecordOriginal.record_id)
+                                   .where(models.RecordOriginal.review_id == review_id)))
+    for rid in keepers | with_original:
+        rec = db.get(models.Record, rid)
+        if rec is not None:
+            rebuild(db, rec)
     db.execute(delete(models.DedupCandidate).where(models.DedupCandidate.review_id == review_id,
                                                    models.DedupCandidate.status != "ignored"))
+    db.flush()
+    return int(n or 0)
 
 
 def mark(db: Session, keeper_id: int, dup_ids: list[int], score: float, reason: str,
@@ -73,6 +166,7 @@ def mark(db: Session, keeper_id: int, dup_ids: list[int], score: float, reason: 
                    .values(is_duplicate=True, duplicate_of=keeper_id, dup_score=score, dup_reason=reason[:200]))
         db.execute(update(models.Record).where(models.Record.duplicate_of == d).values(duplicate_of=keeper_id))
     if merged:
+        _keep_original(db, keeper_id)
         db.execute(update(models.Record).where(models.Record.id == keeper_id)
                    .values({f: merged[f] for f in FIELDS if f in merged}))
 
@@ -91,7 +185,7 @@ def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
     removed = 0
     keeper_of: dict[int, int] = {}
     for g in groups:
-        keeper = core.choose_keeper(records, g, prio)
+        keeper = _keep(records, g, prio)
         keeper_of.update({i: keeper for i in g})
         for i in g:
             if i == keeper:
@@ -127,7 +221,7 @@ def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
 
 
 def merge_candidate(db: Session, cand: models.DedupCandidate, keep_id: int | None = None,
-                    prio: list[str] | None = None) -> None:
+                    prio: KeepRule | None = None) -> None:
     """Merges a pair: `keep_id` (one of the two records) is kept when given, otherwise the
     review's rule chooses. The kept record's empty fields are filled from the other one."""
     ra, rb = db.get(models.Record, cand.record_a), db.get(models.Record, cand.record_b)
@@ -137,7 +231,7 @@ def merge_candidate(db: Session, cand: models.DedupCandidate, keep_id: int | Non
         return
     both = _as_dicts(db, ra, rb)
     keeper = ([r["id"] for r in both].index(keep_id) if keep_id in (ra.id, rb.id)
-              else core.choose_keeper(both, [0, 1], prio))
+              else _keep(both, [0, 1], prio))
     merged = core.merge_records(both, keeper, [0, 1])
     mark(db, both[keeper]["id"], [both[1 - keeper]["id"]], cand.score, cand.reason, merged)
     cand.status = "merged"
@@ -172,5 +266,13 @@ def ignore_candidate(db: Session, cand: models.DedupCandidate) -> None:
 
 
 def restore(db: Session, record: models.Record) -> None:
+    """Brings one duplicate back; the record it had been merged into is recomputed without it."""
+    keeper_id = record.duplicate_of
     record.is_duplicate, record.duplicate_of, record.dup_score, record.dup_reason = False, None, None, ""
+    db.flush()
+    keeper = db.get(models.Record, keeper_id) if keeper_id else None
+    if keeper is not None:
+        rebuild(db, keeper)
+    if db.get(models.RecordOriginal, record.id) is not None:     # it had been kept itself, earlier
+        rebuild(db, record)
     db.commit()

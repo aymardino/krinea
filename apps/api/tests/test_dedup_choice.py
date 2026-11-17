@@ -75,6 +75,7 @@ def test_source_order_and_explicit_choice(client):
     # The review's source order wins over completeness, for the suggestion and for automatic merges.
     r = client.patch(f"/reviews/{rid}", json={"settings": {"source_priority": ["PubMed", " Scopus ", "pubmed", ""]}})
     assert r.json()["settings"]["source_priority"] == ["PubMed", "Scopus"]
+    assert r.json()["settings"]["keeper_rule"] == "database"
     assert client.get(f"/reviews/{rid}/dedup/candidates").json()[0]["suggested_keep"] == x_b
     client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
     assert [(d["id"], d["kept_id"]) for d in client.get(f"/reviews/{rid}/dedup/duplicates").json()] == [(y_a, y_b)]
@@ -172,3 +173,88 @@ def test_chain_of_near_matches_is_asked_about_the_kept_record(client):
     client.post(f"/reviews/{rid}/dedup/candidates/{left[0]['id']}/merge?keep={a}")
     assert client.get(f"/reviews/{rid}/dedup/candidates").json() == []
     assert sorted((d["id"], d["kept_id"]) for d in client.get(f"/reviews/{rid}/dedup/duplicates").json()) == [(b, a), (c, a)]
+
+
+def test_file_order_rule(client):
+    register(client, "dedup-files@example.org", "Files")
+    rid = client.post("/reviews", json={"title": "Seventeen searches"}).json()["id"]
+    file_a = _import(client, rid, "q1.ris", SCOPUS, "Scopus")
+    file_b = _import(client, rid, "q9.ris", PUBMED, "PubMed")
+    recs = {(r["source_db"], r["year"]): r["id"] for r in _records(client, rid)}
+    y_a, y_b, x_b = recs[("Scopus", "2020")], recs[("PubMed", "2020")], recs[("PubMed", "2021")]
+
+    # Query 9 first: its record is kept, even though query 1's is more complete.
+    r = client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "file", "file_priority": [file_b, "not-an-import", file_a, file_b]}})
+    assert r.json()["settings"]["file_priority"] == [file_b, file_a] and r.json()["settings"]["keeper_rule"] == "file"
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    assert [(d["id"], d["kept_id"]) for d in client.get(f"/reviews/{rid}/dedup/duplicates").json()] == [(y_a, y_b)]
+    assert client.get(f"/reviews/{rid}/dedup/candidates").json()[0]["suggested_keep"] == x_b
+    kept = client.get(f"/reviews/{rid}/records/{y_b}").json()
+    assert kept["abstract"].startswith("Hybrid mini-grid") and kept["source_db"] == "PubMed; Scopus"   # gaps filled from query 1
+
+    # Back to the most complete record; an unknown rule is ignored; a deleted file leaves the order.
+    assert client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "fastest"}}).json()["settings"]["keeper_rule"] == "file"
+    assert client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "complete"}}).json()["settings"]["keeper_rule"] == "complete"
+    client.delete(f"/reviews/{rid}/imports/{file_a}")
+    assert client.get(f"/reviews/{rid}").json()["settings"]["file_priority"] == [file_b]
+
+
+def test_restore_all_gives_records_back_as_imported(client):
+    register(client, "dedup-restore@example.org", "Restore")
+    rid = client.post("/reviews", json={"title": "Undo"}).json()["id"]
+    file_a = _import(client, rid, "scopus.ris", SCOPUS, "Scopus")
+    _import(client, rid, "pubmed.ris", PUBMED, "PubMed")
+    recs = {(r["source_db"], r["year"]): r for r in _records(client, rid)}
+    y_a, y_b = recs[("Scopus", "2020")]["id"], recs[("PubMed", "2020")]["id"]
+    x_a, x_b = recs[("Scopus", "2021")]["id"], recs[("PubMed", "2021")]["id"]
+    before_b = client.get(f"/reviews/{rid}/records/{y_b}").json()
+
+    # Query 9 (PubMed) first: the poorer PubMed record is kept and filled from the Scopus one.
+    client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "file", "file_priority": [recs[("PubMed", "2020")]["import_id"], file_a]}})
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    kept = client.get(f"/reviews/{rid}/records/{y_b}").json()
+    assert kept["abstract"] and kept["journal"] == "Renewable Energy" and kept["source_db"] == "PubMed; Scopus"
+    cand = client.get(f"/reviews/{rid}/dedup/candidates").json()[0]
+    client.post(f"/reviews/{rid}/dedup/candidates/{cand['id']}/ignore")       # "different, keep both"
+
+    # Restoring one duplicate recomputes its keeper; restoring everything undoes every merge.
+    assert client.post(f"/reviews/{rid}/records/{y_a}/restore").json() == {"ok": True}
+    back = client.get(f"/reviews/{rid}/records/{y_b}").json()
+    assert (back["abstract"], back["journal"], back["source_db"]) == (before_b["abstract"], before_b["journal"], "PubMed")
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    assert client.get(f"/reviews/{rid}/records/{y_a}").json()["duplicate_of"] == y_b
+    assert client.post(f"/reviews/{rid}/dedup/restore-all").json() == {"restored": 1}
+    assert client.get(f"/reviews/{rid}/dedup/duplicates").json() == []
+    back = client.get(f"/reviews/{rid}/records/{y_b}").json()
+    assert (back["abstract"], back["journal"], back["source_db"]) == (before_b["abstract"], before_b["journal"], "PubMed")
+    assert len(_records(client, rid)) == 4
+    # The pair answered "different" stays answered on the next detection.
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    assert client.get(f"/reviews/{rid}/dedup/candidates").json() == []
+    assert {x_a, x_b} <= {r["id"] for r in _records(client, rid)}
+
+
+def test_merges_made_before_originals_were_kept(client):
+    from krinea_api import models
+    from krinea_api.db import session_factory
+    register(client, "dedup-legacy@example.org", "Legacy")
+    rid = client.post("/reviews", json={"title": "Legacy"}).json()["id"]
+    file_a = _import(client, rid, "scopus.ris", SCOPUS, "Scopus")
+    _import(client, rid, "pubmed.ris", PUBMED, "PubMed")
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    y_a = next(r["id"] for r in _records(client, rid) if r["year"] == "2020")
+    assert client.get(f"/reviews/{rid}/records/{y_a}").json()["source_db"] == "Scopus; PubMed"
+    db = session_factory()()
+    try:                                      # as if the merge had been made by an earlier version
+        db.query(models.RecordOriginal).filter_by(review_id=rid).delete()
+        db.commit()
+    finally:
+        db.close()
+    client.post(f"/reviews/{rid}/dedup/restore-all")
+    assert client.get(f"/reviews/{rid}/records/{y_a}").json()["source_db"] == "Scopus"   # the source list is put right
+    # Deleting a file recomputes the records that had absorbed its duplicates.
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    pubmed = next(i["id"] for i in client.get(f"/reviews/{rid}/imports").json() if i["source_db"] == "PubMed")
+    client.delete(f"/reviews/{rid}/imports/{pubmed}")
+    assert client.get(f"/reviews/{rid}/records/{y_a}").json()["source_db"] == "Scopus"
+    assert file_a

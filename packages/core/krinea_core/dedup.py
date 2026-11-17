@@ -210,10 +210,20 @@ def source_rank(rec: dict, priority=None) -> int:
     return order.index(own) if own in order else len(order)
 
 
-def choose_keeper(records, idxs, priority=None) -> int:
-    """Index of the record to keep in a group: the one from the most preferred source when a
-    source priority is given, then the most complete one; the earliest import wins ties."""
-    return max(sorted(idxs), key=lambda i: (-source_rank(records[i], priority), completeness(records[i]), -i))
+def file_rank(rec: dict, files=None) -> int:
+    """Position of the record's own import (the file, or search, it came from) in `files`,
+    or len(files) when it is not listed."""
+    order = [str(f) for f in (files or []) if str(f)]
+    own = str(rec.get("import_id") or "")
+    return order.index(own) if own in order else len(order)
+
+
+def choose_keeper(records, idxs, priority=None, files=None) -> int:
+    """Index of the record to keep in a group: the one from the preferred imported file when a
+    file order is given, then from the preferred source when a source order is given, then the
+    most complete one; the earliest import wins ties."""
+    return max(sorted(idxs), key=lambda i: (-file_rank(records[i], files), -source_rank(records[i], priority),
+                                            completeness(records[i]), -i))
 
 
 def merge_records(records, keeper: int, idxs) -> dict:

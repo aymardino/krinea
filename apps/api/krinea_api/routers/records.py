@@ -75,6 +75,9 @@ def delete_import(import_id: str, access=Depends(ReviewAccess("admin")), user: m
     sk = dict(crit.get("search_keywords") or {})
     if sk.pop(import_id, None) is not None:                # the search's own keywords go with it
         review.criteria = {**crit, "search_keywords": sk}
+    settings = dict(review.settings or {})
+    if import_id in (settings.get("file_priority") or []):   # and its place in the file order
+        review.settings = {**settings, "file_priority": [f for f in settings["file_priority"] if f != import_id]}
     log_activity(db, review.id, user.id, "import_deleted", filename=imp.filename, n=n)
     db.commit()
     return {"deleted": n}
@@ -534,6 +537,18 @@ def duplicates(limit: int = Query(200, ge=1, le=2000), access=Depends(ReviewAcce
         keepers = dict(db.execute(select(d.id, d.title).where(d.id.in_(ids))).all())
     return [{"id": r[0], "title": r[1], "year": r[2], "doi": r[3], "source_db": r[4], "score": r[5],
              "reason": r[6], "kept_id": r[7], "kept_title": keepers.get(r[7], "")} for r in rows]
+
+
+@router.post("/dedup/restore-all")
+def restore_all(access=Depends(ReviewAccess("admin")), user: models.User = Depends(current_user),
+                db: DBSession = Depends(get_db)):
+    """Undoes every merge of the review: removed duplicates come back and kept records get
+    their own values back. Pairs answered "different" stay answered."""
+    review, _ = access
+    n = dedup_service.reset(db, review.id)
+    log_activity(db, review.id, user.id, "dedup_restored", n=n)
+    db.commit()
+    return {"restored": n}
 
 
 @router.post("/records/{record_id}/restore")

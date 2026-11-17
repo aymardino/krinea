@@ -43,14 +43,25 @@ def delete_import(db: Session, review: models.Review, imp: models.Import) -> int
     pdf_keys = db.scalars(select(models.Record.pdf_key).where(models.Record.import_id == imp.id,
                                                               models.Record.review_id == review.id,
                                                               models.Record.pdf_key != "")).all()
+    from krinea_api.services import dedup as dedup_service
+    # Records of other files that absorbed this file's duplicates are recomputed without them.
+    absorbed_by = set(db.scalars(select(models.Record.duplicate_of).where(
+        models.Record.import_id == imp.id, models.Record.review_id == review.id,
+        models.Record.duplicate_of.is_not(None))))
     n = db.execute(delete(models.Record).where(models.Record.import_id == imp.id,
                                                 models.Record.review_id == review.id)).rowcount
     # Duplicates whose keeper vanished become visible again
     keeper_ids = select(models.Record.id).where(models.Record.review_id == review.id)
-    db.execute(update(models.Record).where(models.Record.review_id == review.id,
-                                           models.Record.duplicate_of.is_not(None),
-                                           models.Record.duplicate_of.not_in(keeper_ids))
+    orphans = set(db.scalars(select(models.Record.id).where(models.Record.review_id == review.id,
+                                                            models.Record.duplicate_of.is_not(None),
+                                                            models.Record.duplicate_of.not_in(keeper_ids))))
+    db.execute(update(models.Record).where(models.Record.id.in_(orphans))
                .values(is_duplicate=False, duplicate_of=None, dup_score=None, dup_reason=""))
+    db.flush()
+    for rid in absorbed_by | orphans:
+        rec = db.get(models.Record, rid)
+        if rec is not None:
+            dedup_service.rebuild(db, rec)
     db.delete(imp)
     db.commit()
     storage.delete_pdfs(pdf_keys)

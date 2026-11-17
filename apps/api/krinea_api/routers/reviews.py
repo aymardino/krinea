@@ -11,6 +11,7 @@ from krinea_api.urls import public_base_url
 from krinea_api.db import get_db
 from krinea_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
 from krinea_api.security import expires_in, new_token, token_hash
+from krinea_api.services import dedup as dedup_service
 from krinea_api.services import email as email_service
 from krinea_api.services import screening as scr
 from krinea_api.services import storage
@@ -20,7 +21,8 @@ from krinea_core import screening as core_screening
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 DEFAULT_SETTINGS = {"required_reviewers": 1, "blind": True, "ai_provider": "claude",
-                    "ai_model_screening": "", "ai_model_extraction": "", "source_priority": []}
+                    "ai_model_screening": "", "ai_model_extraction": "", "keeper_rule": "complete",
+                    "file_priority": [], "source_priority": []}
 
 
 def _clean_priority(value) -> list[str]:
@@ -45,7 +47,7 @@ def review_out(db: DBSession, review: models.Review, role: str, with_counts: boo
     return schemas.ReviewOut(
         id=review.id, title=review.title, description=review.description, question=review.question,
         review_type=review.review_type, criteria=core_screening.criteria_with_defaults(review.criteria or {}),
-        settings={**DEFAULT_SETTINGS, **(review.settings or {})},
+        settings={**DEFAULT_SETTINGS, **(review.settings or {}), "keeper_rule": dedup_service.keeper_rule(review.settings)},
         extraction_schema=extraction_schema.from_json(review.extraction_schema or []),
         is_archived=review.is_archived, created_at=review.created_at, updated_at=review.updated_at,
         my_role=role, members=_members(db, review.id),
@@ -115,9 +117,20 @@ def update_review(body: schemas.ReviewUpdate, access=Depends(ReviewAccess("admin
     if body.criteria is not None:
         review.criteria = core_screening.criteria_with_defaults({**(review.criteria or {}), **body.criteria})
     if body.settings is not None:
-        merged = {**DEFAULT_SETTINGS, **(review.settings or {}), **body.settings}
+        current = {**DEFAULT_SETTINGS, **(review.settings or {}), "keeper_rule": dedup_service.keeper_rule(review.settings)}
+        merged = {**current, **body.settings}
+        if "keeper_rule" not in body.settings:          # an order sent on its own means using it
+            if body.settings.get("file_priority"):
+                merged["keeper_rule"] = "file"
+            elif body.settings.get("source_priority"):
+                merged["keeper_rule"] = "database"
         merged["required_reviewers"] = max(1, min(5, int(merged.get("required_reviewers") or 1)))
         merged["source_priority"] = _clean_priority(merged.get("source_priority"))
+        if merged.get("keeper_rule") not in dedup_service.KEEPER_RULES:
+            merged["keeper_rule"] = current["keeper_rule"]
+        own = set(db.scalars(select(models.Import.id).where(models.Import.review_id == review.id)))
+        files = merged.get("file_priority") if isinstance(merged.get("file_priority"), list) else []
+        merged["file_priority"] = list(dict.fromkeys(str(f) for f in files if str(f) in own))
         review.settings = merged
     if body.extraction_schema is not None:
         fields = [extraction_schema.normalise_field(f) for f in body.extraction_schema

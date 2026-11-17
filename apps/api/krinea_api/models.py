@@ -288,3 +288,13 @@ class PageView(Base):
     referrer_host: Mapped[str] = mapped_column(String(120), default="")
     visitor_hash: Mapped[str] = mapped_column(String(32))
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now)
+
+
+class RecordOriginal(Base):
+    """A record's own values, kept the first time a merge fills its gaps from its duplicates,
+    so that restoring the duplicates gives the record back as it was imported."""
+    __tablename__ = "record_originals"
+    record_id: Mapped[int] = mapped_column(ForeignKey("records.id", ondelete="CASCADE"), primary_key=True)
+    review_id: Mapped[str] = mapped_column(ForeignKey("reviews.id", ondelete="CASCADE"), index=True)
+    values: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now)

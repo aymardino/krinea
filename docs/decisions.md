@@ -589,3 +589,20 @@ Keywords stay shared by the team, so double screening shows everyone the same hi
 and they remain a visual aid: eligibility criteria stay the review's own, and the AI does
 not read them. Deleting an import deletes its keywords. Screening and extraction lists also
 filter by label, matched exactly ("SQ1" does not match "SQ10").
+
+## D-31 · 2026-11-17 · decided · Record kept by file order; merges can be undone
+
+**Decision.** The review settings offer three rules for the record kept among duplicates:
+the most complete one (default), the order of the imported files (for instance one file per
+search query, the most reliable first; `settings.keeper_rule = "file"` with
+`settings.file_priority`, a list of import ids), or the order of the databases (`"database"`,
+`settings.source_priority`). Within a file or a database, the most complete record wins. A
+review that saved a database order before the rule existed keeps using it.
+
+Merges can be undone without loss. The first time a merge fills a record's gaps, its own
+values are stored (`record_originals`). Restoring one duplicate recomputes the record it had
+been merged into from those values and the duplicates still merged; "Restore all"
+(`POST /dedup/restore-all`) brings every duplicate back and gives kept records their own
+values back. Pairs answered "different" stay answered. Merges made before originals were
+stored only get their list of sources put right. Deleting an import recomputes the records
+that had absorbed its duplicates.
