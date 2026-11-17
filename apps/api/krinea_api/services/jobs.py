@@ -53,7 +53,7 @@ def _run_ai_screen(db: Session, job: models.Job) -> dict:
     ok, errors = 0, []
     for i, rid in enumerate(ids, 1):
         rec = db.get(models.Record, rid)
-        if not rec:
+        if not rec or rec.review_id != job.review_id:
             continue
         try:
             ai.screen_record(db, review, user, rec, p.get("stage", "ta"), p.get("provider"), p.get("model"))
@@ -76,7 +76,7 @@ def _run_extract(db: Session, job: models.Job) -> dict:
     ok, failed = 0, 0
     for i, rid in enumerate(ids, 1):
         rec = db.get(models.Record, rid)
-        if not rec:
+        if not rec or rec.review_id != job.review_id:
             continue
         ex = ai.extract_record(db, review, user, rec, p.get("provider"), p.get("model"))
         ok += ex.status == "draft"

@@ -195,9 +195,25 @@ def completeness(rec: dict) -> int:
     return score
 
 
-def choose_keeper(records, idxs) -> int:
-    """Index of the most complete record in the group (earliest import wins ties)."""
-    return max(sorted(idxs), key=lambda i: (completeness(records[i]), -i))
+def own_source(rec: dict) -> str:
+    """The database a record was imported from: `origin_source` when the caller knows it,
+    otherwise the first source listed (a merged record lists its own source first, then the
+    sources it absorbed, which must not count for it)."""
+    return str(rec.get("origin_source") or str(rec.get("source_db") or "").split(";")[0]).strip()
+
+
+def source_rank(rec: dict, priority=None) -> int:
+    """Position of the record's own source in `priority` (case-insensitive), or
+    len(priority) when it is not listed."""
+    order = [str(p).strip().lower() for p in (priority or []) if str(p).strip()]
+    own = own_source(rec).lower()
+    return order.index(own) if own in order else len(order)
+
+
+def choose_keeper(records, idxs, priority=None) -> int:
+    """Index of the record to keep in a group: the one from the most preferred source when a
+    source priority is given, then the most complete one; the earliest import wins ties."""
+    return max(sorted(idxs), key=lambda i: (-source_rank(records[i], priority), completeness(records[i]), -i))
 
 
 def merge_records(records, keeper: int, idxs) -> dict:
@@ -205,12 +221,13 @@ def merge_records(records, keeper: int, idxs) -> dict:
     `source_db` becomes the union of all sources (useful for PRISMA per-database counts)."""
     merged = {f: records[keeper].get(f, "") for f in RECORD_FIELDS}
     sources = []
-    for i in sorted(idxs):
+    for i in [keeper] + [j for j in sorted(idxs) if j != keeper]:     # the kept record's own source first
         src = str(records[i].get("source_db") or "").strip()
         for s in src.split(";"):
             s = s.strip()
             if s and s not in sources:
                 sources.append(s)
+    for i in sorted(idxs):
         if i == keeper:
             continue
         for f in RECORD_FIELDS:

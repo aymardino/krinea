@@ -168,7 +168,12 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     if label.strip():
         q = q.where(models.Record.labels.ilike(f"%{label.strip()}%"))
     if import_id:
-        q = q.where(models.Record.import_id == import_id)
+        # A record found in this file may have been merged into a record from another file:
+        # the kept record counts for every file it was found in.
+        merged_into = (select(models.Record.duplicate_of)
+                       .where(models.Record.review_id == review.id, models.Record.import_id == import_id,
+                              models.Record.is_duplicate.is_(True), models.Record.duplicate_of.is_not(None)))
+        q = q.where(or_(models.Record.import_id == import_id, models.Record.id.in_(merged_into)))
     if year_from.strip():
         q = q.where(models.Record.year >= year_from.strip()[:4])
     if year_to.strip():
@@ -422,6 +427,7 @@ def candidates(status: str = "pending", limit: int = Query(50, ge=1, le=500), ac
                       .order_by(models.DedupCandidate.score.desc(), models.DedupCandidate.id).limit(limit)).all()
     c = scr.compute(db, review)
     names = _names(db, review.id)
+    prio = dedup_service.priority(review)
     out = []
     for cand in rows:
         a, b = db.get(models.Record, cand.record_a), db.get(models.Record, cand.record_b)
@@ -429,24 +435,36 @@ def candidates(status: str = "pending", limit: int = Query(50, ge=1, le=500), ac
             continue
         out.append(schemas.CandidateOut(id=cand.id, score=cand.score, reason=cand.reason, status=cand.status,
                                         a=record_out(a, c, user.id, True, names, None),
-                                        b=record_out(b, c, user.id, True, names, None)))
+                                        b=record_out(b, c, user.id, True, names, None),
+                                        suggested_keep=dedup_service.suggested_keep(db, a, b, prio)))
     return out
 
 
 @router.post("/dedup/candidates/{cand_id}/{action}")
-def resolve_candidate(cand_id: int, action: str, access=Depends(ReviewAccess("reviewer")),
+def resolve_candidate(cand_id: int, action: str, keep: int | None = None, access=Depends(ReviewAccess("reviewer")),
                       user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+    """`merge` keeps the record given in `keep` (one of the pair), or lets the review's rule
+    choose; `ignore` keeps both records."""
     review, _ = access
     cand = db.get(models.DedupCandidate, cand_id)
     if not cand or cand.review_id != review.id:
         raise HTTPException(404, "Candidate not found")
+    if keep is not None and keep not in (cand.record_a, cand.record_b):
+        raise HTTPException(400, "keep must be one of the two records of the pair")
     if action == "merge":
-        dedup_service.merge_candidate(db, cand)
+        dedup_service.merge_candidate(db, cand, keep, dedup_service.priority(review))
     elif action == "ignore":
         dedup_service.ignore_candidate(db, cand)
     else:
         raise HTTPException(400, "action must be merge or ignore")
     return {"ok": True, "status": cand.status}
+
+
+@router.get("/sources")
+def list_sources(access=Depends(ReviewAccess("viewer")), db: DBSession = Depends(get_db)):
+    """Databases the review's records come from, for the source order in the settings."""
+    review, _ = access
+    return dedup_service.sources(db, review.id)
 
 
 @router.get("/dedup/duplicates")

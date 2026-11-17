@@ -547,3 +547,28 @@ not advised.
 ### P-09 · Legal vehicle for a paid offer
 
 Undecided; until then the hosted service stays free.
+
+## D-29 · 2026-11-17 · decided · Which duplicate is kept; filters by imported file
+
+**Decision.** When records are merged, the reviewer decides which one is kept, or the
+review's rule does:
+
+- **Source order.** A review can rank its databases (settings, "Preferred sources for
+  duplicates", stored in `settings.source_priority`). The record from the source highest in
+  the list is kept, then the most complete one, then the earliest import. A record ranks by
+  its own source (the label given at import, otherwise the first source it lists), never by
+  the sources it absorbed in an earlier merge. With no order saved, the rule is unchanged:
+  the most complete record is kept.
+- **Explicit choice on a pair.** Each pair to check offers "Keep this one" on both records
+  (`POST /dedup/candidates/{id}/merge?keep={record_id}`), the record the rule would keep
+  being marked as suggested; "Different, keep both" is unchanged.
+- **Merging fills gaps.** The kept record keeps its own values; its empty fields are filled
+  from the other records, and its sources list its own source first, then the others, so
+  PRISMA counts every database the study was found in. Removed duplicates stay restorable.
+- **Filter by file.** Screening and extraction lists filter by imported file
+  (`import_id`). A record merged away from that file still counts for it through the
+  record it was merged into. Extraction also filters by status and PDF, and "Extract with
+  AI" then runs on the studies shown only.
+- **AI runs stay inside the review.** Explicit `record_ids` sent to the screening or
+  extraction runs are intersected with the review's own pool, and the job runners skip any
+  record of another review.

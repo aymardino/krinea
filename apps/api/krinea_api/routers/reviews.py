@@ -20,7 +20,17 @@ from krinea_core import screening as core_screening
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 DEFAULT_SETTINGS = {"required_reviewers": 1, "blind": True, "ai_provider": "claude",
-                    "ai_model_screening": "", "ai_model_extraction": ""}
+                    "ai_model_screening": "", "ai_model_extraction": "", "source_priority": []}
+
+
+def _clean_priority(value) -> list[str]:
+    """Source order for duplicates: distinct, non-empty names (case-insensitive), at most 30."""
+    out: list[str] = []
+    for s in value if isinstance(value, list) else []:
+        s = str(s).strip()[:120]
+        if s and s.lower() not in {o.lower() for o in out}:
+            out.append(s)
+    return out[:30]
 
 
 def _members(db: DBSession, review_id: str) -> list[schemas.MemberOut]:
@@ -107,6 +117,7 @@ def update_review(body: schemas.ReviewUpdate, access=Depends(ReviewAccess("admin
     if body.settings is not None:
         merged = {**DEFAULT_SETTINGS, **(review.settings or {}), **body.settings}
         merged["required_reviewers"] = max(1, min(5, int(merged.get("required_reviewers") or 1)))
+        merged["source_priority"] = _clean_priority(merged.get("source_priority"))
         review.settings = merged
     if body.extraction_schema is not None:
         fields = [extraction_schema.normalise_field(f) for f in body.extraction_schema

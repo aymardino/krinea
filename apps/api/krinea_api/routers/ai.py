@@ -29,6 +29,9 @@ def ai_screen(body: schemas.AIScreenIn, access=Depends(ReviewAccess("reviewer"))
                                                                          models.AISuggestion.stage == body.stage)))
         status = c["ta_status"] if body.stage == "ta" else c["ft_status"]
         ids = [rid for rid in scr.pool_ids(c, body.stage) if rid not in have and status.get(rid) == "pending"]
+    else:
+        pool = set(scr.pool_ids(c, body.stage))
+        ids = [rid for rid in ids if rid in pool]          # never another review's records
     ids = ids[: max(1, min(body.limit, 2000))]
     try:                                            # fail fast when no key is usable
         provider, _model = ai_service.provider_and_model(review, "screening", body.provider, body.model)
@@ -72,6 +75,9 @@ def run_extraction(body: schemas.ExtractionRunIn, access=Depends(ReviewAccess("r
         with_pdf = set(db.scalars(select(models.Record.id).where(models.Record.review_id == review.id,
                                                                  models.Record.pdf_key != "")))
         ids = [rid for rid in c["extract_pool"] if rid in with_pdf and rid not in have]
+    else:
+        pool = set(c["extract_pool"])
+        ids = [rid for rid in ids if rid in pool]          # never another review's records
     try:
         provider, _model = ai_service.provider_and_model(review, "extraction", body.provider, body.model)
         ai_service.resolve_key(db, user, provider)

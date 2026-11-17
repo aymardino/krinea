@@ -242,6 +242,7 @@ class CandidateOut(BaseModel):
     status: str
     a: RecordOut
     b: RecordOut
+    suggested_keep: int | None = None
 
 
 class JobOut(BaseModel):

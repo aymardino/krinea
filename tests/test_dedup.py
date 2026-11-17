@@ -61,6 +61,23 @@ def test_cluster_keeper_merge():
     assert merged["abstract"] == RECS[0]["abstract"]
 
 
+def test_source_priority_decides_the_keeper():
+    group = [0, 1, 2, 8]
+    assert dedup.source_rank(RECS[1], ["PubMed", "web of science"]) == 1
+    assert dedup.source_rank(RECS[3], ["PubMed"]) == 1                 # no source: after every listed one
+    # A merged record ranks by its own source (listed first), not by the ones it absorbed.
+    assert dedup.source_rank({"source_db": "Scopus; PubMed"}, ["pubmed", "scopus"]) == 1
+    assert dedup.source_rank({"source_db": "Scopus; PubMed", "origin_source": "PubMed"}, ["pubmed"]) == 0
+    # The preferred source wins over completeness; completeness decides within a source.
+    assert dedup.choose_keeper(RECS, group, ["Web of Science", "Scopus"]) == 1
+    assert dedup.choose_keeper(RECS, group, ["pubmed"]) == 2
+    assert dedup.choose_keeper(RECS, group, ["Embase"]) == 0             # nobody listed: most complete
+    assert dedup.choose_keeper(RECS, group, []) == dedup.choose_keeper(RECS, group) == 0
+    merged = dedup.merge_records(RECS, 2, group)
+    assert merged["year"] == "2020" and merged["doi"] == "10.1016/j.esd.2019.07.009"   # kept values win, gaps filled
+    assert merged["source_db"] == "PubMed; Scopus; Web of Science"                       # the kept record's source first
+
+
 def test_thresholds_can_be_tightened():
     pairs = dedup.find_duplicates(RECS, auto_threshold=100, review_threshold=99)
     assert _pair(pairs, 3, 4) is None
