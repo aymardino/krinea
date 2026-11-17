@@ -71,9 +71,44 @@ def delete_import(import_id: str, access=Depends(ReviewAccess("admin")), user: m
     if not imp or imp.review_id != review.id:
         raise HTTPException(404, "Import not found")
     n = import_service.delete_import(db, review, imp)
+    crit = dict(review.criteria or {})
+    sk = dict(crit.get("search_keywords") or {})
+    if sk.pop(import_id, None) is not None:                # the search's own keywords go with it
+        review.criteria = {**crit, "search_keywords": sk}
     log_activity(db, review.id, user.id, "import_deleted", filename=imp.filename, n=n)
     db.commit()
     return {"deleted": n}
+
+
+def _clean_keywords(value) -> list[str]:
+    out: list[str] = []
+    for s in value if isinstance(value, list) else []:
+        s = str(s).strip()[:100]
+        if s and s.lower() not in {o.lower() for o in out}:
+            out.append(s)
+    return out[:100]
+
+
+@router.put("/imports/{import_id}/keywords")
+def set_search_keywords(import_id: str, body: schemas.SearchKeywordsIn, access=Depends(ReviewAccess("admin")),
+                        user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+    """Highlight keywords of one search (imported file), added to the review's own keywords
+    on the records that search found."""
+    review, _ = access
+    imp = db.get(models.Import, import_id)
+    if not imp or imp.review_id != review.id:
+        raise HTTPException(404, "Import not found")
+    crit = dict(review.criteria or {})
+    sk = dict(crit.get("search_keywords") or {})
+    entry = {"include": _clean_keywords(body.include), "exclude": _clean_keywords(body.exclude)}
+    if entry["include"] or entry["exclude"]:
+        sk[import_id] = entry
+    else:
+        sk.pop(import_id, None)
+    review.criteria = {**crit, "search_keywords": sk}
+    log_activity(db, review.id, user.id, "search_keywords", filename=imp.filename)
+    db.commit()
+    return entry
 
 
 # ── Listing ──────────────────────────────────────────────────────────────────────
@@ -87,7 +122,7 @@ def _decision_dict(d: models.Decision, names: dict[str, str]) -> dict:
 
 
 def record_out(rec: models.Record, computed: dict, user_id: str, blind: bool, names: dict[str, str],
-               ai: dict | None, stage: str = "ta") -> schemas.RecordOut:
+               ai: dict | None, stage: str = "ta", merged_from: list[str] | None = None) -> schemas.RecordOut:
     decs = computed["decisions"]
     ta = computed["ta_status"].get(rec.id, "pending")
     ft = computed["ft_status"].get(rec.id, "pending")
@@ -103,7 +138,25 @@ def record_out(rec: models.Record, computed: dict, user_id: str, blind: bool, na
         import_id=rec.import_id, is_duplicate=rec.is_duplicate, duplicate_of=rec.duplicate_of,
         dup_score=rec.dup_score, dup_reason=rec.dup_reason, pdf_status=rec.pdf_status,
         has_pdf=bool(rec.pdf_key), labels=rec.labels, notes=rec.notes, ta_status=ta, ft_status=ft,
-        my_decision=_decision_dict(mine, names) if mine else None, decisions=visible, ai=ai)
+        my_decision=_decision_dict(mine, names) if mine else None, decisions=visible, ai=ai,
+        found_in=list(dict.fromkeys([i for i in [rec.import_id, *(merged_from or [])] if i])))
+
+
+def _merged_from(db: DBSession, review_id: str, ids: list[int]) -> dict[int, list[str]]:
+    """Imports of the duplicates merged into each record: a record counts for every search
+    that found it."""
+    out: dict[int, list[str]] = {}
+    if not ids:
+        return out
+    for keeper, imp in db.execute(select(models.Record.duplicate_of, models.Record.import_id)
+                                  .where(models.Record.review_id == review_id, models.Record.is_duplicate.is_(True),
+                                         models.Record.duplicate_of.in_(ids), models.Record.import_id.is_not(None))):
+        out.setdefault(keeper, []).append(imp)
+    return out
+
+
+def _labels_of(text: str) -> set[str]:
+    return {x.strip().lower() for x in re.split(r"[;,]", text or "") if x.strip()}
 
 
 def _names(db: DBSession, review_id: str) -> dict[str, str]:
@@ -170,10 +223,7 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     if import_id:
         # A record found in this file may have been merged into a record from another file:
         # the kept record counts for every file it was found in.
-        merged_into = (select(models.Record.duplicate_of)
-                       .where(models.Record.review_id == review.id, models.Record.import_id == import_id,
-                              models.Record.is_duplicate.is_(True), models.Record.duplicate_of.is_not(None)))
-        q = q.where(or_(models.Record.import_id == import_id, models.Record.id.in_(merged_into)))
+        q = q.where(scr.found_in_import(review.id, import_id))
     if year_from.strip():
         q = q.where(models.Record.year >= year_from.strip()[:4])
     if year_to.strip():
@@ -181,11 +231,14 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     rows = db.scalars(q.order_by(models.Record.id)).all()
     idset = set(ids)
     rows = [r for r in rows if r.id in idset]
+    if label.strip():                         # exact label: "SQ1" must not match "SQ10"
+        rows = [r for r in rows if label.strip().lower() in _labels_of(r.labels)]
     total = len(rows)
     page = [r for r in rows if r.id > cursor][:limit]
     names = _names(db, review.id)
     ai = _ai_map(db, review.id, st_stage, [r.id for r in page])
-    items = [record_out(r, c, user.id, blind, names, ai.get(r.id), st_stage) for r in page]
+    merged = _merged_from(db, review.id, [r.id for r in page])
+    items = [record_out(r, c, user.id, blind, names, ai.get(r.id), st_stage, merged.get(r.id)) for r in page]
     next_cursor = page[-1].id if len(page) == limit and page[-1].id != rows[-1].id else None
     return schemas.RecordPage(items=items, total=total, next_cursor=next_cursor)
 
@@ -205,7 +258,7 @@ def get_record(record_id: int, stage: str = "ta", access=Depends(ReviewAccess("v
     c = scr.compute(db, review)
     st = "ft" if stage == "ft" else "ta"
     return record_out(rec, c, user.id, _blind(review, m.role), _names(db, review.id),
-                      _ai_map(db, review.id, st, [rec.id]).get(rec.id), st)
+                      _ai_map(db, review.id, st, [rec.id]).get(rec.id), st, _merged_from(db, review.id, [rec.id]).get(rec.id))
 
 
 @router.patch("/records/{record_id}", response_model=schemas.RecordOut)

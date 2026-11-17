@@ -5,7 +5,7 @@ import datetime as dt
 import re
 from collections import defaultdict
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from krinea_api import models
@@ -120,23 +120,49 @@ def _kw_regex(kw: str) -> re.Pattern:
     return re.compile((rf"\b{body}\b" if not kw.endswith("*") else rf"\b{body}"), re.I)
 
 
-def keyword_counts(db: Session, review: models.Review) -> dict:
-    """How many unique records mention each highlight keyword (title + abstract + keywords)."""
+def found_in_import(review_id: str, import_id: str):
+    """Records found by a search (an imported file): its own records, and the records its
+    duplicates were merged into."""
+    merged_into = (select(models.Record.duplicate_of)
+                   .where(models.Record.review_id == review_id, models.Record.import_id == import_id,
+                          models.Record.is_duplicate.is_(True), models.Record.duplicate_of.is_not(None)))
+    return or_(models.Record.import_id == import_id, models.Record.id.in_(merged_into))
+
+
+def search_keywords(review: models.Review) -> dict[str, dict[str, list[str]]]:
+    """Highlight keywords that belong to one search (imported file), by import id."""
+    raw = (review.criteria or {}).get("search_keywords") or {}
+    return {str(k): {"include": list(v.get("include") or []), "exclude": list(v.get("exclude") or [])}
+            for k, v in raw.items() if isinstance(v, dict)}
+
+
+def _counts(texts: list[str], kws: list[str]) -> list[dict]:
+    out = []
+    for kw in kws:
+        rx = _kw_regex(kw)
+        out.append({"keyword": kw, "n": sum(1 for t in texts if rx.search(t))})
+    return out
+
+
+def keyword_counts(db: Session, review: models.Review, import_id: str = "") -> dict:
+    """How many unique records mention each highlight keyword (title + abstract + keywords).
+    With `import_id`, the keywords of that search are also counted, over its own records."""
     crit = core.criteria_with_defaults(review.criteria or {})
     inc = core.parse_keywords(crit["highlight_include"])
     exc = core.parse_keywords(crit["highlight_exclude"])
-    if not inc and not exc:
-        return {"include": [], "exclude": []}
-    rows = db.execute(select(models.Record.id, models.Record.title, models.Record.abstract, models.Record.keywords)
-                      .where(models.Record.review_id == review.id, models.Record.is_duplicate.is_(False))).all()
-    texts = [f"{t}\n{a}\n{k}" for _, t, a, k in rows]
-    def count(kws):
-        out = []
-        for kw in kws:
-            rx = _kw_regex(kw)
-            out.append({"keyword": kw, "n": sum(1 for t in texts if rx.search(t))})
-        return out
-    return {"include": count(inc), "exclude": count(exc)}
+    own = search_keywords(review).get(import_id, {}) if import_id else {}
+    s_inc, s_exc = core.parse_keywords(own.get("include") or []), core.parse_keywords(own.get("exclude") or [])
+    out: dict = {"include": [], "exclude": []}
+    base = select(models.Record.title, models.Record.abstract, models.Record.keywords).where(
+        models.Record.review_id == review.id, models.Record.is_duplicate.is_(False))
+    if inc or exc:
+        texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base).all()]
+        out = {"include": _counts(texts, inc), "exclude": _counts(texts, exc)}
+    if import_id:
+        texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base.where(found_in_import(review.id, import_id))).all()] \
+            if (s_inc or s_exc) else []
+        out["search"] = {"include": _counts(texts, s_inc), "exclude": _counts(texts, s_exc)}
+    return out
 
 
 def activity(db: Session, review_id: str, limit: int = 30) -> list[dict]:

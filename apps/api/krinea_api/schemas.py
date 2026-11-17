@@ -183,6 +183,7 @@ class RecordOut(BaseModel):
 
     class Config:
         from_attributes = True
+    found_in: list[str] = []
 
 
 class RecordPage(BaseModel):
@@ -233,6 +234,11 @@ class BulkDecisionIn(BaseModel):
 class DedupRunIn(BaseModel):
     auto_threshold: float = 95.0
     review_threshold: float = 85.0
+
+
+class SearchKeywordsIn(BaseModel):
+    include: list[str] = []
+    exclude: list[str] = []
 
 
 class CandidateOut(BaseModel):

@@ -149,9 +149,9 @@ def summary(access=Depends(ReviewAccess("viewer")), user: models.User = Depends(
 
 
 @router.get("/{review_id}/keywords")
-def keywords(access=Depends(ReviewAccess("viewer")), db: DBSession = Depends(get_db)):
+def keywords(import_id: str = "", access=Depends(ReviewAccess("viewer")), db: DBSession = Depends(get_db)):
     review, _ = access
-    return scr.keyword_counts(db, review)
+    return scr.keyword_counts(db, review, import_id)
 
 
 @router.get("/{review_id}/activity")

@@ -572,3 +572,16 @@ review's rule does:
 - **AI runs stay inside the review.** Explicit `record_ids` sent to the screening or
   extraction runs are intersected with the review's own pool, and the job runners skip any
   record of another review.
+
+## D-30 · 2026-11-17 · decided · Keywords per search; exact label filter
+
+**Decision.** A review often runs one search per sub-question. Each imported file (one
+search) can carry its own highlight keywords, stored in `criteria.search_keywords` by import
+id and set with `PUT /imports/{import_id}/keywords` (administrators, like the review's own
+keywords). They are highlighted in addition to the review's keywords on the records that
+search found, a merged record getting the keywords of every search that found it (the record
+lists them in `found_in`). The screening rail shows both lists when a file is selected.
+Keywords stay shared by the team, so double screening shows everyone the same highlights,
+and they remain a visual aid: eligibility criteria stay the review's own, and the AI does
+not read them. Deleting an import deletes its keywords. Screening and extraction lists also
+filter by label, matched exactly ("SQ1" does not match "SQ10").
