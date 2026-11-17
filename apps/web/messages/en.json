@@ -410,14 +410,14 @@
       "deleteImport": "Delete this import",
       "duplicates": "Duplicates",
       "runDedup": "Detect duplicates",
-      "dedupText": "DOI and identical titles merge automatically. Near matches wait below for your decision.",
-      "autoThreshold": "Auto-merge above",
-      "askThreshold": "Ask me above",
+      "dedupText": "Duplicates are never deleted: they are set aside, and you can bring them back at any time.",
+      "autoThreshold": "Merge automatically from {n}% similar titles",
+      "askThreshold": "Ask me from {n}%",
       "dedupDone": "{removed} duplicates removed, {possible} pairs to check",
       "candidates": "Pairs to check",
       "noCandidates": "No pair waiting for you.",
       "different": "Different, keep both",
-      "removed": "Removed as duplicates",
+      "removed": "Set aside as duplicates",
       "restore": "Restore",
       "keptAs": "kept as #{id}",
       "records": "All records",
@@ -431,9 +431,17 @@
       "keepThis": "Keep this one",
       "suggested": "Suggested",
       "keepHint": "Same study? Keep one: its empty fields are filled from the other, and both sources are counted for PRISMA.",
-      "keeperDefault": "When duplicates are merged automatically, the most complete record is kept.",
-      "keeperOrdered": "When duplicates are merged automatically, the record from the first source in this order is kept: {order}.",
-      "keeperLink": "Source order"
+      "keeperDefault": "When duplicates are merged, the most complete record is kept.",
+      "keeperOrdered": "When duplicates are merged, the record from the first database in this order is kept: {order}.",
+      "keeperLink": "Change the rule",
+      "explainExact": "Same DOI or identical title: always merged.",
+      "explainAuto": "Titles at least {auto}% similar, with the same first author or the same year: merged automatically.",
+      "explainAsk": "Titles {ask}% to {auto}% similar: shown below, you decide.",
+      "explainBelow": "Under {ask}%: treated as different studies.",
+      "keeperFiles": "When duplicates are merged, the record from the first imported file in your order is kept.",
+      "restoreAll": "Restore all",
+      "restoreAllConfirm": "Bring back all {n} duplicates? Kept records get their own values back; pairs you marked as different stay so.",
+      "restoredAll": "{n} records restored"
     },
     "screening": {
       "views": {
@@ -599,16 +607,23 @@
         "hint": "Instruction for the AI",
         "required": "Required"
       },
-      "sources": "Preferred sources for duplicates",
-      "sourcesHint": "When the same study comes from several databases, Krinea keeps the record from the source highest in this list, then the most complete one. The kept record's empty fields are always filled from the others.",
       "sourcesNone": "No source yet: import search results first.",
       "sourcesCount": "{n} records",
-      "sourcesActive": "This order applies to the next duplicate detection and to the suggestions on the pairs to check.",
-      "sourcesInactive": "No order saved: the most complete record is kept. Arrange the sources and save to use this order.",
-      "sourcesSave": "Save this order",
-      "sourcesClear": "Back to the most complete",
       "moveUp": "Move up",
-      "moveDown": "Move down"
+      "moveDown": "Move down",
+      "keepTitle": "Record kept among duplicates",
+      "keepHint": "When the same study is found several times, one record is kept and its empty fields are filled from the others. Choose which one.",
+      "rule": {
+        "complete": "The most complete record",
+        "completeHint": "The default: the one with an abstract, a DOI, keywords and so on.",
+        "file": "Follow the order of my imported files",
+        "fileHint": "For instance one file per search query, the most reliable first.",
+        "database": "Follow the order of the databases",
+        "databaseHint": "PubMed, Scopus, Web of Science and so on."
+      },
+      "rank": "Rank",
+      "filesNone": "No imported file yet.",
+      "keepNext": "Applies to the next duplicate detection and to the suggestions on the pairs to check. Between two records of the same file or database, the most complete one is kept."
     }
   },
   "userSettings": {

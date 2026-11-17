@@ -410,14 +410,14 @@
       "deleteImport": "Supprimer cet import",
       "duplicates": "Doublons",
       "runDedup": "Détecter les doublons",
-      "dedupText": "Les DOI et titres identiques fusionnent automatiquement. Les cas proches attendent votre décision ci-dessous.",
-      "autoThreshold": "Fusion automatique au-dessus de",
-      "askThreshold": "Me demander au-dessus de",
+      "dedupText": "Les doublons ne sont jamais supprimés : ils sont mis de côté, et vous pouvez les faire revenir à tout moment.",
+      "autoThreshold": "Fusion automatique dès {n} % de titres semblables",
+      "askThreshold": "Me demander dès {n} %",
       "dedupDone": "{removed} doublons retirés, {possible} paires à vérifier",
       "candidates": "Paires à vérifier",
       "noCandidates": "Aucune paire en attente.",
       "different": "Différentes, garder les deux",
-      "removed": "Retirées comme doublons",
+      "removed": "Mises de côté comme doublons",
       "restore": "Restaurer",
       "keptAs": "conservée sous #{id}",
       "records": "Toutes les notices",
@@ -431,9 +431,17 @@
       "keepThis": "Garder celle-ci",
       "suggested": "Suggérée",
       "keepHint": "Même étude ? Gardez-en une : ses champs vides sont complétés par l'autre, et les deux sources sont comptées pour PRISMA.",
-      "keeperDefault": "Lors d'une fusion automatique, la notice la plus complète est gardée.",
-      "keeperOrdered": "Lors d'une fusion automatique, la notice de la première source dans cet ordre est gardée : {order}.",
-      "keeperLink": "Ordre des sources"
+      "keeperDefault": "Lors d'une fusion, la notice la plus complète est gardée.",
+      "keeperOrdered": "Lors d'une fusion, la notice de la première base dans cet ordre est gardée : {order}.",
+      "keeperLink": "Changer la règle",
+      "explainExact": "Même DOI ou titre identique : toujours fusionnés.",
+      "explainAuto": "Titres semblables à {auto} % ou plus, avec le même premier auteur ou la même année : fusionnés automatiquement.",
+      "explainAsk": "Titres semblables de {ask} % à {auto} % : proposés ci-dessous, vous décidez.",
+      "explainBelow": "En dessous de {ask} % : considérés comme des études différentes.",
+      "keeperFiles": "Lors d'une fusion, la notice du premier fichier importé dans votre ordre est gardée.",
+      "restoreAll": "Tout restaurer",
+      "restoreAllConfirm": "Faire revenir les {n} doublons ? Les notices gardées retrouvent leurs propres valeurs ; les paires marquées « Différentes » le restent.",
+      "restoredAll": "{n} notices restaurées"
     },
     "screening": {
       "views": {
@@ -599,16 +607,23 @@
         "hint": "Consigne pour l'IA",
         "required": "Obligatoire"
       },
-      "sources": "Sources à privilégier pour les doublons",
-      "sourcesHint": "Quand une même étude vient de plusieurs bases, Krinea garde la notice de la source la plus haute dans cette liste, puis la plus complète. Les champs vides de la notice gardée sont toujours complétés par les autres.",
       "sourcesNone": "Aucune source pour l'instant : importez d'abord des résultats de recherche.",
       "sourcesCount": "{n} notices",
-      "sourcesActive": "Cet ordre s'applique à la prochaine détection des doublons et aux suggestions sur les paires à vérifier.",
-      "sourcesInactive": "Aucun ordre enregistré : la notice la plus complète est gardée. Classez les sources et enregistrez pour utiliser cet ordre.",
-      "sourcesSave": "Enregistrer cet ordre",
-      "sourcesClear": "Revenir à la plus complète",
       "moveUp": "Monter",
-      "moveDown": "Descendre"
+      "moveDown": "Descendre",
+      "keepTitle": "Notice gardée parmi les doublons",
+      "keepHint": "Quand une même étude est trouvée plusieurs fois, une seule notice est gardée et ses champs vides sont complétés par les autres. Choisissez laquelle.",
+      "rule": {
+        "complete": "La notice la plus complète",
+        "completeHint": "Par défaut : celle qui a un résumé, un DOI, des mots-clés, etc.",
+        "file": "Suivre l'ordre de mes fichiers importés",
+        "fileHint": "Par exemple un fichier par requête, la plus fiable en premier.",
+        "database": "Suivre l'ordre des bases de données",
+        "databaseHint": "PubMed, Scopus, Web of Science, etc."
+      },
+      "rank": "Rang",
+      "filesNone": "Aucun fichier importé pour l'instant.",
+      "keepNext": "S'applique à la prochaine détection des doublons et aux suggestions sur les paires à vérifier. Entre deux notices du même fichier ou de la même base, la plus complète est gardée."
     }
   },
   "userSettings": {

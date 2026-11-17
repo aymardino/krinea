@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, Plus, Trash2, UserPlus, X } from "lucide-react";
+import { Plus, Trash2, UserPlus, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import { api, ApiError, type Criteria, type Field, type Invitation, type Member, type Review, type Settings, type SourceCount } from "@/lib/api";
+import { api, ApiError, type Criteria, type Field, type Invitation, type Member, type Review, type Settings } from "@/lib/api";
 import { canEdit, useReview } from "@/components/app/review-context";
+import { KeeperRuleCard } from "@/components/app/keeper-rule-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,13 +44,6 @@ export default function SettingsPage() {
 
   const invitations = useQuery<Invitation[]>({ queryKey: ["invitations", rid], queryFn: () => api.get(`/reviews/${rid}/invitations`), enabled: editable });
   const templates = useQuery<{ default: Field[]; energy?: Field[] }>({ queryKey: ["templates"], queryFn: () => api.get("/reviews/templates/extraction") });
-  const sources = useQuery<SourceCount[]>({ queryKey: ["sources", rid], queryFn: () => api.get(`/reviews/${rid}/sources`) });
-  const savedOrder = review.settings.source_priority ?? [];
-  const [order, setOrder] = useState<string[] | null>(null);
-  // The order shown: the saved one, then any source imported since, most frequent first.
-  const shownOrder = order ?? [...savedOrder, ...(sources.data ?? []).map((s) => s.source).filter((s) => !savedOrder.some((o) => o.toLowerCase() === s.toLowerCase()))];
-  const countOf = (s: string) => sources.data?.find((x) => x.source.toLowerCase() === s.toLowerCase())?.n ?? 0;
-  const move = (i: number, d: number) => { const next = [...shownOrder]; [next[i], next[i + d]] = [next[i + d], next[i]]; setOrder(next); };
 
   const patch = useMutation({
     mutationFn: (body: Omit<Partial<Review>, "criteria" | "settings"> & { criteria?: Partial<Criteria>; settings?: Partial<Settings> }) => api.patch<Review>(`/reviews/${rid}`, body),
@@ -136,35 +130,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card id="sources" className="scroll-mt-20">
-        <CardHeader><CardTitle>{t("sources")}</CardTitle><CardDescription>{t("sourcesHint")}</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          {!shownOrder.length ? <p className="text-sm text-muted-foreground">{t("sourcesNone")}</p> : (
-            <ol className="divide-y divide-border rounded-lg border border-border">
-              {shownOrder.map((s, i) => (
-                <li key={s} className="flex items-center gap-3 px-3 py-2 text-sm">
-                  <span className="w-6 text-right tabular-nums text-muted-foreground">{i + 1}</span>
-                  <span className="flex-1 font-medium">{s}</span>
-                  <span className="text-xs text-muted-foreground">{t("sourcesCount", { n: countOf(s) })}</span>
-                  {editable && (
-                    <span className="flex gap-1">
-                      <Button size="xs" variant="ghost" aria-label={t("moveUp")} onClick={() => move(i, -1)} disabled={i === 0}><ArrowUp /></Button>
-                      <Button size="xs" variant="ghost" aria-label={t("moveDown")} onClick={() => move(i, 1)} disabled={i === shownOrder.length - 1}><ArrowDown /></Button>
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ol>
-          )}
-          <p className="text-sm text-muted-foreground">{savedOrder.length ? t("sourcesActive") : t("sourcesInactive")}</p>
-          {editable && !!shownOrder.length && (
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => patch.mutate({ settings: { source_priority: shownOrder } }, { onSuccess: () => { setSettings((x) => ({ ...x, source_priority: shownOrder })); setOrder(null); } })} disabled={patch.isPending}>{t("sourcesSave")}</Button>
-              {!!savedOrder.length && <Button variant="outline" onClick={() => patch.mutate({ settings: { source_priority: [] } }, { onSuccess: () => { setSettings((x) => ({ ...x, source_priority: [] })); setOrder(null); } })} disabled={patch.isPending}>{t("sourcesClear")}</Button>}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <KeeperRuleCard review={review} editable={editable} onSaved={(r) => { setSettings({ ...r.settings }); refresh(); }} />
 
       <Card>
         <CardHeader><CardTitle>{t("form")}</CardTitle><CardDescription>{t("formHint")}</CardDescription></CardHeader>

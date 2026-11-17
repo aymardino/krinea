@@ -64,7 +64,12 @@ export default function DataPage() {
     onSuccess: invalidateAll,
     onError,
   });
-  const ordered = !!review.settings.source_priority?.length;
+  const rule = review.settings.keeper_rule ?? "complete";
+  const restoreAll = useMutation({
+    mutationFn: () => api.post<{ restored: number }>(`/reviews/${rid}/dedup/restore-all`),
+    onSuccess: (r) => { toast.success(t("restoredAll", { n: r.restored })); invalidateAll(); },
+    onError,
+  });
   const restore = useMutation({ mutationFn: (id: number) => api.post(`/reviews/${rid}/records/${id}/restore`), onSuccess: invalidateAll, onError });
 
   const s = review.counts;
@@ -113,13 +118,22 @@ export default function DataPage() {
         <CardContent className="space-y-6">
           {editable && (
             <div className="flex flex-wrap items-end gap-4">
-              <div className="space-y-1.5"><Label>{t("autoThreshold")} ({auto}%)</Label><input type="range" min={85} max={100} value={auto} onChange={(e) => setAuto(+e.target.value)} className="accent-brand-600" /></div>
-              <div className="space-y-1.5"><Label>{t("askThreshold")} ({ask}%)</Label><input type="range" min={70} max={95} value={ask} onChange={(e) => setAsk(+e.target.value)} className="accent-brand-600" /></div>
+              {/* The "ask" threshold can never pass the automatic one. */}
+              <div className="space-y-1.5"><Label htmlFor="auto-th">{t("autoThreshold", { n: auto })}</Label><input id="auto-th" type="range" min={85} max={100} value={auto} onChange={(e) => { const v = +e.target.value; setAuto(v); if (ask > v) setAsk(v); }} className="block accent-brand-600" /></div>
+              <div className="space-y-1.5"><Label htmlFor="ask-th">{t("askThreshold", { n: ask })}</Label><input id="ask-th" type="range" min={70} max={95} value={ask} onChange={(e) => { const v = +e.target.value; setAsk(v); if (auto < v) setAuto(v); }} className="block accent-brand-600" /></div>
               <Button onClick={() => dedup.mutate()} disabled={dedup.isPending || !s.records}>{t("runDedup")}</Button>
             </div>
           )}
+          <ul className="space-y-1 rounded-lg bg-muted/60 px-4 py-3 text-sm text-ink-700">
+            <li>{t("explainExact")}</li>
+            <li>{t("explainAuto", { auto })}</li>
+            <li>{t("explainAsk", { ask, auto })}</li>
+            <li>{t("explainBelow", { ask })}</li>
+          </ul>
           <p className="text-sm text-muted-foreground">
-            {ordered ? t("keeperOrdered", { order: review.settings.source_priority!.join(", ") }) : t("keeperDefault")}{" "}
+            {rule === "database" && review.settings.source_priority?.length
+              ? t("keeperOrdered", { order: review.settings.source_priority.join(", ") })
+              : rule === "file" ? t("keeperFiles") : t("keeperDefault")}{" "}
             <Link href={`/app/reviews/${rid}/settings#sources`} className="font-medium text-primary underline-offset-4 hover:underline">{t("keeperLink")}</Link>
           </p>
           <div>
@@ -158,7 +172,10 @@ export default function DataPage() {
           </div>
           {!!duplicates.data?.length && (
             <div>
-              <h3 className="mb-2 text-sm font-semibold">{t("removed")} <Badge variant="secondary">{duplicates.data.length}</Badge></h3>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">{t("removed")} <Badge variant="secondary">{duplicates.data.length}</Badge></h3>
+                {editable && <Button size="sm" variant="outline" onClick={() => confirm(t("restoreAllConfirm", { n: duplicates.data!.length })) && restoreAll.mutate()} disabled={restoreAll.isPending}><RotateCcw />{t("restoreAll")}</Button>}
+              </div>
               <Table>
                 <THead><TR><TH>#</TH><TH>{t("columns.title")}</TH><TH>{t("columns.year")}</TH><TH>{t("columns.source")}</TH><TH>Match</TH><TH /></TR></THead>
                 <TBody>
