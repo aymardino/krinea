@@ -120,3 +120,55 @@ def test_ai_runs_ignore_records_of_other_reviews(client, monkeypatch):
         assert db.query(models.Extraction).filter(models.Extraction.record_id.in_(foreign)).count() == 0
     finally:
         db.close()
+
+
+CHAIN = [  # A ~ B and B ~ C are near matches; A and C are not, on their own
+    "Solar mini-grids for rural electrification in Tanzania: costs and evidence from thirty sites",
+    "Solar mini grids for rural electrification in Tanzania: cost evidence from 30 sites",
+    "Mini grids for rural electrification in Tanzania: cost evidence from 30 sites in 2021",
+]
+
+
+def _ris(rows):
+    out = []
+    for title, doi, abstract in rows:
+        out.append("TY  - JOUR\nAU  - Kariuki, W.\nTI  - " + title + "\nPY  - 2021\n"
+                   + (f"DO  - {doi}\n" if doi else "") + (f"AB  - {abstract}\n" if abstract else "") + "ER  - \n")
+    return "\n".join(out)
+
+
+def test_three_or_more_records_of_one_study(client):
+    register(client, "dedup-many@example.org", "Many")
+    rid = client.post("/reviews", json={"title": "Many copies"}).json()["id"]
+    # Three records share a DOI (one under a title of the database's own), a fourth is only a
+    # near match of one of them, under the title of the second database.
+    _import(client, rid, "a.ris", _ris([("A record whose database rewrote the title entirely, for some reason",
+                                          "10.1016/j.energy.2021.03.003", "Long abstract " * 10)]), "Scopus")
+    _import(client, rid, "b.ris", _ris([(CHAIN[0], "10.1016/j.energy.2021.03.003", "")]), "PubMed")
+    _import(client, rid, "c.ris", _ris([(CHAIN[0], "10.1016/j.energy.2021.03.003", "")]), "Embase")
+    _import(client, rid, "d.ris", _ris([(CHAIN[1], "", "")]), "Web of Science")
+    ids = {r["source_db"]: r["id"] for r in _records(client, rid)}
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    # The three DOI matches merge into one record (the most complete), whatever their number.
+    dups = client.get(f"/reviews/{rid}/dedup/duplicates").json()
+    assert sorted((d["id"], d["kept_id"]) for d in dups) == [(ids["PubMed"], ids["Scopus"]), (ids["Embase"], ids["Scopus"])]
+    # The near match of a merged-away record is asked about the kept record, once.
+    cands = client.get(f"/reviews/{rid}/dedup/candidates").json()
+    assert [(c["a"]["id"], c["b"]["id"]) for c in cands] == [(ids["Scopus"], ids["Web of Science"])]
+
+
+def test_chain_of_near_matches_is_asked_about_the_kept_record(client):
+    register(client, "dedup-chain@example.org", "Chain")
+    rid = client.post("/reviews", json={"title": "Chain"}).json()["id"]
+    _import(client, rid, "chain.ris", _ris([(t, "", "") for t in CHAIN]), "Scopus")
+    a, b, c = [r["id"] for r in _records(client, rid)]
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    pairs = {(x["a"]["id"], x["b"]["id"]): x["id"] for x in client.get(f"/reviews/{rid}/dedup/candidates").json()}
+    assert set(pairs) == {(a, b), (b, c)}
+    # Merging B into A turns the pending pair B-C into A-C.
+    client.post(f"/reviews/{rid}/dedup/candidates/{pairs[(a, b)]}/merge?keep={a}")
+    left = client.get(f"/reviews/{rid}/dedup/candidates").json()
+    assert [(x["a"]["id"], x["b"]["id"]) for x in left] == [(a, c)]
+    client.post(f"/reviews/{rid}/dedup/candidates/{left[0]['id']}/merge?keep={a}")
+    assert client.get(f"/reviews/{rid}/dedup/candidates").json() == []
+    assert sorted((d["id"], d["kept_id"]) for d in client.get(f"/reviews/{rid}/dedup/duplicates").json()) == [(b, a), (c, a)]

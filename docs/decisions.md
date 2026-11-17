@@ -562,6 +562,10 @@ review's rule does:
 - **Explicit choice on a pair.** Each pair to check offers "Keep this one" on both records
   (`POST /dedup/candidates/{id}/merge?keep={record_id}`), the record the rule would keep
   being marked as suggested; "Different, keep both" is unchanged.
+- **Groups and chains.** Records certain to be the same study merge in one group whatever
+  their number (union of the certain pairs, so A = B and B = C put A, B and C together). A near
+  match of a record merged away, automatically or by hand, is asked about the kept record,
+  once, with the best score found; a pair already answered stays answered.
 - **Merging fills gaps.** The kept record keeps its own values; its empty fields are filled
   from the other records, and its sources list its own source first, then the others, so
   PRISMA counts every database the study was found in. Removed duplicates stay restorable.

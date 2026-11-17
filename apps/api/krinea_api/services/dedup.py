@@ -1,7 +1,7 @@
 """Duplicate detection for a review, on top of krinea_core.dedup."""
 from __future__ import annotations
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session
 
 from krinea_api import models
@@ -89,8 +89,10 @@ def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
     groups = core.cluster(certain, len(records))
     prio = priority(review)
     removed = 0
+    keeper_of: dict[int, int] = {}
     for g in groups:
         keeper = core.choose_keeper(records, g, prio)
+        keeper_of.update({i: keeper for i in g})
         for i in g:
             if i == keeper:
                 continue
@@ -102,9 +104,18 @@ def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
     ignored = {(c.record_a, c.record_b) for c in db.scalars(
         select(models.DedupCandidate).where(models.DedupCandidate.review_id == review.id,
                                             models.DedupCandidate.status == "ignored"))}
-    n_possible = 0
+    # A near match of a record merged away is a near match of the record it was merged into:
+    # the pair is asked about the kept record, once, with the best score found.
+    best: dict[tuple[int, int], core.Pair] = {}
     for p in possible:
-        a, b = sorted((ids[p.a], ids[p.b]))
+        a, b = keeper_of.get(p.a, p.a), keeper_of.get(p.b, p.b)
+        if a == b:
+            continue
+        key = (min(ids[a], ids[b]), max(ids[a], ids[b]))
+        if key not in best or p.score > best[key].score:
+            best[key] = p
+    n_possible = 0
+    for (a, b), p in sorted(best.items()):
         if (a, b) in ignored:
             continue
         db.add(models.DedupCandidate(review_id=review.id, record_a=a, record_b=b, score=p.score, reason=p.reason[:200]))
@@ -130,7 +141,29 @@ def merge_candidate(db: Session, cand: models.DedupCandidate, keep_id: int | Non
     merged = core.merge_records(both, keeper, [0, 1])
     mark(db, both[keeper]["id"], [both[1 - keeper]["id"]], cand.score, cand.reason, merged)
     cand.status = "merged"
+    _repoint(db, cand, gone=both[1 - keeper]["id"], kept=both[keeper]["id"])
     db.commit()
+
+
+def _repoint(db: Session, done: models.DedupCandidate, gone: int, kept: int) -> None:
+    """After `gone` is merged into `kept`, the pending pairs that involved `gone` concern
+    `kept`: a third (fourth...) near match is then asked about the kept record."""
+    pending = db.scalars(select(models.DedupCandidate).where(
+        models.DedupCandidate.review_id == done.review_id, models.DedupCandidate.status == "pending",
+        models.DedupCandidate.id != done.id,
+        or_(models.DedupCandidate.record_a == gone, models.DedupCandidate.record_b == gone))).all()
+    for c in pending:
+        other = c.record_b if c.record_a == gone else c.record_a
+        a, b = min(kept, other), max(kept, other)
+        existing = None if other == kept else db.scalar(select(models.DedupCandidate).where(
+            models.DedupCandidate.record_a == a, models.DedupCandidate.record_b == b))
+        if other == kept or existing is not None:
+            if existing is not None and existing.status == "pending" and c.score > existing.score:
+                existing.score, existing.reason = c.score, c.reason
+            db.delete(c)                     # already asked, or already answered (an ignored pair stays ignored)
+        else:
+            c.record_a, c.record_b = a, b
+        db.flush()
 
 
 def ignore_candidate(db: Session, cand: models.DedupCandidate) -> None:
