@@ -416,7 +416,6 @@
       "dedupDone": "{removed} doublons retirés, {possible} paires à vérifier",
       "candidates": "Paires à vérifier",
       "noCandidates": "Aucune paire en attente.",
-      "same": "Même étude, fusionner",
       "different": "Différentes, garder les deux",
       "removed": "Retirées comme doublons",
       "restore": "Restaurer",
@@ -428,7 +427,13 @@
         "source": "Source",
         "status": "Statut",
         "pdf": "PDF"
-      }
+      },
+      "keepThis": "Garder celle-ci",
+      "suggested": "Suggérée",
+      "keepHint": "Même étude ? Gardez-en une : ses champs vides sont complétés par l'autre, et les deux sources sont comptées pour PRISMA.",
+      "keeperDefault": "Lors d'une fusion automatique, la notice la plus complète est gardée.",
+      "keeperOrdered": "Lors d'une fusion automatique, la notice de la première source dans cet ordre est gardée : {order}.",
+      "keeperLink": "Ordre des sources"
     },
     "screening": {
       "views": {
@@ -490,7 +495,9 @@
       "aiKeyStored": "Chiffrée au repos, jamais journalisée, supprimable à tout moment.",
       "aiRemoveKey": "retirer",
       "aiCredits": "Crédits inclus : {n} jetons restants ce mois-ci.",
-      "aiKeyMore": "Comment les clés sont protégées"
+      "aiKeyMore": "Comment les clés sont protégées",
+      "allFiles": "Tous les fichiers",
+      "fileFilter": "Fichier importé"
     },
     "extraction": {
       "title": "Extraction des données",
@@ -513,7 +520,17 @@
       "pdf": "PDF",
       "textTab": "Texte extrait",
       "form": "Grille",
-      "empty": "Aucune étude incluse au texte intégral pour l'instant."
+      "empty": "Aucune étude incluse au texte intégral pour l'instant.",
+      "search": "Titre, auteurs…",
+      "fileFilter": "Fichier importé",
+      "allFiles": "Tous les fichiers",
+      "statusFilter": "Statut de l'extraction",
+      "allStatuses": "Tous les statuts",
+      "noPdfFilter": "Sans PDF",
+      "shown": "{n, plural, one {# étude} other {# études}} sur {total}",
+      "noMatch": "Aucune étude ne correspond à ces filtres.",
+      "study": "Étude",
+      "statusCol": "Statut"
     },
     "prisma": {
       "title": "PRISMA 2020",
@@ -573,7 +590,17 @@
         "options": "Options (a | b | c)",
         "hint": "Consigne pour l'IA",
         "required": "Obligatoire"
-      }
+      },
+      "sources": "Sources à privilégier pour les doublons",
+      "sourcesHint": "Quand une même étude vient de plusieurs bases, Krinea garde la notice de la source la plus haute dans cette liste, puis la plus complète. Les champs vides de la notice gardée sont toujours complétés par les autres.",
+      "sourcesNone": "Aucune source pour l'instant : importez d'abord des résultats de recherche.",
+      "sourcesCount": "{n} notices",
+      "sourcesActive": "Cet ordre s'applique à la prochaine détection des doublons et aux suggestions sur les paires à vérifier.",
+      "sourcesInactive": "Aucun ordre enregistré : la notice la plus complète est gardée. Classez les sources et enregistrez pour utiliser cet ordre.",
+      "sourcesSave": "Enregistrer cet ordre",
+      "sourcesClear": "Revenir à la plus complète",
+      "moveUp": "Monter",
+      "moveDown": "Descendre"
     }
   },
   "userSettings": {

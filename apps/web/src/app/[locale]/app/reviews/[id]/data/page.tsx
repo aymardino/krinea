@@ -6,8 +6,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Upload, Trash2, GitMerge, RotateCcw } from "lucide-react";
 import { api, ApiError, type Candidate, type Duplicate, type ImportRow, type Job, type RecordPage } from "@/lib/api";
+import { Link } from "@/i18n/navigation";
 import { formatDate } from "@/lib/utils";
-import { canEdit, useReview } from "@/components/app/review-context";
+import { canEdit, canReview, useReview } from "@/components/app/review-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ export default function DataPage() {
   const { review, refresh } = useReview();
   const rid = review.id;
   const editable = canEdit(review.my_role);
+  const canResolve = canReview(review.my_role);      // reviewers settle duplicate pairs too
   const fileRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState("");
   const [auto, setAuto] = useState(95);
@@ -56,7 +58,13 @@ export default function DataPage() {
     onSuccess: (job) => { const r = job.result as { removed?: number; possible?: number }; toast.success(t("dedupDone", { removed: r.removed ?? 0, possible: r.possible ?? 0 })); invalidateAll(); },
     onError,
   });
-  const resolve = useMutation({ mutationFn: ({ id, action }: { id: number; action: "merge" | "ignore" }) => api.post(`/reviews/${rid}/dedup/candidates/${id}/${action}`), onSuccess: invalidateAll, onError });
+  const resolve = useMutation({
+    mutationFn: ({ id, action, keep }: { id: number; action: "merge" | "ignore"; keep?: number }) =>
+      api.post(`/reviews/${rid}/dedup/candidates/${id}/${action}${keep ? `?keep=${keep}` : ""}`),
+    onSuccess: invalidateAll,
+    onError,
+  });
+  const ordered = !!review.settings.source_priority?.length;
   const restore = useMutation({ mutationFn: (id: number) => api.post(`/reviews/${rid}/records/${id}/restore`), onSuccess: invalidateAll, onError });
 
   const s = review.counts;
@@ -110,6 +118,10 @@ export default function DataPage() {
               <Button onClick={() => dedup.mutate()} disabled={dedup.isPending || !s.records}>{t("runDedup")}</Button>
             </div>
           )}
+          <p className="text-sm text-muted-foreground">
+            {ordered ? t("keeperOrdered", { order: review.settings.source_priority!.join(", ") }) : t("keeperDefault")}{" "}
+            <Link href={`/app/reviews/${rid}/settings#sources`} className="font-medium text-primary underline-offset-4 hover:underline">{t("keeperLink")}</Link>
+          </p>
           <div>
             <h3 className="mb-2 text-sm font-semibold">{t("candidates")} <Badge variant="secondary">{candidates.data?.length ?? 0}</Badge></h3>
             {!candidates.data?.length ? <p className="text-sm text-muted-foreground">{t("noCandidates")}</p> : (
@@ -118,16 +130,26 @@ export default function DataPage() {
                   <div key={cd.id} className="rounded-xl border border-border p-4">
                     <p className="mb-3 text-xs text-muted-foreground">{Math.round(cd.score)}% · {cd.reason}</p>
                     <div className="grid gap-4 md:grid-cols-2">
-                      {[cd.a, cd.b].map((r) => (
-                        <div key={r.id} className="text-sm">
-                          <p className="font-medium">#{r.id} · {r.title}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{[r.authors, r.year, r.journal, r.doi, r.source_db].filter(Boolean).join(" · ")}</p>
-                        </div>
-                      ))}
+                      {[cd.a, cd.b].map((r) => {
+                        const suggested = cd.suggested_keep === r.id;
+                        return (
+                          <div key={r.id} className={`flex flex-col rounded-lg border p-3 text-sm ${suggested ? "border-brand-300 bg-brand-50" : "border-border"}`}>
+                            <p className="font-medium">#{r.id} · {r.title}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{[r.authors, r.year, r.journal, r.doi].filter(Boolean).join(" · ")}</p>
+                            {r.source_db && <p className="mt-1 text-xs font-medium text-ink-700">{r.source_db}</p>}
+                            {canResolve && (
+                              <div className="mt-3 flex items-center gap-2">
+                                <Button size="sm" variant={suggested ? "default" : "outline"} onClick={() => resolve.mutate({ id: cd.id, action: "merge", keep: r.id })} disabled={resolve.isPending}>{t("keepThis")}</Button>
+                                {suggested && <span className="text-xs text-brand-700">{t("suggested")}</span>}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <Button size="sm" onClick={() => resolve.mutate({ id: cd.id, action: "merge" })}>{t("same")}</Button>
-                      <Button size="sm" variant="outline" onClick={() => resolve.mutate({ id: cd.id, action: "ignore" })}>{t("different")}</Button>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      {canResolve && <Button size="sm" variant="outline" onClick={() => resolve.mutate({ id: cd.id, action: "ignore" })} disabled={resolve.isPending}>{t("different")}</Button>}
+                      <span className="text-xs text-muted-foreground">{t("keepHint")}</span>
                     </div>
                   </div>
                 ))}

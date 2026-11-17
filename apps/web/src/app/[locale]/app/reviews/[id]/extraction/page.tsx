@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bot, Check, FileText } from "lucide-react";
-import { api, ApiError, type Extraction, type Field, type Job, type RecordPage, type StudyRecord as Rec } from "@/lib/api";
+import { Bot, Check, FileText, Search } from "lucide-react";
+import { api, ApiError, type Extraction, type Field, type ImportRow, type Job, type RecordPage, type StudyRecord as Rec } from "@/lib/api";
 import { canReview, useReview } from "@/components/app/review-context";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -53,9 +53,14 @@ export default function ExtractionPage() {
   const fields = review.extraction_schema;
   const [open, setOpen] = useState<number | null>(null);
   const [values, setValues] = useState<{ [k: string]: string }>({});
+  const [search, setSearch] = useState("");
+  const [fileId, setFileId] = useState("all");
+  const [status, setStatus] = useState("all");
   const onError = (e: unknown) => toast.error(e instanceof ApiError ? e.message : c("error"));
 
-  const pool = useQuery<RecordPage>({ queryKey: ["records", rid, "extract"], queryFn: () => api.get(`/reviews/${rid}/records?stage=extract&view=all&limit=500`) });
+  const qs = new URLSearchParams({ stage: "extract", view: "all", limit: "500", search, ...(fileId !== "all" ? { import_id: fileId } : {}) }).toString();
+  const pool = useQuery<RecordPage>({ queryKey: ["records", rid, "extract", search, fileId], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const list = useQuery<Extraction[]>({ queryKey: ["extractions", rid], queryFn: () => api.get(`/reviews/${rid}/extraction`) });
   const one = useQuery<Extraction>({ queryKey: ["extraction", rid, open], queryFn: () => api.get(`/reviews/${rid}/extraction/${open}`), enabled: open !== null && !!list.data?.some((e) => e.record_id === open) });
   const byRecord = useMemo(() => new Map((list.data ?? []).map((e) => [e.record_id, e])), [list.data]);
@@ -74,9 +79,14 @@ export default function ExtractionPage() {
     onError,
   });
 
-  const items = pool.data?.items ?? [];
+  const all = pool.data?.items ?? [];
+  const items = all.filter((r) => {
+    const st = byRecord.get(r.id)?.status ?? "none";
+    return status === "all" || (status === "nopdf" ? !r.has_pdf : st === status);
+  });
+  const filtered = search.trim() !== "" || fileId !== "all" || status !== "all";
   const todo = items.filter((r) => r.has_pdf && !byRecord.has(r.id)).map((r) => r.id);
-  const current: Rec | undefined = items.find((r) => r.id === open);
+  const current: Rec | undefined = all.find((r) => r.id === open);
   const ex = one.data;
 
   if (open !== null && current) {
@@ -121,10 +131,34 @@ export default function ExtractionPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("title")} description={t("text")} actions={editable && <Button onClick={() => run.mutate(undefined)} disabled={run.isPending || !todo.length}><Bot />{t("run")} <span className="opacity-70">({t("runHint", { n: todo.length })})</span></Button>} />
-      {!items.length ? <EmptyState icon={<FileText />} title={t("empty")} /> : (
+      {/* With a filter on, the AI runs on the studies shown only. */}
+      <PageHeader title={t("title")} description={t("text")} actions={editable && <Button onClick={() => run.mutate(filtered ? todo : undefined)} disabled={run.isPending || !todo.length}><Bot />{t("run")} <span className="opacity-70">({t("runHint", { n: todo.length })})</span></Button>} />
+      {!!all.length || filtered ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-full sm:w-72"><Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+          {(imports.data?.length ?? 0) > 1 && (
+            <Select value={fileId} onValueChange={setFileId}>
+              <SelectTrigger className="w-full sm:w-64" aria-label={t("fileFilter")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allFiles")}</SelectItem>
+                {imports.data!.map((i) => <SelectItem key={i.id} value={i.id}>{i.filename}{i.source_db ? ` · ${i.source_db}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Select value={status} onValueChange={setStatus}>
+            <SelectTrigger className="w-full sm:w-52" aria-label={t("statusFilter")}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("allStatuses")}</SelectItem>
+              {(["none", "draft", "verified", "failed"] as const).map((s) => <SelectItem key={s} value={s}>{t(`status.${s}`)}</SelectItem>)}
+              <SelectItem value="nopdf">{t("noPdfFilter")}</SelectItem>
+            </SelectContent>
+          </Select>
+          {filtered && <span className="text-sm text-muted-foreground">{t("shown", { n: items.length, total: all.length })}</span>}
+        </div>
+      ) : null}
+      {!items.length ? <EmptyState icon={<FileText />} title={filtered ? t("noMatch") : t("empty")} /> : (
         <Table>
-          <THead><TR><TH>#</TH><TH>Study</TH><TH>{t("pdf")}</TH><TH>Status</TH><TH /></TR></THead>
+          <THead><TR><TH>#</TH><TH>{t("study")}</TH><TH>{t("pdf")}</TH><TH>{t("statusCol")}</TH><TH /></TR></THead>
           <TBody>
             {items.map((r) => {
               const e = byRecord.get(r.id);

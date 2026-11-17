@@ -416,7 +416,6 @@
       "dedupDone": "{removed} duplicates removed, {possible} pairs to check",
       "candidates": "Pairs to check",
       "noCandidates": "No pair waiting for you.",
-      "same": "Same study, merge",
       "different": "Different, keep both",
       "removed": "Removed as duplicates",
       "restore": "Restore",
@@ -428,7 +427,13 @@
         "source": "Source",
         "status": "Status",
         "pdf": "PDF"
-      }
+      },
+      "keepThis": "Keep this one",
+      "suggested": "Suggested",
+      "keepHint": "Same study? Keep one: its empty fields are filled from the other, and both sources are counted for PRISMA.",
+      "keeperDefault": "When duplicates are merged automatically, the most complete record is kept.",
+      "keeperOrdered": "When duplicates are merged automatically, the record from the first source in this order is kept: {order}.",
+      "keeperLink": "Source order"
     },
     "screening": {
       "views": {
@@ -490,7 +495,9 @@
       "aiKeyStored": "Encrypted at rest, never logged, removable at any time.",
       "aiRemoveKey": "remove",
       "aiCredits": "Included credits: {n} tokens left this month.",
-      "aiKeyMore": "How keys are protected"
+      "aiKeyMore": "How keys are protected",
+      "allFiles": "All files",
+      "fileFilter": "Imported file"
     },
     "extraction": {
       "title": "Data extraction",
@@ -513,7 +520,17 @@
       "pdf": "PDF",
       "textTab": "Extracted text",
       "form": "Form",
-      "empty": "No study included at full text yet."
+      "empty": "No study included at full text yet.",
+      "search": "Search title, authors…",
+      "fileFilter": "Imported file",
+      "allFiles": "All files",
+      "statusFilter": "Extraction status",
+      "allStatuses": "All statuses",
+      "noPdfFilter": "No PDF",
+      "shown": "{n} of {total} {total, plural, one {study} other {studies}}",
+      "noMatch": "No study matches these filters.",
+      "study": "Study",
+      "statusCol": "Status"
     },
     "prisma": {
       "title": "PRISMA 2020",
@@ -573,7 +590,17 @@
         "options": "Options (a | b | c)",
         "hint": "Instruction for the AI",
         "required": "Required"
-      }
+      },
+      "sources": "Preferred sources for duplicates",
+      "sourcesHint": "When the same study comes from several databases, Krinea keeps the record from the source highest in this list, then the most complete one. The kept record's empty fields are always filled from the others.",
+      "sourcesNone": "No source yet: import search results first.",
+      "sourcesCount": "{n} records",
+      "sourcesActive": "This order applies to the next duplicate detection and to the suggestions on the pairs to check.",
+      "sourcesInactive": "No order saved: the most complete record is kept. Arrange the sources and save to use this order.",
+      "sourcesSave": "Save this order",
+      "sourcesClear": "Back to the most complete",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
     }
   },
   "userSettings": {

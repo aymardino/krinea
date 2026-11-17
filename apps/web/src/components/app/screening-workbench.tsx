@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, XCircle } from "lucide-react";
-import { api, ApiError, type Job, type KeywordCounts, type StudyRecord, type RecordPage } from "@/lib/api";
+import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type StudyRecord, type RecordPage } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
 import { canEdit, canReview, useReview } from "@/components/app/review-context";
@@ -34,6 +34,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const rid = review.id;
   const [view, setView] = useState("todo");
   const [search, setSearch] = useState("");
+  const [fileId, setFileId] = useState("all");
   const [current, setCurrent] = useState<number | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -41,8 +42,9 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const openedAt = useRef<number>(Date.now());
   const onError = (e: unknown) => toast.error(e instanceof ApiError && e.status === 402 ? t("aiNeedKey") : e instanceof ApiError ? e.message : c("error"));
 
-  const qs = new URLSearchParams({ stage, view, search, limit: "200" }).toString();
-  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const qs = new URLSearchParams({ stage, view, search, limit: "200", ...(fileId !== "all" ? { import_id: fileId } : {}) }).toString();
+  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const kw = useQuery<KeywordCounts>({ queryKey: ["keywords", rid], queryFn: () => api.get(`/reviews/${rid}/keywords`) });
   const items = useMemo(() => page.data?.items ?? [], [page.data]);
   const index = Math.max(0, items.findIndex((r) => r.id === current));
@@ -129,6 +131,15 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>{VIEWS[stage].map((v) => <SelectItem key={v} value={v}>{t(`views.${v}`)}</SelectItem>)}</SelectContent>
           </Select>
+          {(imports.data?.length ?? 0) > 1 && (
+            <Select value={fileId} onValueChange={(v: string) => { setFileId(v); setCurrent(null); }}>
+              <SelectTrigger aria-label={t("fileFilter")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("allFiles")}</SelectItem>
+                {imports.data!.map((i) => <SelectItem key={i.id} value={i.id}>{i.filename}{i.source_db ? ` · ${i.source_db}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           <div className="relative"><Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setCurrent(null); }} /></div>
           <div>
             <Progress value={stageStats.pool ? Math.round((stageStats.my_done / stageStats.pool) * 100) : 0} />
