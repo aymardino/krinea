@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
+import { JobProgress } from "@/components/app/job-progress";
+import { useJob } from "@/lib/use-job";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -74,11 +76,20 @@ export default function ExtractionPage() {
 
   useEffect(() => { if (one.data) setValues(one.data.values); else if (open !== null && !byRecord.has(open)) setValues({}); }, [one.data, open, byRecord]);
 
+  // Extraction runs in the background: drafts are shown when the job ends.
+  const runJob = useJob(rid, ["extract"], (job) => {
+    const r = job.result as { ok?: number; failed?: number };
+    if (job.status === "done") toast.success(t("runDone", { ok: r.ok ?? 0, failed: r.failed ?? 0 }));
+    else toast.error(t("runFailed"), { description: job.error });
+    invalidate();
+  });
   const run = useMutation({
     mutationFn: (ids?: number[]) => api.post<Job>(`/reviews/${rid}/extraction/run`, { record_ids: ids ?? null }),
-    onSuccess: (job) => { const r = job.result as { ok?: number; failed?: number }; toast.success(`${r.ok ?? 0} drafts, ${r.failed ?? 0} failed`); invalidate(); },
+    onSuccess: runJob.follow,
     onError,
   });
+  const running = run.isPending || runJob.running;
+  const progress = running && <JobProgress job={runJob.job} label={t("running")} className="max-w-xl" />;
   const verify = useMutation({
     mutationFn: (id: number) => api.put<Extraction>(`/reviews/${rid}/extraction/${id}`, { values, quotes: one.data?.quotes ?? {} }),
     onSuccess: () => { toast.success(c("saved")); invalidate(); setOpen(null); },
@@ -106,10 +117,11 @@ export default function ExtractionPage() {
           description={[current.authors, current.year, current.journal].filter(Boolean).join(" · ")}
           actions={<>
             <Button variant="outline" onClick={() => setOpen(null)}>{c("close")}</Button>
-            {editable && current.has_pdf && <Button variant="outline" onClick={() => run.mutate([current.id])} disabled={run.isPending}><Bot />{t("reExtract")}</Button>}
+            {editable && current.has_pdf && <Button variant="outline" onClick={() => run.mutate([current.id])} disabled={running}><Bot />{t("reExtract")}</Button>}
             {editable && <Button onClick={() => verify.mutate(current.id)} disabled={verify.isPending}><Check />{t("saveVerified")}</Button>}
           </>}
         />
+        {progress}
         <div className="grid gap-5 lg:grid-cols-2">
           <div className="space-y-4 rounded-xl border border-border bg-card p-5">
             <div className={`rounded-md px-3 py-2 text-sm ${Object.keys(flags).length ? "bg-maybe-bg text-maybe" : "bg-include-bg text-include"}`}>{Object.keys(flags).length ? t("flags", { errors: nErr, warnings: nWarn }) : t("noFlags")}</div>
@@ -138,7 +150,8 @@ export default function ExtractionPage() {
   return (
     <div className="space-y-6">
       {/* With a filter on, the AI runs on the studies shown only. */}
-      <PageHeader title={t("title")} description={t("text")} actions={editable && <Button onClick={() => run.mutate(filtered ? todo : undefined)} disabled={run.isPending || !todo.length}><Bot />{t("run")} <span className="opacity-70">({t("runHint", { n: todo.length })})</span></Button>} />
+      <PageHeader title={t("title")} description={t("text")} actions={editable && <Button onClick={() => run.mutate(filtered ? todo : undefined)} disabled={running || !todo.length}><Bot />{t("run")} <span className="opacity-70">({t("runHint", { n: todo.length })})</span></Button>} />
+      {progress}
       {!!all.length || filtered ? (
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-full sm:w-72"><Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} /></div>

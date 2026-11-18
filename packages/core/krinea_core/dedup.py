@@ -80,8 +80,10 @@ def similarity(a: str, b: str) -> float:
 
 # ── Detection ────────────────────────────────────────────────────────────────────
 def find_duplicates(records, auto_threshold: float = 95.0, review_threshold: float = 85.0,
-                    min_title_len: int = 20) -> list[Pair]:
-    """Return one Pair per suspected duplicate pair (indices into `records`)."""
+                    min_title_len: int = 20, on_progress=None) -> list[Pair]:
+    """Return one Pair per suspected duplicate pair (indices into `records`).
+    `on_progress(done, total)`, when given, is called about a hundred times while titles are
+    compared, the slow part of this function."""
     n = len(records)
     titles = [norm_title(r.get("title")) for r in records]
     dois = [clean_doi(r.get("doi")) for r in records]
@@ -134,7 +136,10 @@ def find_duplicates(records, auto_threshold: float = 95.0, review_threshold: flo
                 if j > i and len(titles[j]) >= min_title_len and (i, j) not in best:
                     yield j
 
+    every = max(1, n // 100)
     for i in range(n):
+        if on_progress and i % every == 0:
+            on_progress(i, n)
         if len(titles[i]) < min_title_len:
             continue
         cand = list(candidates(i))
@@ -163,6 +168,8 @@ def find_duplicates(records, auto_threshold: float = 95.0, review_threshold: flo
             certain = score >= auto_threshold and not conflict and (same_author or same_year)
             add(i, j, score, reason, certain)
 
+    if on_progress:
+        on_progress(n, n)
     return sorted(best.values(), key=lambda p: (-p.score, p.a, p.b))
 
 

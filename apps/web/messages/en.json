@@ -37,7 +37,11 @@
       "conflict": "Conflict",
       "pending": "Pending"
     },
-    "admin": "Administration"
+    "admin": "Administration",
+    "job": {
+      "queued": "Waiting for its turn",
+      "running": "In progress"
+    }
   },
   "nav": {
     "howItWorks": "How it works",
@@ -413,7 +417,7 @@
       "dedupText": "Duplicates are never deleted: they are set aside, and you can bring them back at any time.",
       "autoThreshold": "Merge automatically from {n}% similar titles",
       "askThreshold": "Ask me from {n}%",
-      "dedupDone": "{removed} duplicates removed, {possible} pairs to check",
+      "dedupDone": "{removed, plural, one {# duplicate removed} other {# duplicates removed}}, {possible, plural, one {# pair to check} other {# pairs to check}}",
       "candidates": "Pairs to check",
       "noCandidates": "No pair waiting for you.",
       "different": "Different, keep both",
@@ -441,7 +445,10 @@
       "keeperFiles": "When duplicates are merged, the record from the first imported file in your order is kept.",
       "restoreAll": "Restore all",
       "restoreAllConfirm": "Bring back all {n} duplicates? Kept records get their own values back; pairs you marked as different stay so.",
-      "restoredAll": "{n} records restored"
+      "restoredAll": "{n} records restored",
+      "dedupRunning": "Detecting duplicates",
+      "dedupFailed": "Duplicate detection did not finish. Run it again.",
+      "removedShown": "Showing the first {n} of {total}."
     },
     "screening": {
       "views": {
@@ -473,7 +480,7 @@
       "acceptAi": "Accept suggestion",
       "runAi": "Ask the AI for suggestions",
       "aiLimit": "Records to analyse",
-      "aiDone": "{ok} suggestions saved",
+      "aiDone": "{ok, plural, one {# suggestion saved} other {# suggestions saved}}",
       "aiNeedKey": "Add your AI key in the AI panel, or upgrade for included credits.",
       "shortcuts": "Shortcuts",
       "shortcutList": "I include · M maybe · E exclude · ← → navigate · P open PDF",
@@ -511,7 +518,9 @@
       "kwSearchHint": "Highlighted in addition, on the records this search found.",
       "kwSearchFilterHint": "Some searches have their own keywords: pick a file above to see or edit them.",
       "allLabels": "All labels",
-      "labelFilter": "Label"
+      "labelFilter": "Label",
+      "aiRunning": "AI suggestions",
+      "aiFailed": "The AI suggestions did not finish. Run them again."
     },
     "extraction": {
       "title": "Data extraction",
@@ -546,7 +555,10 @@
       "study": "Study",
       "statusCol": "Status",
       "allLabels": "All labels",
-      "labelFilter": "Label"
+      "labelFilter": "Label",
+      "running": "AI extraction",
+      "runFailed": "The extraction did not finish. Run it again.",
+      "runDone": "{ok, plural, one {# draft ready} other {# drafts ready}}, {failed} failed"
     },
     "prisma": {
       "title": "PRISMA 2020",

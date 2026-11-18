@@ -232,8 +232,8 @@ class BulkDecisionIn(BaseModel):
 
 
 class DedupRunIn(BaseModel):
-    auto_threshold: float = 95.0
-    review_threshold: float = 85.0
+    auto_threshold: float = Field(95.0, ge=50, le=100)
+    review_threshold: float = Field(85.0, ge=50, le=100)
 
 
 class SearchKeywordsIn(BaseModel):

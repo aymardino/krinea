@@ -11,6 +11,8 @@ import { cn, formatDuration } from "@/lib/utils";
 import { canEdit, canReview, useReview } from "@/components/app/review-context";
 import { Highlight } from "@/components/app/highlight";
 import { AiCard } from "@/components/app/ai-card";
+import { JobProgress } from "@/components/app/job-progress";
+import { useJob } from "@/lib/use-job";
 import { KeywordsCard } from "@/components/app/keywords-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -96,9 +98,17 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     onError,
   });
   const clear = useMutation({ mutationFn: (id: number) => api.delete(`/reviews/${rid}/records/${id}/decision?stage=${stage}`), onSuccess: () => { qc.invalidateQueries({ queryKey: ["records", rid] }); refresh(); }, onError });
+  // AI suggestions run in the background: the records are refreshed when the job ends.
+  const aiJob = useJob(rid, ["ai_screen"], (job) => {
+    const r = job.result as { ok?: number; errors?: string[] };
+    if (job.status === "done") toast.success(t("aiDone", { ok: Number(r.ok ?? 0) }));
+    else toast.error(t("aiFailed"), { description: job.error });
+    if (job.status === "done" && r.errors?.length) toast.error(r.errors[r.errors.length - 1]);
+    qc.invalidateQueries({ queryKey: ["records", rid] });
+  });
   const aiRun = useMutation({
     mutationFn: () => api.post<Job>(`/reviews/${rid}/ai/screen`, { stage, limit: 50 }),
-    onSuccess: (job) => { toast.success(t("aiDone", { ok: Number((job.result as { ok?: number }).ok ?? 0) })); qc.invalidateQueries({ queryKey: ["records", rid] }); },
+    onSuccess: aiJob.follow,
     onError,
   });
   const pdfUpload = useMutation({
@@ -283,7 +293,8 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("shortcuts")}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
-        {editable && <AiCard review={review} onRun={() => aiRun.mutate()} running={aiRun.isPending} label={t("runAi")} />}
+        {editable && <AiCard review={review} onRun={() => aiRun.mutate()} running={aiRun.isPending || aiJob.running} label={t("runAi")}
+                             progress={(aiRun.isPending || aiJob.running) && <JobProgress job={aiJob.job} label={t("aiRunning")} />} />}
         <KeywordsCard review={review} counts={kw.data} editable={admin} onPick={(k) => { setSearch(k); setCurrent(null); }} onChanged={refresh}
                       search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">

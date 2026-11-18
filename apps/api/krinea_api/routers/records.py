@@ -469,6 +469,9 @@ def fetch_pdf(record_id: int, access=Depends(ReviewAccess("reviewer")), user: mo
 def run_dedup(body: schemas.DedupRunIn, access=Depends(ReviewAccess("admin")),
               user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     review, _ = access
+    # The thresholds of the last run stay with the review: the page shows them next time.
+    review.settings = {**(review.settings or {}), "dedup_auto_threshold": body.auto_threshold,
+                       "dedup_review_threshold": body.review_threshold}
     job = job_service.enqueue(db, "dedup", {"auto_threshold": body.auto_threshold,
                                             "review_threshold": body.review_threshold}, review.id, user.id)
     return job

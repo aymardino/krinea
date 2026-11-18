@@ -22,7 +22,16 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 DEFAULT_SETTINGS = {"required_reviewers": 1, "blind": True, "ai_provider": "claude",
                     "ai_model_screening": "", "ai_model_extraction": "", "keeper_rule": "complete",
-                    "file_priority": [], "source_priority": []}
+                    "file_priority": [], "source_priority": [],
+                    "dedup_auto_threshold": 95, "dedup_review_threshold": 85}
+
+
+def _threshold(value, default: float) -> float:
+    """A duplicate threshold (title similarity, %), kept between 50 and 100."""
+    try:
+        return max(50.0, min(100.0, float(value)))
+    except (TypeError, ValueError):
+        return float(default)
 
 
 def _clean_priority(value) -> list[str]:
@@ -131,6 +140,8 @@ def update_review(body: schemas.ReviewUpdate, access=Depends(ReviewAccess("admin
         own = set(db.scalars(select(models.Import.id).where(models.Import.review_id == review.id)))
         files = merged.get("file_priority") if isinstance(merged.get("file_priority"), list) else []
         merged["file_priority"] = list(dict.fromkeys(str(f) for f in files if str(f) in own))
+        for key in ("dedup_auto_threshold", "dedup_review_threshold"):
+            merged[key] = _threshold(merged.get(key), DEFAULT_SETTINGS[key])
         review.settings = merged
     if body.extraction_schema is not None:
         fields = [extraction_schema.normalise_field(f) for f in body.extraction_schema

@@ -1,6 +1,7 @@
 """Duplicate detection for a review, on top of krinea_core.dedup."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from sqlalchemy import delete, or_, select, update
@@ -132,10 +133,10 @@ def rebuild(db: Session, rec: models.Record) -> None:
             setattr(rec, f, values[f])
 
 
-def reset(db: Session, review_id: str) -> int:
+def reset(db: Session, review_id: str, progress: Callable[[float], None] | None = None) -> int:
     """Forgets every merge of the review: duplicates come back, kept records get their own
     values back, pairs to check are cleared. Pairs answered "different" stay answered.
-    Returns how many records came back."""
+    Returns how many records came back. `progress` receives the share of kept records done."""
     keepers = set(db.scalars(select(models.Record.duplicate_of).where(
         models.Record.review_id == review_id, models.Record.is_duplicate.is_(True),
         models.Record.duplicate_of.is_not(None))))
@@ -147,10 +148,13 @@ def reset(db: Session, review_id: str) -> int:
     db.flush()
     with_original = set(db.scalars(select(models.RecordOriginal.record_id)
                                    .where(models.RecordOriginal.review_id == review_id)))
-    for rid in keepers | with_original:
+    todo = keepers | with_original
+    for k, rid in enumerate(todo, 1):
         rec = db.get(models.Record, rid)
         if rec is not None:
             rebuild(db, rec)
+        if progress:
+            progress(k / len(todo))
     db.execute(delete(models.DedupCandidate).where(models.DedupCandidate.review_id == review_id,
                                                    models.DedupCandidate.status != "ignored"))
     db.flush()
@@ -172,19 +176,27 @@ def mark(db: Session, keeper_id: int, dup_ids: list[int], score: float, reason: 
 
 
 def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
-        review_threshold: float = 85.0, user_id: str | None = None) -> dict:
-    reset(db, review.id)
+        review_threshold: float = 85.0, user_id: str | None = None,
+        progress: Callable[[float], None] | None = None) -> dict:
+    """Detects the review's duplicates again from scratch, in one transaction. `progress`, when
+    given, receives the share of the work done (0 to 1): undoing the previous merges, comparing
+    titles, then writing the merges, the longest part when there are many duplicates."""
+    step = progress or (lambda share: None)
+    reset(db, review.id, progress=lambda share: step(0.15 * share))
     db.flush()
     records = _record_dicts(db, review.id)
     ids = [r["id"] for r in records]
-    pairs = core.find_duplicates(records, auto_threshold, review_threshold)
+    step(0.15)
+    pairs = core.find_duplicates(records, auto_threshold, review_threshold,
+                                 on_progress=lambda done, total: step(0.15 + 0.25 * done / max(total, 1)))
     certain = [p for p in pairs if p.certain]
     info = {(p.a, p.b): p for p in certain}
     groups = core.cluster(certain, len(records))
     prio = priority(review)
     removed = 0
     keeper_of: dict[int, int] = {}
-    for g in groups:
+    for k, g in enumerate(groups):
+        step(0.4 + 0.55 * k / len(groups))
         keeper = _keep(records, g, prio)
         keeper_of.update({i: keeper for i in g})
         for i in g:
@@ -208,6 +220,7 @@ def run(db: Session, review: models.Review, auto_threshold: float = 95.0,
         key = (min(ids[a], ids[b]), max(ids[a], ids[b]))
         if key not in best or p.score > best[key].score:
             best[key] = p
+    step(0.95)
     n_possible = 0
     for (a, b), p in sorted(best.items()):
         if (a, b) in ignored:

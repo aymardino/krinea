@@ -37,7 +37,11 @@
       "conflict": "Conflit",
       "pending": "En attente"
     },
-    "admin": "Administration"
+    "admin": "Administration",
+    "job": {
+      "queued": "En file d'attente",
+      "running": "En cours"
+    }
   },
   "nav": {
     "howItWorks": "Comment ça marche",
@@ -413,7 +417,7 @@
       "dedupText": "Les doublons ne sont jamais supprimés : ils sont mis de côté, et vous pouvez les faire revenir à tout moment.",
       "autoThreshold": "Fusion automatique dès {n} % de titres semblables",
       "askThreshold": "Me demander dès {n} %",
-      "dedupDone": "{removed} doublons retirés, {possible} paires à vérifier",
+      "dedupDone": "{removed, plural, one {# doublon retiré} other {# doublons retirés}}, {possible, plural, one {# paire à vérifier} other {# paires à vérifier}}",
       "candidates": "Paires à vérifier",
       "noCandidates": "Aucune paire en attente.",
       "different": "Différentes, garder les deux",
@@ -441,7 +445,10 @@
       "keeperFiles": "Lors d'une fusion, la notice du premier fichier importé dans votre ordre est gardée.",
       "restoreAll": "Tout restaurer",
       "restoreAllConfirm": "Faire revenir les {n} doublons ? Les notices gardées retrouvent leurs propres valeurs ; les paires marquées « Différentes » le restent.",
-      "restoredAll": "{n} notices restaurées"
+      "restoredAll": "{n} notices restaurées",
+      "dedupRunning": "Détection des doublons",
+      "dedupFailed": "La détection des doublons ne s'est pas terminée. Relancez-la.",
+      "removedShown": "Les {n} premiers sur {total} sont affichés."
     },
     "screening": {
       "views": {
@@ -473,7 +480,7 @@
       "acceptAi": "Accepter la suggestion",
       "runAi": "Demander des suggestions à l'IA",
       "aiLimit": "Notices à analyser",
-      "aiDone": "{ok} suggestions enregistrées",
+      "aiDone": "{ok, plural, one {# suggestion enregistrée} other {# suggestions enregistrées}}",
       "aiNeedKey": "Ajoutez votre clé IA dans le panneau IA, ou passez à une offre avec crédits inclus.",
       "shortcuts": "Raccourcis",
       "shortcutList": "I inclure · M peut-être · E exclure · ← → naviguer · P ouvrir le PDF",
@@ -511,7 +518,9 @@
       "kwSearchHint": "Surlignés en plus, sur les notices trouvées par cette recherche.",
       "kwSearchFilterHint": "Certaines recherches ont leurs propres mots-clés : choisissez un fichier ci-dessus pour les voir ou les modifier.",
       "allLabels": "Toutes les étiquettes",
-      "labelFilter": "Étiquette"
+      "labelFilter": "Étiquette",
+      "aiRunning": "Suggestions de l'IA",
+      "aiFailed": "Les suggestions de l'IA ne se sont pas terminées. Relancez-les."
     },
     "extraction": {
       "title": "Extraction des données",
@@ -546,7 +555,10 @@
       "study": "Étude",
       "statusCol": "Statut",
       "allLabels": "Toutes les étiquettes",
-      "labelFilter": "Étiquette"
+      "labelFilter": "Étiquette",
+      "running": "Extraction par l'IA",
+      "runFailed": "L'extraction ne s'est pas terminée. Relancez-la.",
+      "runDone": "{ok, plural, one {# brouillon prêt} other {# brouillons prêts}}, {failed, plural, one {# échec} other {# échecs}}"
     },
     "prisma": {
       "title": "PRISMA 2020",

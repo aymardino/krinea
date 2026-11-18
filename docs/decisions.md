@@ -606,3 +606,22 @@ been merged into from those values and the duplicates still merged; "Restore all
 values back. Pairs answered "different" stay answered. Merges made before originals were
 stored only get their list of sources put right. Deleting an import recomputes the records
 that had absorbed its duplicates.
+
+## D-32 · 2026-11-18 · decided · Pages follow background jobs; detection thresholds are kept
+
+**Decision.** Duplicate detection, AI screening and AI extraction run in the worker in
+production (`INLINE_JOBS=0`), so starting one answers at once with a queued job. The pages
+now follow the job (`GET /jobs/{id}` every 1.5 seconds), show a progress bar, and refresh
+their data and report the result only when it ends; a job already under way when a page
+opens (after a reload, or started by a teammate) is found in `GET /reviews/{id}/jobs` and
+followed too. Detection reports its progress (undoing the previous merges, comparing titles,
+writing the merges) through a separate session, so the work itself stays one transaction;
+SQLite allows one writer at a time, so there the bar only moves when the job ends. The worker,
+once it has been up for two minutes, marks failed the jobs its previous instance left running
+(a deploy or a crash stops it mid-job), so no page waits forever. The thresholds of the last
+detection are saved in the review settings (`dedup_auto_threshold`, `dedup_review_threshold`,
+between 50 and 100) and the sliders start from them.
+
+**Why.** On the hosted service the page reported "0 duplicates removed" at once and showed
+the new result only after a reload, with no sign that anything was running, and the
+thresholds went back to 95 and 85 at every visit.

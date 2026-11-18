@@ -16,6 +16,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { EmptyState, Stat } from "@/components/ui/misc";
+import { JobProgress } from "@/components/app/job-progress";
+import { useJob } from "@/lib/use-job";
 
 export default function DataPage() {
   const t = useTranslations("review.data");
@@ -28,8 +30,9 @@ export default function DataPage() {
   const canResolve = canReview(review.my_role);      // reviewers settle duplicate pairs too
   const fileRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState("");
-  const [auto, setAuto] = useState(95);
-  const [ask, setAsk] = useState(85);
+  // The thresholds of the review's last detection, or the defaults.
+  const [auto, setAuto] = useState(review.settings.dedup_auto_threshold ?? 95);
+  const [ask, setAsk] = useState(review.settings.dedup_review_threshold ?? 85);
   const onError = (e: unknown) => toast.error(e instanceof ApiError ? e.message : c("error"));
 
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
@@ -53,11 +56,20 @@ export default function DataPage() {
     onError,
   });
   const deleteImport = useMutation({ mutationFn: (id: string) => api.delete(`/reviews/${rid}/imports/${id}`), onSuccess: invalidateAll, onError });
+  // Detection runs in the background: the results are shown when the job ends.
+  const dedupJob = useJob(rid, ["dedup"], (job) => {
+    if (job.status === "done") {
+      const r = job.result as { removed?: number; possible?: number };
+      toast.success(t("dedupDone", { removed: r.removed ?? 0, possible: r.possible ?? 0 }));
+    } else toast.error(t("dedupFailed"), { description: job.error });
+    invalidateAll();
+  });
   const dedup = useMutation({
     mutationFn: () => api.post<Job>(`/reviews/${rid}/dedup/run`, { auto_threshold: auto, review_threshold: ask }),
-    onSuccess: (job) => { const r = job.result as { removed?: number; possible?: number }; toast.success(t("dedupDone", { removed: r.removed ?? 0, possible: r.possible ?? 0 })); invalidateAll(); },
+    onSuccess: dedupJob.follow,
     onError,
   });
+  const busy = dedup.isPending || dedupJob.running;
   const resolve = useMutation({
     mutationFn: ({ id, action, keep }: { id: number; action: "merge" | "ignore"; keep?: number }) =>
       api.post(`/reviews/${rid}/dedup/candidates/${id}/${action}${keep ? `?keep=${keep}` : ""}`),
@@ -121,9 +133,10 @@ export default function DataPage() {
               {/* The "ask" threshold can never pass the automatic one. */}
               <div className="space-y-1.5"><Label htmlFor="auto-th">{t("autoThreshold", { n: auto })}</Label><input id="auto-th" type="range" min={85} max={100} value={auto} onChange={(e) => { const v = +e.target.value; setAuto(v); if (ask > v) setAsk(v); }} className="block accent-brand-600" /></div>
               <div className="space-y-1.5"><Label htmlFor="ask-th">{t("askThreshold", { n: ask })}</Label><input id="ask-th" type="range" min={70} max={95} value={ask} onChange={(e) => { const v = +e.target.value; setAsk(v); if (auto < v) setAuto(v); }} className="block accent-brand-600" /></div>
-              <Button onClick={() => dedup.mutate()} disabled={dedup.isPending || !s.records}>{t("runDedup")}</Button>
+              <Button onClick={() => dedup.mutate()} disabled={busy || !s.records}>{t("runDedup")}</Button>
             </div>
           )}
+          {busy && <JobProgress job={dedupJob.job} label={t("dedupRunning")} className="max-w-xl" />}
           <ul className="space-y-1 rounded-lg bg-muted/60 px-4 py-3 text-sm text-ink-700">
             <li>{t("explainExact")}</li>
             <li>{t("explainAuto", { auto })}</li>
@@ -153,7 +166,7 @@ export default function DataPage() {
                             {r.source_db && <p className="mt-1 text-xs font-medium text-ink-700">{r.source_db}</p>}
                             {canResolve && (
                               <div className="mt-3 flex items-center gap-2">
-                                <Button size="sm" variant={suggested ? "default" : "outline"} onClick={() => resolve.mutate({ id: cd.id, action: "merge", keep: r.id })} disabled={resolve.isPending}>{t("keepThis")}</Button>
+                                <Button size="sm" variant={suggested ? "default" : "outline"} onClick={() => resolve.mutate({ id: cd.id, action: "merge", keep: r.id })} disabled={resolve.isPending || busy}>{t("keepThis")}</Button>
                                 {suggested && <span className="text-xs text-brand-700">{t("suggested")}</span>}
                               </div>
                             )}
@@ -162,7 +175,7 @@ export default function DataPage() {
                       })}
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-3">
-                      {canResolve && <Button size="sm" variant="outline" onClick={() => resolve.mutate({ id: cd.id, action: "ignore" })} disabled={resolve.isPending}>{t("different")}</Button>}
+                      {canResolve && <Button size="sm" variant="outline" onClick={() => resolve.mutate({ id: cd.id, action: "ignore" })} disabled={resolve.isPending || busy}>{t("different")}</Button>}
                       <span className="text-xs text-muted-foreground">{t("keepHint")}</span>
                     </div>
                   </div>
@@ -173,8 +186,8 @@ export default function DataPage() {
           {!!duplicates.data?.length && (
             <div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">{t("removed")} <Badge variant="secondary">{duplicates.data.length}</Badge></h3>
-                {editable && <Button size="sm" variant="outline" onClick={() => confirm(t("restoreAllConfirm", { n: duplicates.data!.length })) && restoreAll.mutate()} disabled={restoreAll.isPending}><RotateCcw />{t("restoreAll")}</Button>}
+                <h3 className="text-sm font-semibold">{t("removed")} <Badge variant="secondary">{Math.max(s.duplicates, duplicates.data.length)}</Badge></h3>
+                {editable && <Button size="sm" variant="outline" onClick={() => confirm(t("restoreAllConfirm", { n: Math.max(s.duplicates, duplicates.data!.length) })) && restoreAll.mutate()} disabled={restoreAll.isPending || busy}><RotateCcw />{t("restoreAll")}</Button>}
               </div>
               <Table>
                 <THead><TR><TH>#</TH><TH>{t("columns.title")}</TH><TH>{t("columns.year")}</TH><TH>{t("columns.source")}</TH><TH>Match</TH><TH /></TR></THead>
@@ -183,11 +196,13 @@ export default function DataPage() {
                     <TR key={d.id}>
                       <TD className="text-muted-foreground">{d.id}</TD><TD>{d.title}<span className="block text-xs text-muted-foreground">{t("keptAs", { id: d.kept_id })}</span></TD>
                       <TD>{d.year}</TD><TD>{d.source_db}</TD><TD className="text-xs text-muted-foreground">{Math.round(d.score)}% · {d.reason}</TD>
-                      <TD className="text-right">{editable && <Button size="xs" variant="ghost" onClick={() => restore.mutate(d.id)}><RotateCcw />{t("restore")}</Button>}</TD>
+                      <TD className="text-right">{editable && <Button size="xs" variant="ghost" onClick={() => restore.mutate(d.id)} disabled={restore.isPending || busy}><RotateCcw />{t("restore")}</Button>}</TD>
                     </TR>
                   ))}
                 </TBody>
               </Table>
+              {/* The list stops at the first 200; Restore all brings back every one. */}
+              {duplicates.data.length < s.duplicates && <p className="mt-2 text-xs text-muted-foreground">{t("removedShown", { n: duplicates.data.length, total: s.duplicates })}</p>}
             </div>
           )}
         </CardContent>

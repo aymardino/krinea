@@ -92,3 +92,15 @@ def test_thresholds_can_be_tightened():
 def test_fallback_similarity_matches_rapidfuzz_scale():
     assert dedup.similarity("abc", "abc") == 100
     assert dedup.similarity("abc", "xyz") < 50
+
+
+def test_progress_is_reported_while_titles_are_compared():
+    seen = []
+    pairs = dedup.find_duplicates(RECS, on_progress=lambda done, total: seen.append((done, total)))
+    assert pairs == dedup.find_duplicates(RECS)
+    assert seen[0] == (0, len(RECS)) and seen[-1] == (len(RECS), len(RECS))
+    assert [d for d, _ in seen] == sorted(d for d, _ in seen)
+    many = [{"title": f"A study of rural electrification number {i} in Kenya", "year": "2020"} for i in range(1000)]
+    calls = []
+    dedup.find_duplicates(many, on_progress=lambda done, total: calls.append(done))
+    assert len(calls) <= 102                     # about a hundred, whatever the size
