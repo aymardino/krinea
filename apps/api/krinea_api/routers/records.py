@@ -182,6 +182,7 @@ def _ai_map(db: DBSession, review_id: str, stage: str, ids: list[int]) -> dict[i
 @router.get("/records", response_model=schemas.RecordPage)
 def list_records(stage: str = "ta", view: str = "all", search: str = "", source: str = "", label: str = "",
                  import_id: str = "", year_from: str = "", year_to: str = "", cursor: int = 0,
+                 kw: list[str] = Query(default=[]), kw_mode: str = "all",
                  limit: int = Query(50, ge=1, le=500), access=Depends(ReviewAccess("viewer")),
                  user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     review, m = access
@@ -236,6 +237,9 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     rows = [r for r in rows if r.id in idset]
     if label.strip():                         # exact label: "SQ1" must not match "SQ10"
         rows = [r for r in rows if label.strip().lower() in _labels_of(r.labels)]
+    if any(k.strip() for k in kw):            # highlight keywords picked in the screening rail
+        match = scr.keyword_filter(kw, kw_mode)
+        rows = [r for r in rows if match(r)]
     total = len(rows)
     page = [r for r in rows if r.id > cursor][:limit]
     names = _names(db, review.id)

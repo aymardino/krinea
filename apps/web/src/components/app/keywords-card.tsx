@@ -12,21 +12,33 @@ type Kind = "include" | "exclude";
 type Lists = { [k in Kind]: string[] };
 const EMPTY: Lists = { include: [], exclude: [] };
 
-/** One pair of keyword lists (green to include, red to exclude), editable in place. */
-function KeywordLists({ title, lists, counts, editable, pending, onSave, onPick }: {
+/** Keywords typed or pasted at once: commas, semicolons, tabs and line breaks all separate
+ *  them, so a column copied from a spreadsheet or a list from a document goes in as is. */
+export function splitKeywords(text: string): string[] {
+  return text.split(/[,;\t\r\n]+/).map((s) => s.trim()).filter(Boolean);
+}
+
+/** One pair of keyword lists (green to include, red to exclude), editable in place. A click
+ *  on a keyword adds it to the queue's filter, or takes it out. */
+function KeywordLists({ title, lists, counts, editable, pending, picked, onSave, onPick }: {
   title?: string; lists: Lists; counts?: KeywordCounts | KeywordCounts["search"]; editable: boolean; pending: boolean;
-  onSave: (next: Lists) => void; onPick: (keyword: string) => void;
+  picked: string[]; onSave: (next: Lists) => void; onPick: (keyword: string) => void;
 }) {
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
   const [draft, setDraft] = useState<{ [k in Kind]: string }>({ include: "", exclude: "" });
   const n = (kind: Kind, kw: string) => counts?.[kind].find((k) => k.keyword === kw)?.n;
-  const add = (kind: Kind) => {
-    const items = draft[kind].trim().replace(/,+$/, "").split(",").map((s) => s.trim()).filter(Boolean);
-    if (!items.length) return;
+  const isPicked = (kw: string) => picked.some((p) => p.toLowerCase() === kw.toLowerCase());
+  const addText = (kind: Kind, text: string) => {
+    const known = new Set(lists[kind].map((k) => k.toLowerCase()));
+    const items: string[] = [];
+    for (const k of splitKeywords(text)) {
+      if (!known.has(k.toLowerCase())) { known.add(k.toLowerCase()); items.push(k); }
+    }
     setDraft((d) => ({ ...d, [kind]: "" }));
-    onSave({ ...lists, [kind]: Array.from(new Set([...lists[kind], ...items])) });
+    if (items.length) onSave({ ...lists, [kind]: [...lists[kind], ...items] });
   };
+  const add = (kind: Kind) => addText(kind, draft[kind]);
   const remove = (kind: Kind, kw: string) => onSave({ ...lists, [kind]: lists[kind].filter((k) => k !== kw) });
 
   return (
@@ -37,8 +49,10 @@ function KeywordLists({ title, lists, counts, editable, pending, onSave, onPick 
           <p className="text-[11px] font-medium text-muted-foreground">{t(kind === "include" ? "includeKw" : "excludeKw")}</p>
           <ul className="mt-1.5 flex flex-wrap gap-1.5">
             {lists[kind].map((kw) => (
-              <li key={kw} className={cn("inline-flex max-w-full items-center gap-1 rounded-md pl-1.5 text-xs", kind === "include" ? "bg-include-bg text-include" : "bg-exclude-bg text-exclude", !editable && "pr-1.5")}>
-                <button type="button" className="truncate hover:underline" title={t("filterBy", { keyword: kw })} onClick={() => onPick(kw.replace("*", ""))}>{kw}</button>
+              <li key={kw} className={cn("inline-flex max-w-full items-center gap-1 rounded-md pl-1.5 text-xs", kind === "include" ? "bg-include-bg text-include" : "bg-exclude-bg text-exclude",
+                                         !editable && "pr-1.5", isPicked(kw) && "ring-2 ring-current")}>
+                <button type="button" className="truncate hover:underline" aria-pressed={isPicked(kw)}
+                        title={t(isPicked(kw) ? "kwRemove" : "filterBy", { keyword: kw })} onClick={() => onPick(kw)}>{kw}</button>
                 {n(kind, kw) !== undefined && <span className="tabular-nums opacity-70">{n(kind, kw)}</span>}
                 {editable && (
                   <button type="button" aria-label={`${c("delete")} ${kw}`} className="rounded-r-md px-1 py-0.5 hover:bg-black/10" onClick={() => remove(kind, kw)} disabled={pending}><X className="size-3" /></button>
@@ -54,6 +68,13 @@ function KeywordLists({ title, lists, counts, editable, pending, onSave, onPick 
                 placeholder={t(kind === "include" ? "addInclude" : "addExclude")}
                 value={draft[kind]}
                 onChange={(e) => setDraft((d) => ({ ...d, [kind]: e.target.value }))}
+                onPaste={(e) => {
+                  // A one-line field drops line breaks: a pasted list is split here instead.
+                  const text = e.clipboardData.getData("text");
+                  if (!/[\t\r\n]/.test(text)) return;
+                  e.preventDefault();
+                  addText(kind, `${draft[kind]}\n${text}`);
+                }}
                 disabled={pending}
               />
               <button type="submit" aria-label={c("save")} className="inline-flex size-7 items-center justify-center rounded-md border border-input text-muted-foreground hover:bg-muted" disabled={!draft[kind].trim() || pending}><Plus className="size-3.5" /></button>
@@ -69,8 +90,8 @@ function KeywordLists({ title, lists, counts, editable, pending, onSave, onPick 
  *  own keywords apply to every record; when one search (imported file) is selected, its own
  *  keywords are shown too, and they are highlighted on the records that search found.
  *  Green ones mark text to include, red ones text to exclude; `*` is a wildcard. */
-export function KeywordsCard({ review, counts, editable, onPick, onChanged, search }: {
-  review: Review; counts?: KeywordCounts; editable: boolean; onPick: (keyword: string) => void; onChanged: () => void;
+export function KeywordsCard({ review, counts, editable, picked = [], onPick, onChanged, search }: {
+  review: Review; counts?: KeywordCounts; editable: boolean; picked?: string[]; onPick: (keyword: string) => void; onChanged: () => void;
   search?: { importId: string; label: string };
 }) {
   const t = useTranslations("review.screening");
@@ -97,11 +118,11 @@ export function KeywordsCard({ review, counts, editable, onPick, onChanged, sear
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("keywordsTitle")}</p>
-      <KeywordLists title={search ? t("kwReview") : undefined} lists={general} counts={counts} editable={editable}
+      <KeywordLists title={search ? t("kwReview") : undefined} lists={general} counts={counts} editable={editable} picked={picked}
                     pending={saveGeneral.isPending} onSave={(next) => saveGeneral.mutate(next)} onPick={onPick} />
       {search && (
         <div className="mt-4 border-t border-border pt-3">
-          <KeywordLists key={search.importId} title={t("kwSearch", { file: search.label })} lists={own} counts={counts?.search} editable={editable}
+          <KeywordLists key={search.importId} title={t("kwSearch", { file: search.label })} lists={own} counts={counts?.search} editable={editable} picked={picked}
                         pending={saveSearch.isPending} onSave={(next) => saveSearch.mutate(next)} onPick={onPick} />
           <p className="mt-2 text-[11px] text-muted-foreground">{t("kwSearchHint")}</p>
         </div>

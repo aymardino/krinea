@@ -625,3 +625,20 @@ between 50 and 100) and the sliders start from them.
 **Why.** On the hosted service the page reported "0 duplicates removed" at once and showed
 the new result only after a reload, with no sign that anything was running, and the
 thresholds went back to 95 and 85 at every visit.
+
+## D-33 · 2026-11-18 · decided · Screening queue filtered by several keywords; pasted keyword lists
+
+**Decision.** A click on a highlight keyword in the screening rail adds it to the queue's
+filter (a second click takes it out) instead of typing it into the search box. The filter
+shows above the queue with a remove button per keyword, a choice between records that
+mention all of them or at least one (`GET /records?kw=...&kw=...&kw_mode=all|any`), and
+"Show all", which also clears the search box; the search box has its own clear button.
+Keywords match as the counts in the rail count them (whole words, `*` as wildcard, title,
+abstract and keywords), so a keyword shown with 90 records filters those 90. The keyword
+fields take several keywords at once: commas, semicolons, tabs and line breaks separate
+them, so a column pasted from a spreadsheet goes in as is, and the stored lists are split
+the same way when read. Gemini calls are serialised, because its SDK keeps a single key
+for the whole process and two users' calls made at once could otherwise swap keys.
+
+**Why.** A pasted list became one long keyword, the only way back after a click on a
+keyword was to empty the search box by hand, and two keywords could not be combined.

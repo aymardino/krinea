@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 from dataclasses import dataclass
 
 PROVIDERS = ("claude", "gemini", "deepseek")
@@ -85,12 +86,18 @@ def _call_claude(prompt: str, api_key: str, model: str, max_tokens: int) -> tupl
     return text, usage
 
 
+# The Gemini SDK keeps one key for the whole process (genai.configure): two calls made at
+# the same time with different keys must not run interleaved, or one would use the other's key.
+_GEMINI_LOCK = threading.Lock()
+
+
 def _call_gemini(prompt: str, api_key: str, model: str, max_tokens: int) -> tuple[str, Usage]:
     import google.generativeai as genai
-    genai.configure(api_key=api_key)
-    gm = genai.GenerativeModel(model)
-    resp = gm.generate_content(prompt, generation_config={
-        "temperature": 0, "response_mime_type": "application/json", "max_output_tokens": max_tokens})
+    with _GEMINI_LOCK:
+        genai.configure(api_key=api_key)
+        gm = genai.GenerativeModel(model)
+        resp = gm.generate_content(prompt, generation_config={
+            "temperature": 0, "response_mime_type": "application/json", "max_output_tokens": max_tokens})
     um = getattr(resp, "usage_metadata", None)
     usage = Usage(int(getattr(um, "prompt_token_count", 0) or 0), int(getattr(um, "candidates_token_count", 0) or 0))
     return resp.text or "", usage

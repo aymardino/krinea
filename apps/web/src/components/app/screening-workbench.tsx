@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, XCircle } from "lucide-react";
+import { Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, X, XCircle } from "lucide-react";
 import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type LabelCount, type StudyRecord, type RecordPage } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
@@ -38,6 +38,9 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const [search, setSearch] = useState("");
   const [fileId, setFileId] = useState("all");
   const [labelFilter, setLabelFilter] = useState("all");
+  // Keywords clicked in the rail: the queue shows the records that mention all of them (or any).
+  const [kwFilter, setKwFilter] = useState<string[]>([]);
+  const [kwMode, setKwMode] = useState<"all" | "any">("all");
   const [current, setCurrent] = useState<number | null>(null);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -45,12 +48,21 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const openedAt = useRef<number>(Date.now());
   const onError = (e: unknown) => toast.error(e instanceof ApiError && e.status === 402 ? t("aiNeedKey") : e instanceof ApiError ? e.message : c("error"));
 
-  const qs = new URLSearchParams({
+  const params = new URLSearchParams({
     stage, view, search, limit: "200",
     ...(fileId !== "all" ? { import_id: fileId } : {}),
     ...(labelFilter !== "all" ? { label: labelFilter } : {}),
-  }).toString();
-  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  });
+  kwFilter.forEach((k) => params.append("kw", k));
+  if (kwFilter.length > 1) params.set("kw_mode", kwMode);
+  const qs = params.toString();
+  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter, kwFilter, kwMode], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const samekw = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+  const togglePick = (k: string) => {
+    setKwFilter((f) => (f.some((x) => samekw(x, k)) ? f.filter((x) => !samekw(x, k)) : [...f, k]));
+    setCurrent(null);
+  };
+  const showAll = () => { setKwFilter([]); setSearch(""); setCurrent(null); };
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const labelList = useQuery<LabelCount[]>({ queryKey: ["labels", rid], queryFn: () => api.get(`/reviews/${rid}/labels`) });
   const kw = useQuery<KeywordCounts>({
@@ -171,7 +183,43 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
               </SelectContent>
             </Select>
           )}
-          <div className="relative"><Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setCurrent(null); }} /></div>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+            <Input className="px-8" placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setCurrent(null); }} />
+            {search && (
+              <button type="button" aria-label={t("clearSearch")} title={t("clearSearch")} onClick={() => { setSearch(""); setCurrent(null); }}
+                      className="absolute right-1.5 top-1.5 inline-flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+          {!!kwFilter.length && (
+            <div className="rounded-lg border border-border bg-muted/40 p-2 text-xs">
+              <p className="text-[11px] text-muted-foreground">{t("kwFilterTitle")}</p>
+              <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                {kwFilter.map((k) => (
+                  <li key={k} className="inline-flex max-w-full items-center gap-1 rounded-md bg-brand-50 pl-1.5 text-brand-800 dark:bg-brand-950 dark:text-brand-200">
+                    <span className="truncate">{k}</span>
+                    <button type="button" aria-label={t("kwRemove", { keyword: k })} title={t("kwRemove", { keyword: k })} onClick={() => togglePick(k)}
+                            className="rounded-r-md px-1 py-0.5 hover:bg-black/10"><X className="size-3" /></button>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                {kwFilter.length > 1 ? (
+                  <div role="group" aria-label={t("kwModeLabel")} className="inline-flex rounded-md border border-border bg-background p-0.5">
+                    {(["all", "any"] as const).map((m) => (
+                      <button key={m} type="button" aria-pressed={kwMode === m} onClick={() => { setKwMode(m); setCurrent(null); }}
+                              className={cn("rounded px-2 py-0.5", kwMode === m ? "bg-brand-600 text-white" : "text-muted-foreground hover:text-foreground")}>
+                        {t(m === "all" ? "kwModeAll" : "kwModeAny")}
+                      </button>
+                    ))}
+                  </div>
+                ) : <span className="text-muted-foreground">{t("kwFilterMore")}</span>}
+                <button type="button" onClick={showAll} className="font-medium text-primary underline-offset-4 hover:underline">{t("showAll")}</button>
+              </div>
+            </div>
+          )}
           <div>
             <Progress value={stageStats.pool ? Math.round((stageStats.my_done / stageStats.pool) * 100) : 0} />
             <p className="mt-1 text-xs text-muted-foreground">{t("progress", { done: stageStats.my_done, total: stageStats.pool })}{stageStats.my_seconds ? ` · ${formatDuration(stageStats.my_seconds)}` : ""}</p>
@@ -295,7 +343,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
         </div>
         {editable && <AiCard review={review} onRun={() => aiRun.mutate()} running={aiRun.isPending || aiJob.running} label={t("runAi")}
                              progress={(aiRun.isPending || aiJob.running) && <JobProgress job={aiJob.job} label={t("aiRunning")} />} />}
-        <KeywordsCard review={review} counts={kw.data} editable={admin} onPick={(k) => { setSearch(k); setCurrent(null); }} onChanged={refresh}
+        <KeywordsCard review={review} counts={kw.data} editable={admin} picked={kwFilter} onPick={togglePick} onChanged={refresh}
                       search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">
           <p className="font-semibold uppercase tracking-wide text-muted-foreground">{c("decision.conflict")}</p>

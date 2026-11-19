@@ -54,11 +54,12 @@ def criteria_with_defaults(criteria: dict | None) -> dict:
 
 
 def parse_keywords(text) -> list[str]:
-    """'solar, mini-grid; Africa' -> ['solar', 'mini-grid', 'Africa']"""
+    """'solar, mini-grid; Africa' -> ['solar', 'mini-grid', 'Africa']. In a list, an item
+    that holds several lines or tab-separated cells (pasted from a spreadsheet) is split."""
     if isinstance(text, (list, tuple)):
-        items = text
+        items = [part for it in text for part in re.split(r"[\t\r\n]", str(it))]
     else:
-        items = re.split(r"[,;\n]", str(text or ""))
+        items = re.split(r"[,;\t\r\n]", str(text or ""))
     seen, out = set(), []
     for it in items:
         it = str(it).strip()

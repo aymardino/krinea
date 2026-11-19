@@ -499,8 +499,8 @@
       "keywordsTitle": "Mots-clés",
       "addInclude": "Ajouter un mot-clé vert…",
       "addExclude": "Ajouter un mot-clé rouge…",
-      "keywordHint": "Entrée pour ajouter, virgules pour plusieurs, * comme joker. Surlignés dans chaque résumé.",
-      "filterBy": "Afficher les références contenant « {keyword} »",
+      "keywordHint": "Entrée pour ajouter. Pour en ajouter plusieurs, séparez-les par des virgules ou collez une liste (une par ligne ou par cellule). * sert de joker. Cliquez sur un mot-clé pour filtrer les références.",
+      "filterBy": "N'afficher que les références qui mentionnent « {keyword} »",
       "aiProvider": "Fournisseur :",
       "aiChange": "changer",
       "aiNoKey": "Aucune clé {provider} enregistrée. Collez la vôtre pour obtenir des suggestions dans cette revue et toutes les autres.",
@@ -520,7 +520,15 @@
       "allLabels": "Toutes les étiquettes",
       "labelFilter": "Étiquette",
       "aiRunning": "Suggestions de l'IA",
-      "aiFailed": "Les suggestions de l'IA ne se sont pas terminées. Relancez-les."
+      "aiFailed": "Les suggestions de l'IA ne se sont pas terminées. Relancez-les.",
+      "kwRemove": "Ne plus filtrer par « {keyword} »",
+      "clearSearch": "Effacer la recherche",
+      "kwFilterTitle": "Références qui mentionnent",
+      "kwFilterMore": "Cliquez sur d'autres mots-clés pour les combiner.",
+      "kwModeLabel": "Mots-clés à trouver",
+      "kwModeAll": "Tous",
+      "kwModeAny": "Au moins un",
+      "showAll": "Tout afficher"
     },
     "extraction": {
       "title": "Extraction des données",

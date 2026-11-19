@@ -499,8 +499,8 @@
       "keywordsTitle": "Keywords",
       "addInclude": "Add a green keyword…",
       "addExclude": "Add a red keyword…",
-      "keywordHint": "Enter to add, commas for several, * as wildcard. Highlighted in every abstract.",
-      "filterBy": "Show records containing “{keyword}”",
+      "keywordHint": "Enter to add. For several at once, separate them with commas or paste a list (one per line or cell). * as wildcard. Click a keyword to filter the records.",
+      "filterBy": "Show only the records that mention “{keyword}”",
       "aiProvider": "Provider:",
       "aiChange": "change",
       "aiNoKey": "No {provider} key on file yet. Paste yours to get suggestions in this review and all your others.",
@@ -520,7 +520,15 @@
       "allLabels": "All labels",
       "labelFilter": "Label",
       "aiRunning": "AI suggestions",
-      "aiFailed": "The AI suggestions did not finish. Run them again."
+      "aiFailed": "The AI suggestions did not finish. Run them again.",
+      "kwRemove": "Stop filtering by “{keyword}”",
+      "clearSearch": "Clear the search",
+      "kwFilterTitle": "Records that mention",
+      "kwFilterMore": "Click other keywords to combine them.",
+      "kwModeLabel": "Keywords to match",
+      "kwModeAll": "All of them",
+      "kwModeAny": "At least one",
+      "showAll": "Show all"
     },
     "extraction": {
       "title": "Data extraction",

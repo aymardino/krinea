@@ -136,6 +136,19 @@ def search_keywords(review: models.Review) -> dict[str, dict[str, list[str]]]:
             for k, v in raw.items() if isinstance(v, dict)}
 
 
+def keyword_filter(kws: list[str], mode: str = "all"):
+    """A test on a record: does its title, abstract or keywords mention all of `kws` (or at
+    least one, with mode "any")? Keywords match as they are counted: whole words, * as a
+    wildcard, so a keyword shown with 90 records filters those 90."""
+    rxs = [_kw_regex(k) for k in core.parse_keywords(kws)]
+    test = any if mode == "any" else all
+
+    def match(rec: models.Record) -> bool:
+        text = f"{rec.title or ''}\n{rec.abstract or ''}\n{rec.keywords or ''}"
+        return test(rx.search(text) for rx in rxs)
+    return match
+
+
 def _counts(texts: list[str], kws: list[str]) -> list[dict]:
     out = []
     for kw in kws:
