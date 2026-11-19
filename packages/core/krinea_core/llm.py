@@ -5,24 +5,32 @@ with token usage so the application can meter it (Krinea decision D-16).
     from krinea_core import llm
     data, usage = llm.call_json(prompt, provider="claude", api_key=key, model="claude-haiku-5-5")
 
-Providers: "claude" (Anthropic), "gemini" (Google), "deepseek" (OpenAI-compatible).
-The provider SDKs are imported lazily, so this module imports without them.
-Prompts that contain the marker "STUDY TEXT:" are split there: the part before
-is sent as a cacheable system prompt (cheaper on repeated calls).
+Providers: "claude" (Anthropic), "gemini" (Google, through the google-genai SDK),
+"deepseek" (OpenAI-compatible). The provider SDKs are imported lazily, so this module
+imports without them. Prompts that contain the marker "STUDY TEXT:" are split there: the
+part before is sent as a cacheable system prompt (cheaper on repeated calls).
+
+When a call fails, `error_kind` says what it means for the user (key refused, model not
+available, quota, credit...) and `retry_after` whether waiting would help.
 """
 from __future__ import annotations
 
 import json
 import re
-import threading
 from dataclasses import dataclass
 
 PROVIDERS = ("claude", "gemini", "deepseek")
+# Gemini: since 18 September 2026 Google opens the 2.5 models only to projects that used them
+# before, and points new projects to 3.5 Flash-Lite or 3.8 Flash (its replacements for 2.5
+# Flash and 2.5 Pro).
 DEFAULT_MODELS = {
-    "screening": {"claude": "claude-haiku-5-5", "gemini": "gemini-2.5-flash", "deepseek": "deepseek-v4-flash"},
-    "extraction": {"claude": "claude-sonnet-5-5", "gemini": "gemini-2.5-pro", "deepseek": "deepseek-v4-pro"},
+    "screening": {"claude": "claude-haiku-5-5", "gemini": "gemini-3.5-flash-lite", "deepseek": "deepseek-v4-flash"},
+    "extraction": {"claude": "claude-sonnet-5-5", "gemini": "gemini-3.8-flash", "deepseek": "deepseek-v4-pro"},
 }
 MARKER = "STUDY TEXT:"
+# Gemini models think before they answer and the thinking counts against max_output_tokens:
+# under a small cap the call ends before the answer starts, with an empty reply.
+GEMINI_MIN_OUTPUT_TOKENS = 8192
 
 
 @dataclass
@@ -86,20 +94,18 @@ def _call_claude(prompt: str, api_key: str, model: str, max_tokens: int) -> tupl
     return text, usage
 
 
-# The Gemini SDK keeps one key for the whole process (genai.configure): two calls made at
-# the same time with different keys must not run interleaved, or one would use the other's key.
-_GEMINI_LOCK = threading.Lock()
-
-
 def _call_gemini(prompt: str, api_key: str, model: str, max_tokens: int) -> tuple[str, Usage]:
-    import google.generativeai as genai
-    with _GEMINI_LOCK:
-        genai.configure(api_key=api_key)
-        gm = genai.GenerativeModel(model)
-        resp = gm.generate_content(prompt, generation_config={
-            "temperature": 0, "response_mime_type": "application/json", "max_output_tokens": max_tokens})
+    from google import genai
+    from google.genai import types
+    # One client per call: the key goes with this request only, never into process-wide state,
+    # so calls made at the same time with different users' keys cannot swap them. No
+    # temperature: Gemini 3 models are meant to run at their default one.
+    with genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=300_000)) as client:
+        resp = client.models.generate_content(model=model, contents=prompt, config=types.GenerateContentConfig(
+            response_mime_type="application/json", max_output_tokens=max(max_tokens, GEMINI_MIN_OUTPUT_TOKENS)))
     um = getattr(resp, "usage_metadata", None)
-    usage = Usage(int(getattr(um, "prompt_token_count", 0) or 0), int(getattr(um, "candidates_token_count", 0) or 0))
+    usage = Usage(int(getattr(um, "prompt_token_count", 0) or 0),          # thinking is billed as output
+                  int(getattr(um, "candidates_token_count", 0) or 0) + int(getattr(um, "thoughts_token_count", 0) or 0))
     return resp.text or "", usage
 
 
@@ -137,3 +143,44 @@ def call_json(prompt: str, provider: str, api_key: str, model: str | None = None
         except json.JSONDecodeError as e:
             last_err = e
     raise LLMError(f"{provider}/{model} did not return valid JSON: {last_err}")
+
+
+_KEY_WORDS = ("api key", "api_key", "x-api-key", "authentication", "unauthenticated", "access_token_type")
+_GONE_WORDS = ("not found", "no longer", "not available", "unavailable", "not supported", "not exist", "retired")
+
+
+def error_kind(e: BaseException) -> str:
+    """What a failed provider call means for the user, so that the application can say what to
+    do: "key" (the key is refused), "model" (unknown, retired, or not open to this key), "quota"
+    (a rate or usage limit), "credit" (no balance left), "output" (no usable answer) or "other".
+    Read from the HTTP status the SDKs carry (`status_code` for Anthropic and OpenAI, `code` for
+    Google) and from the provider's message."""
+    code = next((c for c in (getattr(e, "status_code", None), getattr(e, "code", None))
+                 if isinstance(c, int) and not isinstance(c, bool)), None)
+    text = str(e).lower()
+    if code == 402 or "credit balance" in text or "insufficient balance" in text:
+        return "credit"
+    if code == 429 or "resource_exhausted" in text or "rate limit" in text or "quota" in text:
+        return "quota"
+    if code == 401 or any(w in text for w in _KEY_WORDS):
+        return "key"
+    if code == 404 or ("model" in text and any(w in text for w in _GONE_WORDS)):
+        return "model"
+    if code == 403:                       # permission refused to this key (API not enabled...)
+        return "key"
+    if "valid json" in text or "no json" in text:
+        return "output"
+    return "other"
+
+
+def retry_after(e: BaseException, default: float = 20.0, cap: float = 60.0) -> float | None:
+    """Seconds to wait before calling again after a rate limit, or None when waiting would not
+    help: not a rate limit, or a daily quota (it resets the next day). Uses the delay the
+    provider asks for when its message gives one (Gemini: "retryDelay': '31s'")."""
+    if error_kind(e) != "quota":
+        return None
+    text = str(e)
+    if re.search(r"per ?day|daily", text, re.IGNORECASE):
+        return None
+    m = re.search(r"retry(?:[ _-]?delay)?\W+(?:in\s+)?(\d+(?:\.\d+)?)\s*s\b", text, re.IGNORECASE)
+    return min(cap, float(m.group(1)) + 1) if m else default

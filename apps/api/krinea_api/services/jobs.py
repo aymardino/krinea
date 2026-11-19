@@ -70,27 +70,72 @@ def _run_dedup(db: Session, job: models.Job) -> dict:
                      user_id=job.user_id, progress=_side_progress(db, job))
 
 
+# Failures that every following record would hit as well: the run stops at the first one.
+AI_FATAL = {"nokey", "key", "model", "credit", "quota"}
+
+
+def _screen_one(db: Session, review: models.Review, user: models.User, rec: models.Record, stage: str,
+                provider: str, model: str) -> tuple[str, str] | None:
+    """None once the suggestion is saved, else (kind, message) with kind as in
+    `llm.error_kind`, or "nokey". A rate limit is waited out, three times at most, before it
+    counts as a failure. The message never contains the key."""
+    from krinea_api.services import ai
+    from krinea_core import llm
+    attempt = 0
+    while True:
+        try:
+            ai.screen_record(db, review, user, rec, stage, provider, model)
+            return None
+        except ai.AIUnavailable as e:
+            db.rollback()
+            return "nokey", str(e)
+        except Exception as e:                       # noqa: BLE001  (reported to the user)
+            db.rollback()
+            wait = llm.retry_after(e)
+            if wait is None or attempt >= 3:
+                message = f"{type(e).__name__}: {e}"
+                try:
+                    key, _source = ai.resolve_key(db, user, provider)
+                    message = message.replace(key, "[key]") if key else message
+                except ai.AIUnavailable:
+                    pass
+                return llm.error_kind(e), message
+            attempt += 1
+            time.sleep(wait)
+
+
 def _run_ai_screen(db: Session, job: models.Job) -> dict:
+    """Suggestions for the job's records, in the order sent (the page sends the record on
+    screen first). A failure that every following record would hit too (key refused, model
+    not available, quota, credit) stops the run at once, as do five failures in a row; the
+    result says what happened (`error_kind`, `error`) and is kept up to date as the run goes,
+    so the page can show each suggestion as it comes."""
     from krinea_api.services import ai
     review = db.get(models.Review, job.review_id)
     user = db.get(models.User, job.user_id)
     p = job.payload or {}
     ids = list(p.get("record_ids") or [])
-    ok, errors = 0, []
+    stage = p.get("stage", "ta")
+    provider, model = ai.provider_and_model(review, "screening", p.get("provider"), p.get("model"))
+    out = {"stage": stage, "provider": provider, "model": model, "total": len(ids), "ok": 0, "failed": 0,
+           "error_kind": "", "error": "", "errors": [], "stopped": False}
+    streak = 0
     for i, rid in enumerate(ids, 1):
         rec = db.get(models.Record, rid)
-        if not rec or rec.review_id != job.review_id:
-            continue
-        try:
-            ai.screen_record(db, review, user, rec, p.get("stage", "ta"), p.get("provider"), p.get("model"))
-            ok += 1
-        except ai.AIUnavailable as e:
-            errors.append(f"#{rid}: {e}")
+        if rec and rec.review_id == job.review_id:
+            failure = _screen_one(db, review, user, rec, stage, provider, model)
+            if failure is None:
+                out["ok"], streak = out["ok"] + 1, 0
+            else:
+                kind, message = failure
+                out["failed"], streak = out["failed"] + 1, streak + 1
+                out["error_kind"], out["error"] = kind, message[:800]
+                out["errors"] = [*out["errors"], f"#{rid}: {message[:300]}"][-5:]
+                out["stopped"] = kind in AI_FATAL or streak >= 5
+        _progress(db, job, i, len(ids), dict(out))
+        if out["stopped"]:
             break
-        except Exception as e:                       # noqa: BLE001
-            errors.append(f"#{rid}: {type(e).__name__}: {e}")
-        _progress(db, job, i, len(ids), {"ok": ok, "errors": errors[-20:]})
-    return {"ok": ok, "errors": errors[-20:], "total": len(ids)}
+    return out
 
 
 def _run_extract(db: Session, job: models.Job) -> dict:

@@ -27,7 +27,7 @@ pip install -e "packages/core[excel,llm]"     # what the API and the Streamlit e
 ```
 
 The base install depends on `rapidfuzz`, `pandas` and `pymupdf`. The provider SDKs
-(`anthropic`, `openai` for DeepSeek, `google-generativeai`) are an optional extra:
+(`anthropic`, `openai` for DeepSeek, `google-genai`) are an optional extra:
 `krinea_core.llm` imports them lazily, only when a call is made, so every other module,
 and `llm` itself, imports without them. Install the `llm` extra before making AI calls.
 

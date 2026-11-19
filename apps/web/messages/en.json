@@ -529,8 +529,25 @@
       "kwModeAll": "All of them",
       "kwModeAny": "At least one",
       "showAll": "Show all",
-      "aiScope": "Works on the references listed on the left that have neither a suggestion nor your decision ({n}, 50 at most per click).",
-      "aiNothing": "Every reference in the list already has a suggestion or your decision."
+      "aiScope": "Starts with the reference shown, then the next ones in the list with neither a suggestion nor your decision: {n} on the next click (50 at most).",
+      "aiNothing": "Every reference in the list already has a suggestion or your decision.",
+      "aiRunningCount": "AI suggestions: {ok} of {total}",
+      "aiLast": "Last run: {ok, plural, one {# suggestion saved} other {# suggestions saved}} out of {total}.",
+      "aiLastModel": "Model: {model}.",
+      "aiPartial": "{ok, plural, one {# suggestion saved} other {# suggestions saved}}, {failed, plural, one {# failure} other {# failures}}.",
+      "aiNone": "No suggestion saved.",
+      "aiSeePanel": "The AI panel says why.",
+      "aiErrorDetail": "Message from the provider",
+      "aiListMark": "AI suggests: {decision}",
+      "aiError": {
+        "nokey": "No usable {provider} key: add yours in this panel.",
+        "key": "{provider} refuses the saved key. Check that it was copied in full and that its project is active, or replace it: “remove”, then paste the new one.",
+        "model": "The model {model} is not available with this key (retired, or kept for older accounts). In the review settings, empty the “Screening model” field to use the default model, or enter another one.",
+        "quota": "{provider} usage limit reached for this key (requests per minute or per day, tight on free plans). Try again later, or enable billing on your {provider} account.",
+        "credit": "No credit left on the {provider} account of this key: top it up, then run again.",
+        "output": "The model sent back no readable answer for some references. Running again usually works.",
+        "other": "Something went wrong with {provider}. Its message is below."
+      }
     },
     "extraction": {
       "title": "Data extraction",

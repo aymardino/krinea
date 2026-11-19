@@ -529,8 +529,25 @@
       "kwModeAll": "Tous",
       "kwModeAny": "Au moins un",
       "showAll": "Tout afficher",
-      "aiScope": "Porte sur les références de la liste de gauche qui n'ont ni suggestion ni votre décision ({n}, 50 au plus par clic).",
-      "aiNothing": "Toutes les références de la liste ont déjà une suggestion ou votre décision."
+      "aiScope": "Commence par la référence affichée, puis les suivantes de la liste sans suggestion ni décision de votre part : {n} au prochain clic (50 au plus).",
+      "aiNothing": "Toutes les références de la liste ont déjà une suggestion ou votre décision.",
+      "aiRunningCount": "Suggestions de l'IA : {ok} sur {total}",
+      "aiLast": "Dernier passage : {ok, plural, one {# suggestion enregistrée} other {# suggestions enregistrées}} sur {total}.",
+      "aiLastModel": "Modèle : {model}.",
+      "aiPartial": "{ok, plural, one {# suggestion enregistrée} other {# suggestions enregistrées}}, {failed, plural, one {# échec} other {# échecs}}.",
+      "aiNone": "Aucune suggestion enregistrée.",
+      "aiSeePanel": "Le panneau IA explique pourquoi.",
+      "aiErrorDetail": "Message du fournisseur",
+      "aiListMark": "L'IA suggère : {decision}",
+      "aiError": {
+        "nokey": "Aucune clé {provider} utilisable : ajoutez la vôtre dans ce panneau.",
+        "key": "{provider} refuse la clé enregistrée. Vérifiez qu'elle a été copiée en entier et que son projet est actif, ou remplacez-la : « retirer », puis collez la nouvelle.",
+        "model": "Le modèle {model} n'est pas disponible avec cette clé (retiré, ou réservé aux comptes plus anciens). Dans les paramètres de la revue, videz le champ « Modèle de tri » pour utiliser le modèle par défaut, ou indiquez-en un autre.",
+        "quota": "Limite d'utilisation de {provider} atteinte pour cette clé (requêtes par minute ou par jour, serrées en offre gratuite). Réessayez plus tard, ou activez la facturation sur votre compte {provider}.",
+        "credit": "Plus de crédit sur le compte {provider} de cette clé : rechargez-le, puis relancez.",
+        "output": "Le modèle n'a pas renvoyé de réponse lisible pour certaines références. Relancer suffit en général.",
+        "other": "Une erreur est survenue chez {provider}. Son message est ci-dessous."
+      }
     },
     "extraction": {
       "title": "Extraction des données",

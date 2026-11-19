@@ -260,6 +260,7 @@ class JobOut(BaseModel):
     error: str
     created_at: dt.datetime
     finished_at: dt.datetime | None
+    user_id: str | None = None          # who started it: pages show a person their own last run
 
     class Config:
         from_attributes = True

@@ -651,3 +651,25 @@ nor the reviewer's decision, 50 at most per run. The AI panel says so, with the 
 
 **Why.** The run took the next 50 undecided records of the whole review in import order.
 With a filter on, those were seldom the records on screen, so nothing seemed to happen.
+
+## D-35 · 2026-11-19 · decided · Current Gemini models; AI runs say what went wrong
+
+**Decision.** Gemini defaults move to `gemini-3.5-flash-lite` for screening and
+`gemini-3.8-flash` for extraction, and Gemini is called through the maintained `google-genai`
+SDK with one client per call (the key never goes into process-wide state, so the calls of
+D-33 no longer need to be serialised). The output cap of a Gemini call is at least 8192
+tokens, since its thinking counts against it, and no temperature is sent. A screening run
+starts with the record on screen, then the next ones of the queue without a suggestion or
+the reviewer's decision, going round to the top. A failure that every following record
+would hit (key refused, model not available, quota, no credit) stops the run at once; a
+rate limit is first waited out (the delay the provider asks for, one minute at most, three
+times); five failures in a row stop it too. The job's result says what happened
+(`error_kind`, the provider's message without the key, the model used) and the AI panel
+keeps the reviewer's last run in words they can act on. The queue is fetched again each
+time the run saves a suggestion, so each one shows as it comes, and the queue marks the
+records that have one.
+
+**Why.** Since 18 September 2026 Google opens the 2.5 models only to projects that used them
+before: with a new key every call failed, the run reported 0 suggestions in a toast that
+vanished, and the suggestions of a run that worked went to records above the one on screen.
+Gemini's thinking could also use up the old 1024-token cap and leave an empty answer.

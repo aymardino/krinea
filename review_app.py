@@ -49,9 +49,9 @@ _WIDE = ({"width": "stretch"} if "width" in inspect.signature(st.button).paramet
          else {"use_container_width": True})
 
 PROVIDERS = ["claude", "gemini", "deepseek"]
-SCREEN_MODELS = {"claude": "claude-haiku-5-5", "gemini": "gemini-2.5-flash",
+SCREEN_MODELS = {"claude": "claude-haiku-5-5", "gemini": "gemini-3.5-flash-lite",
                  "deepseek": "deepseek-v4-flash"}
-EXTRACT_MODELS = {"claude": "claude-sonnet-5", "gemini": "gemini-2.5-flash",
+EXTRACT_MODELS = {"claude": "claude-sonnet-5", "gemini": "gemini-3.8-flash",
                   "deepseek": "deepseek-v4-flash"}
 KEY_ENV = {"claude": "ANTHROPIC_API_KEY", "gemini": "GEMINI_API_KEY", "deepseek": "DEEPSEEK_API_KEY"}
 

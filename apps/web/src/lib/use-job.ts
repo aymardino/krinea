@@ -66,5 +66,6 @@ export function useJob(reviewId: string, kinds: string[], onEnd: (job: Job) => v
 
   // Until the first answer, a job found under way is shown as the list has it.
   const job = followed.data?.id === id ? followed.data : recent.data?.find((j) => j.id === id);
-  return { follow, running: active, job: active ? job : undefined };
+  // The review's latest jobs, newest first (fetched again whenever a followed job ends).
+  return { follow, running: active, job: active ? job : undefined, jobs: recent.data ?? [] };
 }

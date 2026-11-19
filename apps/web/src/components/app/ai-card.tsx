@@ -6,16 +6,52 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { KeyRound, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { api, ApiError, type Review, type Usage } from "@/lib/api";
+import { api, ApiError, type Job, type Review, type Usage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const PROVIDER_NAMES: { [k: string]: string } = { claude: "Anthropic Claude", gemini: "Google Gemini", deepseek: "DeepSeek" };
 type KeyRow = { provider: string; masked: string; created_at: string };
+/** What an AI screening job reports (services/jobs.py); runs made before kinds existed only
+ *  have ok, total and errors. */
+export type AiRunResult = { ok?: number; failed?: number; total?: number; provider?: string; model?: string; error_kind?: string; error?: string; errors?: string[]; stopped?: boolean };
+const ERROR_KINDS = ["nokey", "key", "model", "quota", "credit", "output", "other"];
+
+/** What went wrong in an AI run, in words the reviewer can act on, or "" when nothing did. */
+export function aiErrorKind(job: Job): string {
+  const r = job.result as AiRunResult;
+  if (job.status === "failed") return "failed";
+  if (r.error_kind) return ERROR_KINDS.includes(r.error_kind) ? r.error_kind : "other";
+  return r.errors?.length ? "other" : "";
+}
+
+/** The outcome of the reviewer's last AI run, kept in the panel once the run is over: how
+ *  many suggestions were saved, with which model, and when something went wrong, what it
+ *  means and what to do, with the provider's own message underneath. */
+export function AiRunSummary({ job, provider }: { job: Job; provider: string }) {
+  const t = useTranslations("review.screening");
+  const r = job.result as AiRunResult;
+  const name = PROVIDER_NAMES[r.provider || provider] ?? r.provider ?? provider;
+  const kind = aiErrorKind(job);
+  const detail = job.status === "failed" ? job.error : r.error || (r.errors ?? []).slice(-1)[0] || "";
+  return (
+    <div className="space-y-1.5 text-[11px] leading-snug text-muted-foreground">
+      <p>{t("aiLast", { ok: Number(r.ok ?? 0), total: Number(r.total ?? 0) })}{r.model && <> {t("aiLastModel", { model: r.model })}</>}</p>
+      {kind && <p className="text-exclude">{kind === "failed" ? t("aiFailed") : t(`aiError.${kind}`, { provider: name, model: r.model || "?" })}</p>}
+      {detail && (
+        <details>
+          <summary className="cursor-pointer select-none hover:text-foreground">{t("aiErrorDetail")}</summary>
+          <p className="mt-1 break-words font-mono text-[10px]">{detail}</p>
+        </details>
+      )}
+    </div>
+  );
+}
 
 /** The AI panel of the screening rail: run suggestions, and add the provider key
- *  right here when none is on file (instead of going to the user settings). */
-export function AiCard({ review, onRun, running, label, hint, progress }: { review: Review; onRun: () => void; running: boolean; label: string; hint?: string; progress?: ReactNode }) {
+ *  right here when none is on file (instead of going to the user settings). `status` shows
+ *  the run under way, or how the last one went. */
+export function AiCard({ review, onRun, running, label, hint, status }: { review: Review; onRun: () => void; running: boolean; label: string; hint?: string; status?: ReactNode }) {
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
   const qc = useQueryClient();
@@ -56,7 +92,7 @@ export function AiCard({ review, onRun, running, label, hint, progress }: { revi
       ))}
       <Button className="mt-3 w-full" size="sm" variant={ready ? "default" : "outline"} onClick={onRun} disabled={running || (keys.isSuccess && !ready)}>{label}</Button>
       {hint && <p className="mt-1.5 text-[11px] text-muted-foreground">{hint}</p>}
-      {progress && <div className="mt-3">{progress}</div>}
+      {status && <div className="mt-3 border-t border-border pt-3">{status}</div>}
     </div>
   );
 }

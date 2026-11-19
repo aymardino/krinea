@@ -10,9 +10,9 @@ import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
 import { canEdit, canReview, useReview } from "@/components/app/review-context";
 import { Highlight } from "@/components/app/highlight";
-import { AiCard } from "@/components/app/ai-card";
+import { AiCard, AiRunSummary, aiErrorKind, type AiRunResult } from "@/components/app/ai-card";
 import { JobProgress } from "@/components/app/job-progress";
-import { useJob } from "@/lib/use-job";
+import { isLive, useJob } from "@/lib/use-job";
 import { KeywordsCard } from "@/components/app/keywords-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -78,10 +78,14 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   }, [items, current]);
   useEffect(() => {
     openedAt.current = Date.now();
-    setReason(rec?.my_decision?.reason ?? rec?.ai?.reason ?? "");
     setNote(rec?.my_decision?.note ?? "");
     setLabels(rec?.labels ?? "");
-  }, [rec?.id, rec?.my_decision, rec?.ai, rec?.labels]);
+  }, [rec?.id, rec?.my_decision, rec?.labels]);
+  // The exclusion reason starts from your decision, else from the AI's suggestion, also when
+  // the suggestion arrives while the record is open (without touching the note or the timer).
+  useEffect(() => {
+    setReason(rec?.my_decision?.reason ?? rec?.ai?.reason ?? "");
+  }, [rec?.id, rec?.my_decision, rec?.ai]);
 
   const stageStats = review.counts.stages[stage];
   const required = review.counts.required_reviewers;
@@ -110,23 +114,40 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     onError,
   });
   const clear = useMutation({ mutationFn: (id: number) => api.delete(`/reviews/${rid}/records/${id}/decision?stage=${stage}`), onSuccess: () => { qc.invalidateQueries({ queryKey: ["records", rid] }); refresh(); }, onError });
-  // AI suggestions run in the background: the records are refreshed when the job ends.
+  // AI suggestions run in the background. Each one shows as soon as it is saved (below); the
+  // end of the run is announced here, and how it went stays in the AI panel.
   const aiJob = useJob(rid, ["ai_screen"], (job) => {
-    const r = job.result as { ok?: number; errors?: string[] };
-    if (job.status === "done") toast.success(t("aiDone", { ok: Number(r.ok ?? 0) }));
-    else toast.error(t("aiFailed"), { description: job.error });
-    if (job.status === "done" && r.errors?.length) toast.error(r.errors[r.errors.length - 1]);
+    const r = job.result as AiRunResult;
+    const ok = Number(r.ok ?? 0);
+    const kind = aiErrorKind(job);
+    if (job.status === "failed") toast.error(t("aiFailed"), { description: job.error });
+    else if (!kind && r.total === 0) toast.info(t("aiNothing"));
+    else if (!kind) toast.success(t("aiDone", { ok }));
+    else if (ok > 0) toast.warning(t("aiPartial", { ok, failed: Number(r.failed ?? 0) }), { description: t("aiSeePanel") });
+    else toast.error(t("aiNone"), { description: t("aiSeePanel") });
     qc.invalidateQueries({ queryKey: ["records", rid] });
   });
-  // The AI works on the queue as shown (view, file, label, keywords and search applied): its
-  // first records that have neither a suggestion nor your decision, 50 at most per run.
-  const aiTargets = items.filter((r) => !r.ai && !r.my_decision).slice(0, 50).map((r) => r.id);
+  // The AI starts with the record on screen, then takes the next ones in the queue as shown
+  // (view, file, label, keywords and search applied) that have neither a suggestion nor your
+  // decision, going round to the top of the list: 50 at most per run.
+  const aiTargets = [...items.slice(index), ...items.slice(0, index)].filter((r) => !r.ai && !r.my_decision).slice(0, 50).map((r) => r.id);
   const aiRun = useMutation({
     mutationFn: (ids: number[]) => api.post<Job>(`/reviews/${rid}/ai/screen`, { stage, record_ids: ids, limit: ids.length }),
     onSuccess: aiJob.follow,
     onError,
   });
   const runAi = () => (aiTargets.length ? aiRun.mutate(aiTargets) : toast.info(t("aiNothing")));
+  const aiRunning = aiRun.isPending || aiJob.running;
+  // While a run goes on, the queue is fetched again each time it saves one more suggestion
+  // (a fetch already under way is let finish rather than restarted).
+  const aiProgress = (aiJob.job?.result ?? {}) as AiRunResult;
+  const aiSaved = Number(aiProgress.ok ?? 0);
+  useEffect(() => {
+    if (aiSaved > 0) qc.invalidateQueries({ queryKey: ["records", rid] }, { cancelRefetch: false });
+  }, [aiSaved, qc, rid]);
+  // How your last run on this stage went (runs from before the stage was recorded count for both).
+  const lastAiRun = aiJob.jobs.find((j) => j.kind === "ai_screen" && !isLive(j) && !!me && j.user_id === me.id
+    && ((j.result as { stage?: string }).stage ?? stage) === stage);
   const pdfUpload = useMutation({
     mutationFn: async ({ id, file }: { id: number; file: File }) => { const f = new FormData(); f.append("file", file); return api.upload<StudyRecord>(`/reviews/${rid}/records/${id}/pdf`, f); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["records", rid] }), onError,
@@ -236,6 +257,12 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
                 <p className="line-clamp-2 text-xs font-medium leading-snug">{r.title || "(untitled)"}</p>
                 <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <span>{i + 1}</span>{r.year && <span>· {r.year}</span>}
+                  {r.ai && (
+                    <span title={t("aiListMark", { decision: c(`decision.${r.ai.decision}` as "decision.include") })}
+                          className={cn("inline-flex", r.ai.decision === "include" && "text-include", r.ai.decision === "maybe" && "text-maybe", r.ai.decision === "exclude" && "text-exclude")}>
+                      <Bot className="size-3" aria-hidden /><span className="sr-only">{t("aiListMark", { decision: c(`decision.${r.ai.decision}` as "decision.include") })}</span>
+                    </span>
+                  )}
                   {r.my_decision && <span className={cn("ml-auto size-2 rounded-full", r.my_decision.decision === "include" && "bg-include", r.my_decision.decision === "maybe" && "bg-maybe", r.my_decision.decision === "exclude" && "bg-exclude")} />}
                   {r.has_pdf && <FileText className="size-3" />}
                 </p>
@@ -345,8 +372,13 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("shortcuts")}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
-        {editable && <AiCard review={review} onRun={runAi} running={aiRun.isPending || aiJob.running} label={t("runAi")} hint={t("aiScope", { n: aiTargets.length })}
-                             progress={(aiRun.isPending || aiJob.running) && <JobProgress job={aiJob.job} label={t("aiRunning")} />} />}
+        {editable && (
+          <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")}
+                  hint={aiTargets.length ? t("aiScope", { n: aiTargets.length }) : t("aiNothing")}
+                  status={aiRunning
+                    ? <JobProgress job={aiJob.job} label={aiProgress.total ? t("aiRunningCount", { ok: aiSaved, total: aiProgress.total }) : t("aiRunning")} />
+                    : lastAiRun && <AiRunSummary job={lastAiRun} provider={review.settings.ai_provider || "claude"} />} />
+        )}
         <KeywordsCard review={review} counts={kw.data} editable={admin} picked={kwFilter} onPick={togglePick} onChanged={refresh}
                       search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">
