@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import io
 import re
+import unicodedata
 import urllib.parse
 
 import httpx
@@ -25,6 +26,8 @@ router = APIRouter(prefix="/reviews/{review_id}", tags=["records"])
 
 VIEWS = ("todo", "mine_include", "mine_maybe", "mine_exclude", "include", "maybe", "exclude",
          "conflict", "pending", "all", "no_pdf", "not_retrieved")
+# Orders of the record lists (`sort`): "import" is the order of the imported files.
+SORTS = ("import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai")
 
 
 # ── Imports ──────────────────────────────────────────────────────────────────────
@@ -179,15 +182,62 @@ def _ai_map(db: DBSession, review_id: str, stage: str, ids: list[int]) -> dict[i
                           "confidence": s.confidence, "model": s.model} for s in rows}
 
 
+def _alpha(text: str | None) -> str:
+    """Text as one alphabetises it: accents and case ignored, leading quotes or brackets skipped
+    ("“Électricité”" files under e)."""
+    text = "".join(ch for ch in unicodedata.normalize("NFKD", text or "") if not unicodedata.combining(ch))
+    return re.sub(r"^\W+", "", text.casefold())
+
+
+def _year(rec: models.Record) -> int | None:
+    m = re.match(r"\s*(\d{4})", rec.year or "")
+    return int(m.group(1)) if m else None
+
+
+def _ai_rank(db: DBSession, review_id: str, stage: str) -> dict[int, tuple[int, float]]:
+    """Records by how likely the AI finds their inclusion: include (most confident first),
+    maybe, then exclude (least confident first)."""
+    order = {"include": 0, "maybe": 1, "exclude": 2}
+    out: dict[int, tuple[int, float]] = {}
+    for rid, decision, confidence in db.execute(
+            select(models.AISuggestion.record_id, models.AISuggestion.decision, models.AISuggestion.confidence)
+            .where(models.AISuggestion.review_id == review_id, models.AISuggestion.stage == stage)):
+        rank = order.get(decision, 1)
+        out[rid] = (rank, (confidence or 0.0) if rank == 2 else -(confidence or 0.0))
+    return out
+
+
+def _sorted(db: DBSession, review_id: str, stage: str, rows: list[models.Record], sort: str) -> list[models.Record]:
+    """`rows`, given in import order, in the order asked for. Records without the value sorted
+    on (no year, no author...) or without an AI suggestion come last, and equal values keep the
+    import order, in both directions (Python's sort is stable, reversed too)."""
+    if sort == "import":
+        return rows
+    if sort == "ai":
+        ranks = _ai_rank(db, review_id, stage)
+        return sorted(rows, key=lambda r: ranks.get(r.id, (3, 0.0)))
+    if sort in ("year", "year_desc"):
+        keyed = [(_year(r), r) for r in rows]
+    elif sort == "author":
+        keyed = [(_alpha((r.authors or "").split(";")[0]), r) for r in rows]
+    else:
+        keyed = [(_alpha(r.journal if sort == "journal" else r.title), r) for r in rows]
+    known = sorted((kr for kr in keyed if kr[0] not in (None, "")), key=lambda kr: kr[0],
+                   reverse=sort in ("title_desc", "year_desc"))
+    return [r for _, r in known] + [r for k, r in keyed if k in (None, "")]
+
+
 @router.get("/records", response_model=schemas.RecordPage)
 def list_records(stage: str = "ta", view: str = "all", search: str = "", source: str = "", label: str = "",
                  import_id: str = "", year_from: str = "", year_to: str = "", cursor: int = 0,
-                 kw: list[str] = Query(default=[]), kw_mode: str = "all",
+                 kw: list[str] = Query(default=[]), kw_mode: str = "all", sort: str = "import",
                  limit: int = Query(50, ge=1, le=500), access=Depends(ReviewAccess("viewer")),
                  user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     review, m = access
     if stage not in ("ta", "ft", "extract", "all") or view not in VIEWS:
         raise HTTPException(400, "Unknown stage or view")
+    if sort not in SORTS:
+        raise HTTPException(400, f"Unknown sort; use one of {', '.join(SORTS)}")
     c = scr.compute(db, review)
     pool = (db.scalars(select(models.Record.id).where(models.Record.review_id == review.id)).all()
             if stage == "all" else scr.pool_ids(c, stage))
@@ -240,8 +290,13 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     if any(k.strip() for k in kw):            # highlight keywords picked in the screening rail
         match = scr.keyword_filter(kw, kw_mode)
         rows = [r for r in rows if match(r)]
+    rows = _sorted(db, review.id, st_stage, rows, sort)
     total = len(rows)
-    page = [r for r in rows if r.id > cursor][:limit]
+    if sort == "import":
+        page = [r for r in rows if r.id > cursor][:limit]
+    else:                                     # the cursor is the last record of the previous page
+        start = next((i + 1 for i, r in enumerate(rows) if r.id == cursor), 0) if cursor else 0
+        page = rows[start:start + limit]
     names = _names(db, review.id)
     ai = _ai_map(db, review.id, st_stage, [r.id for r in page])
     merged = _merged_from(db, review.id, [r.id for r in page])

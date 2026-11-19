@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, X, XCircle } from "lucide-react";
+import { ArrowUpDown, Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, X, XCircle } from "lucide-react";
 import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type LabelCount, type StudyRecord, type RecordPage } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
@@ -26,6 +26,8 @@ const VIEWS: { [k in Stage]: string[] } = {
   ta: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "all"],
   ft: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "all"],
 };
+// Orders of the queue (GET /records?sort=...); "import" is the order of the imported files.
+const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai"];
 
 export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const t = useTranslations("review.screening");
@@ -38,6 +40,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const [search, setSearch] = useState("");
   const [fileId, setFileId] = useState("all");
   const [labelFilter, setLabelFilter] = useState("all");
+  const [sort, setSort] = useState("import");
   // Keywords clicked in the rail: the queue shows the records that mention all of them (or any).
   const [kwFilter, setKwFilter] = useState<string[]>([]);
   const [kwMode, setKwMode] = useState<"all" | "any">("all");
@@ -52,11 +55,12 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     stage, view, search, limit: "200",
     ...(fileId !== "all" ? { import_id: fileId } : {}),
     ...(labelFilter !== "all" ? { label: labelFilter } : {}),
+    ...(sort !== "import" ? { sort } : {}),
   });
   kwFilter.forEach((k) => params.append("kw", k));
   if (kwFilter.length > 1) params.set("kw_mode", kwMode);
   const qs = params.toString();
-  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter, kwFilter, kwMode], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter, kwFilter, kwMode, sort], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
   const samekw = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
   const togglePick = (k: string) => {
     setKwFilter((f) => (f.some((x) => samekw(x, k)) ? f.filter((x) => !samekw(x, k)) : [...f, k]));
@@ -208,6 +212,12 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
               </SelectContent>
             </Select>
           )}
+          <Select value={sort} onValueChange={(v: string) => { setSort(v); setCurrent(null); }}>
+            <SelectTrigger aria-label={t("sortLabel")} title={t("sortLabel")} className="justify-start gap-2">
+              <ArrowUpDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden /><SelectValue className="flex-1 text-left" />
+            </SelectTrigger>
+            <SelectContent>{SORTS.map((s) => <SelectItem key={s} value={s}>{t(`sort.${s}`)}</SelectItem>)}</SelectContent>
+          </Select>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
             <Input className="px-8" placeholder={t("search")} value={search} onChange={(e) => { setSearch(e.target.value); setCurrent(null); }} />

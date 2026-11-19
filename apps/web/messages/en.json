@@ -547,6 +547,17 @@
         "credit": "No credit left on the {provider} account of this key: top it up, then run again.",
         "output": "The model sent back no readable answer for some references. Running again usually works.",
         "other": "Something went wrong with {provider}. Its message is below."
+      },
+      "sortLabel": "List order",
+      "sort": {
+        "import": "Import order",
+        "title": "Title, A to Z",
+        "title_desc": "Title, Z to A",
+        "year_desc": "Year, newest first",
+        "year": "Year, oldest first",
+        "author": "First author, A to Z",
+        "journal": "Journal, A to Z",
+        "ai": "AI: include first"
       }
     },
     "extraction": {

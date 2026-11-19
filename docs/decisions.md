@@ -673,3 +673,15 @@ records that have one.
 before: with a new key every call failed, the run reported 0 suggestions in a toast that
 vanished, and the suggestions of a run that worked went to records above the one on screen.
 Gemini's thinking could also use up the old 1024-token cap and leave an empty answer.
+
+## D-36 · 2026-11-19 · decided · Screening queue in the order the reviewer picks
+
+**Decision.** The screening queue has an order selector: import order (the default), title
+A to Z or Z to A, year newest or oldest first, first author, journal, or the AI's
+suggestion (include, most confident first, then maybe, then exclude, least confident
+first). It is `GET /records?sort=...`, applied after every filter and before the page is
+cut. Titles and names sort as one alphabetises them (accents, case and leading quotes
+ignored); records without the value sorted on come last, and equal values keep the import
+order. With an order other than import, the cursor is the last record of the previous page.
+
+**Why.** The queue could only be read in import order.

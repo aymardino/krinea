@@ -547,6 +547,17 @@
         "credit": "Plus de crédit sur le compte {provider} de cette clé : rechargez-le, puis relancez.",
         "output": "Le modèle n'a pas renvoyé de réponse lisible pour certaines références. Relancer suffit en général.",
         "other": "Une erreur est survenue chez {provider}. Son message est ci-dessous."
+      },
+      "sortLabel": "Ordre de la liste",
+      "sort": {
+        "import": "Ordre d'import",
+        "title": "Titre, de A à Z",
+        "title_desc": "Titre, de Z à A",
+        "year_desc": "Année, récentes d'abord",
+        "year": "Année, anciennes d'abord",
+        "author": "Premier auteur, de A à Z",
+        "journal": "Revue, de A à Z",
+        "ai": "IA : à inclure d'abord"
       }
     },
     "extraction": {
