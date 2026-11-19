@@ -5,13 +5,16 @@ title: Krinea
 abstract: >-
   Open-source workbench for systematic reviews: import of search exports,
   duplicate detection, blind title/abstract and full-text screening with
-  consensus, AI-assisted data extraction into author-defined forms with a
-  verbatim quote per value, and the PRISMA 2020 flow diagram.
+  consensus and optional AI suggestions, AI-assisted data extraction into
+  author-defined forms with a verbatim quote per value, and the PRISMA 2020
+  flow diagram.
 authors:
   - family-names: Plakoo
     given-names: Kodjovi Aymard
+    orcid: "https://orcid.org/0009-0001-9500-6290"
+    affiliation: "Mines Paris, Université PSL, Centre de Mathématiques Appliquées (CMA)"
 version: 0.1.0
-date-released: "2026-10-12"
+date-released: "2026-11-19"
 license: AGPL-3.0-only
 repository-code: "https://github.com/aymardino/krinea"
 url: "https://krinea.org"
@@ -21,4 +24,5 @@ keywords:
   - screening
   - data extraction
   - deduplication
+  - large language models
   - PRISMA 2020

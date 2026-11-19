@@ -685,3 +685,21 @@ ignored); records without the value sorted on come last, and equal values keep t
 order. With an order other than import, the cursor is the last record of the previous page.
 
 **Why.** The queue could only be read in import order.
+
+## D-37 · 2026-11-19 · decided · Releases archived on Zenodo, with a changelog
+
+**Decision.** Each GitHub release is archived by Zenodo, which gives it a DOI (one per
+version, plus a concept DOI that always points to the latest). Zenodo copies its metadata
+from `CITATION.cff`, which now carries the author's ORCID and affiliation. `CHANGELOG.md`
+says what each version contains, and `codemeta.json` describes the software for HAL and
+Software Heritage. The first release is v0.1.0, the version the site already shows.
+
+**Why.** A DOI makes Krinea citable in articles and dates each version publicly; journals
+for research software such as JOSS ask for tagged releases or a changelog.
+
+**Consequences.** A new version changes the number everywhere it appears (`CITATION.cff`,
+`codemeta.json`, `apps/api/pyproject.toml`, `apps/api/krinea_api/__init__.py`,
+`packages/core/pyproject.toml`, `apps/web/package.json`, `apps/web/src/lib/site.ts`,
+`apps/web/content/{en,fr}/about.md`, README), adds a `CHANGELOG.md` section, then gets a
+tag and a GitHub release. Undo: switch the repository off in Zenodo; archived versions stay
+online.
