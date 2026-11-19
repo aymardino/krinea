@@ -642,3 +642,12 @@ for the whole process and two users' calls made at once could otherwise swap key
 
 **Why.** A pasted list became one long keyword, the only way back after a click on a
 keyword was to empty the search box by hand, and two keywords could not be combined.
+
+## D-34 · 2026-11-19 · decided · AI screening suggestions follow the queue on screen
+
+**Decision.** "Ask the AI for suggestions" sends the records of the queue as shown (view,
+file, label, keywords and search applied): its first records with neither a suggestion
+nor the reviewer's decision, 50 at most per run. The AI panel says so, with the number.
+
+**Why.** The run took the next 50 undecided records of the whole review in import order.
+With a filter on, those were seldom the records on screen, so nothing seemed to happen.

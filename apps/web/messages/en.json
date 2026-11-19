@@ -528,7 +528,9 @@
       "kwModeLabel": "Keywords to match",
       "kwModeAll": "All of them",
       "kwModeAny": "At least one",
-      "showAll": "Show all"
+      "showAll": "Show all",
+      "aiScope": "Works on the references listed on the left that have neither a suggestion nor your decision ({n}, 50 at most per click).",
+      "aiNothing": "Every reference in the list already has a suggestion or your decision."
     },
     "extraction": {
       "title": "Data extraction",

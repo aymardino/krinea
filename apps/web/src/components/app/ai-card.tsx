@@ -15,7 +15,7 @@ type KeyRow = { provider: string; masked: string; created_at: string };
 
 /** The AI panel of the screening rail: run suggestions, and add the provider key
  *  right here when none is on file (instead of going to the user settings). */
-export function AiCard({ review, onRun, running, label, progress }: { review: Review; onRun: () => void; running: boolean; label: string; progress?: ReactNode }) {
+export function AiCard({ review, onRun, running, label, hint, progress }: { review: Review; onRun: () => void; running: boolean; label: string; hint?: string; progress?: ReactNode }) {
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
   const qc = useQueryClient();
@@ -55,6 +55,7 @@ export function AiCard({ review, onRun, running, label, progress }: { review: Re
         </form>
       ))}
       <Button className="mt-3 w-full" size="sm" variant={ready ? "default" : "outline"} onClick={onRun} disabled={running || (keys.isSuccess && !ready)}>{label}</Button>
+      {hint && <p className="mt-1.5 text-[11px] text-muted-foreground">{hint}</p>}
       {progress && <div className="mt-3">{progress}</div>}
     </div>
   );

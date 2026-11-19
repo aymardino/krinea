@@ -528,7 +528,9 @@
       "kwModeLabel": "Mots-clés à trouver",
       "kwModeAll": "Tous",
       "kwModeAny": "Au moins un",
-      "showAll": "Tout afficher"
+      "showAll": "Tout afficher",
+      "aiScope": "Porte sur les références de la liste de gauche qui n'ont ni suggestion ni votre décision ({n}, 50 au plus par clic).",
+      "aiNothing": "Toutes les références de la liste ont déjà une suggestion ou votre décision."
     },
     "extraction": {
       "title": "Extraction des données",

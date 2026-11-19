@@ -118,11 +118,15 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     if (job.status === "done" && r.errors?.length) toast.error(r.errors[r.errors.length - 1]);
     qc.invalidateQueries({ queryKey: ["records", rid] });
   });
+  // The AI works on the queue as shown (view, file, label, keywords and search applied): its
+  // first records that have neither a suggestion nor your decision, 50 at most per run.
+  const aiTargets = items.filter((r) => !r.ai && !r.my_decision).slice(0, 50).map((r) => r.id);
   const aiRun = useMutation({
-    mutationFn: () => api.post<Job>(`/reviews/${rid}/ai/screen`, { stage, limit: 50 }),
+    mutationFn: (ids: number[]) => api.post<Job>(`/reviews/${rid}/ai/screen`, { stage, record_ids: ids, limit: ids.length }),
     onSuccess: aiJob.follow,
     onError,
   });
+  const runAi = () => (aiTargets.length ? aiRun.mutate(aiTargets) : toast.info(t("aiNothing")));
   const pdfUpload = useMutation({
     mutationFn: async ({ id, file }: { id: number; file: File }) => { const f = new FormData(); f.append("file", file); return api.upload<StudyRecord>(`/reviews/${rid}/records/${id}/pdf`, f); },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["records", rid] }), onError,
@@ -341,7 +345,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("shortcuts")}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
-        {editable && <AiCard review={review} onRun={() => aiRun.mutate()} running={aiRun.isPending || aiJob.running} label={t("runAi")}
+        {editable && <AiCard review={review} onRun={runAi} running={aiRun.isPending || aiJob.running} label={t("runAi")} hint={t("aiScope", { n: aiTargets.length })}
                              progress={(aiRun.isPending || aiJob.running) && <JobProgress job={aiJob.job} label={t("aiRunning")} />} />}
         <KeywordsCard review={review} counts={kw.data} editable={admin} picked={kwFilter} onPick={togglePick} onChanged={refresh}
                       search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
