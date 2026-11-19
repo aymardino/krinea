@@ -47,9 +47,9 @@ Krinea is an independent project by an individual developer-researcher based in 
 
 ## How to cite
 
-Cite the release you used (the version is shown in the site footer) and the repository URL. A `CITATION.cff` file in the repository holds the full citation metadata, and GitHub offers it as "Cite this repository".
+Cite Krinea with its DOI. The concept DOI [10.5281/zenodo.24380293](https://doi.org/10.5281/zenodo.24380293) covers every version and resolves to the latest; each release also has its own DOI on Zenodo, to cite when you need to say which version you used (it is shown in the site footer). A `CITATION.cff` file in the repository holds the full citation metadata, and GitHub offers it as "Cite this repository".
 
-> Krinea, version 0.1.0. https://github.com/aymardino/krinea
+> Plakoo, K. A. (2026). Krinea (Version 0.1.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.24380294
 
 ## Contact
 

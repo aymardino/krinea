@@ -6,7 +6,8 @@ Zenodo with its own DOI.
 
 ## [0.1.0] - 2026-11-19
 
-First archived release, the version running on krinea.org.
+First archived release, the version running on krinea.org. DOI:
+[10.5281/zenodo.24380294](https://doi.org/10.5281/zenodo.24380294).
 
 - **Accounts and teams.** Sign-in with a password, an e-mail link or Google;
   reviews with roles and e-mail invitations.

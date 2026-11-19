@@ -692,7 +692,8 @@ order. With an order other than import, the cursor is the last record of the pre
 version, plus a concept DOI that always points to the latest). Zenodo copies its metadata
 from `CITATION.cff`, which now carries the author's ORCID and affiliation. `CHANGELOG.md`
 says what each version contains, and `codemeta.json` describes the software for HAL and
-Software Heritage. The first release is v0.1.0, the version the site already shows.
+Software Heritage. The first release is v0.1.0, the version the site already shows (DOI
+10.5281/zenodo.24380294; concept DOI 10.5281/zenodo.24380293).
 
 **Why.** A DOI makes Krinea citable in articles and dates each version publicly; journals
 for research software such as JOSS ask for tagged releases or a changelog.

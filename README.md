@@ -1,5 +1,7 @@
 # Krinea
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24380293.svg)](https://doi.org/10.5281/zenodo.24380293)
+
 Systematic reviews, judged on the evidence.
 
 Open-source workbench for systematic reviews, in the spirit of Rayyan or
@@ -143,9 +145,15 @@ contact@krinea.org or use GitHub private vulnerability reporting; details in
 
 ## Citation
 
-Cite the release (version shown in the site footer, currently 0.1.0) and the
-repository URL. `CITATION.cff` holds the metadata; GitHub shows it as "Cite
-this repository".
+Cite Krinea with its DOI. The concept DOI
+[10.5281/zenodo.24380293](https://doi.org/10.5281/zenodo.24380293) covers every version and
+resolves to the latest; each release also has its own DOI on Zenodo (0.1.0:
+[10.5281/zenodo.24380294](https://doi.org/10.5281/zenodo.24380294)). `CITATION.cff` holds the
+metadata, and GitHub shows it as "Cite this repository". What each version
+contains: `CHANGELOG.md`.
+
+> Plakoo, K. A. (2026). Krinea (Version 0.1.0) [Computer software]. Zenodo.
+> https://doi.org/10.5281/zenodo.24380294
 
 ## Supporting the project
 
