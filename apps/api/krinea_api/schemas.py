@@ -241,6 +241,13 @@ class SearchKeywordsIn(BaseModel):
     exclude: list[str] = []
 
 
+class SearchCriteriaIn(BaseModel):
+    """A search's own sub-question and criteria (D-47)."""
+    question: str = ""
+    inclusion: str = ""
+    exclusion: str = ""
+
+
 class CandidateOut(BaseModel):
     id: int
     score: float

@@ -124,6 +124,42 @@ def test_with_the_file_order_a_record_belongs_to_the_file_it_was_kept_from(clien
     assert (rows[y_b]["file"], rows[y_b]["files"]) == ("query3.ris", "query3.ris; query1.ris")
 
 
+def test_each_search_brings_its_own_criteria_to_the_ai(client, monkeypatch):
+    """One search per sub-question (D-47): the AI screens a record with the criteria of the
+    search it belongs to, never with those of another."""
+    register(client, "search-criteria@example.org", "Owner")
+    rid = client.post("/reviews", json={"title": "Sub-questions"}).json()["id"]
+    file_a = _import(client, rid, "query1.ris", SCOPUS, "Scopus")
+    file_b = _import(client, rid, "query3.ris", PUBMED, "PubMed")
+    y_b = {(r["source_db"], r["year"]): r["id"] for r in _records(client, rid)}[("PubMed", "2020")]
+    client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "file", "file_priority": [file_b, file_a]}})
+    assert client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85}).status_code == 200
+    r = client.put(f"/reviews/{rid}/imports/{file_b}/criteria",
+                   json={"question": " Do hybrid mini-grids cut costs? ", "inclusion": "Cost data", "exclusion": ""})
+    assert r.json() == {"question": "Do hybrid mini-grids cut costs?", "inclusion": "Cost data", "exclusion": ""}
+    client.put(f"/reviews/{rid}/imports/{file_a}/criteria", json={"question": "Tanzania only?"})
+    assert set(client.get(f"/reviews/{rid}").json()["criteria"]["search_criteria"]) == {file_a, file_b}
+
+    client.put("/auth/keys/gemini", json={"key": "AQ.test-key-1234567890"})
+    prompts = []
+
+    def answer(prompt, provider, key, model=None, **kw):
+        prompts.append(prompt)
+        return {"decision": "include", "reason": "", "rationale": "", "confidence": 0.9}, llm.Usage(1, 1)
+
+    monkeypatch.setattr(llm, "call_json", answer)
+    # The Nigeria study, found by both searches, belongs to query 3 (ranked first).
+    job = client.post(f"/reviews/{rid}/ai/screen", json={"stage": "ta", "record_ids": [y_b], "limit": 1}).json()
+    assert job["result"]["ok"] == 1
+    assert 'Search "query3.ris"' in prompts[0] and "Sub-question: Do hybrid mini-grids cut costs?" in prompts[0]
+    assert "Tanzania only?" not in prompts[0]
+
+    # Emptied, a search's criteria go; deleting a file takes its criteria with it.
+    client.put(f"/reviews/{rid}/imports/{file_b}/criteria", json={})
+    assert client.delete(f"/reviews/{rid}/imports/{file_a}").status_code == 200
+    assert client.get(f"/reviews/{rid}").json()["criteria"]["search_criteria"] == {}
+
+
 def test_ai_runs_ignore_records_of_other_reviews(client, monkeypatch):
     register(client, "dedup-scope@example.org", "Scope")
     mine = client.post("/reviews", json={"title": "Mine"}).json()["id"]

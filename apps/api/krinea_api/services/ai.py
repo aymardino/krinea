@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from krinea_api import models
 from krinea_api.config import get_settings
 from krinea_api.security import decrypt_secret
+from krinea_api.services import screening as scr
 from krinea_api.services import storage
 from krinea_core import extraction_schema, llm
 from krinea_core import screening as core_screening
@@ -106,7 +107,8 @@ def screen_record(db: Session, review: models.Review, user: models.User, record:
     # from the criteria, where the settings never put it.
     criteria = dict(review.criteria or {})
     criteria["question"] = criteria.get("question") or review.question or ""
-    prompt = core_screening.build_screening_prompt(criteria, record_dict(record), stage=stage, full_text=full_text)
+    prompt = core_screening.build_screening_prompt(criteria, record_dict(record), stage=stage, full_text=full_text,
+                                                   searches=scr.record_searches(db, review, record))
     raw, usage = llm.call_json(prompt, provider, key, model, purpose="screening", max_tokens=1024)
     s = core_screening.parse_suggestion(raw)
     record_usage(db, user, review.id, provider, model, "screening", usage, source)

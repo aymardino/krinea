@@ -865,3 +865,21 @@ exclusion reason.
 **Why.** A report that cannot be obtained cannot be assessed, yet it stayed in the list to
 screen and in the count of what was left, which then never reached zero; and the list had no
 way to show the reports flagged, or those whose PDF was still to be found.
+
+## D-47 · 2026-11-20 · decided · Each search can have its own sub-question and criteria
+
+**Decision.** An imported file (one search) can carry its own sub-question and inclusion and
+exclusion criteria, stored in `criteria.search_criteria` by import id and set with
+`PUT /imports/{import_id}/criteria` (administrators; empty fields remove them; deleting the
+import removes them). The screening rail shows them in a "Criteria of the search" card, for
+the file the list is filtered on, else for the searches the record on screen belongs to, and
+administrators edit them there. AI screening gives them to the model with the review's own
+question and criteria: those of the file of the copy kept under the file order (D-42), else
+of every file that found the record, which is then included if it meets the criteria of at
+least one of these searches (`krinea_core.screening.search_block`). The highlight keywords,
+of the review or of a search, still never reach the AI (D-30).
+
+**Why.** A review that runs one search per sub-question screens each study against the
+criteria of its own search, but the AI only had the review's criteria, the same for every
+search, and so could judge a study of one sub-question by the criteria of another, or by
+none.

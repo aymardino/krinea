@@ -33,6 +33,20 @@ def test_criteria_defaults_and_prompt():
     assert "Q?" in p and "STUDY TEXT:" in p and "Title: T" in p and "Abstract: A" in p
     p2 = screening.build_screening_prompt(c, rec, stage="ft", full_text="BODY")
     assert "FULL TEXT:\nBODY" in p2
+    assert "SEARCH-SPECIFIC" not in p
+
+
+def test_a_search_brings_its_own_sub_question_and_criteria():
+    rec = {"title": "T", "abstract": "A"}
+    one = [{"name": "query3.ris", "question": "Do mini-grids lower tariffs?", "inclusion": "Tariff data", "exclusion": ""}]
+    p = screening.build_screening_prompt({"inclusion": "Africa"}, rec, searches=one)
+    head = p.split("STUDY TEXT:")[0]                       # in the cached part, before the study
+    assert 'Search "query3.ris":' in head and "Sub-question: Do mini-grids lower tariffs?" in head
+    assert "Inclusion criteria: Tariff data" in head and "Exclusion criteria:" not in head.split("SEARCH-SPECIFIC")[1]
+    assert "together with the review's criteria" in head
+    two = one + [{"name": "query5.ris", "inclusion": "Storage costs"}]
+    assert "at least one of these searches" in screening.build_screening_prompt({}, rec, searches=two)
+    assert "SEARCH-SPECIFIC" not in screening.build_screening_prompt({}, rec, searches=[{"name": "q", "question": " "}])
 
 
 def test_parse_suggestion():

@@ -139,8 +139,31 @@ def record_text(record: dict) -> str:
     return "\n".join(lines)
 
 
+SEARCH_FIELDS = (("question", "Sub-question"), ("inclusion", "Inclusion criteria"), ("exclusion", "Exclusion criteria"))
+
+
+def search_block(searches: list[dict] | None) -> str:
+    """The criteria of the searches (imported files) a record belongs to, when a review runs one
+    search per sub-question: each a dict with `name` and any of `question`, `inclusion`,
+    `exclusion`. Empty when none has any."""
+    items = [s for s in (searches or []) if any(str(s.get(k) or "").strip() for k, _ in SEARCH_FIELDS)]
+    if not items:
+        return ""
+    if len(items) == 1:
+        intro = ("The study was found by the search below, which has its own sub-question and criteria: "
+                 "apply them together with the review's criteria.")
+    else:
+        intro = ("The study was found by the searches below, each with its own sub-question and criteria: include "
+                 "it if it meets the review's criteria and those of at least one of these searches.")
+    lines = ["", "SEARCH-SPECIFIC CRITERIA:", intro]
+    for s in items:
+        lines.append(f'Search "{s.get("name") or "unnamed"}":')
+        lines += [f"{label}: {str(s[k]).strip()}" for k, label in SEARCH_FIELDS if str(s.get(k) or "").strip()]
+    return "\n".join(lines) + "\n"
+
+
 def build_screening_prompt(criteria: dict, record: dict, stage: str = "ta",
-                           full_text: str = "") -> str:
+                           full_text: str = "", searches: list[dict] | None = None) -> str:
     c = criteria_with_defaults(criteria)
     reasons = " | ".join(c["exclusion_reasons"])
     what = ("its title and abstract" if stage == "ta" else "its full text")
@@ -156,7 +179,7 @@ INCLUSION CRITERIA:
 
 EXCLUSION CRITERIA:
 {c['exclusion'] or '(none stated)'}
-
+{search_block(searches)}
 If you exclude, pick the reason from this list only: {reasons}
 
 Return ONLY a JSON object with exactly these keys:

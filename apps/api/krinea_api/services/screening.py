@@ -163,6 +163,26 @@ def in_file(review: models.Review, import_id: str):
     return found_in_import(review.id, import_id)
 
 
+def record_searches(db: Session, review: models.Review, record: models.Record) -> list[dict]:
+    """The searches (imported files) a record belongs to that have their own sub-question or
+    criteria, as `{name, question, inclusion, exclusion}` for the AI (D-47): the file of the copy
+    kept under the file order (D-42), else every file that found the record."""
+    own = (review.criteria or {}).get("search_criteria") or {}
+    if not own:
+        return []
+    files = [record.import_id] if record.import_id else []
+    if not by_kept_file(review):
+        files += list(db.scalars(select(models.Record.import_id).where(
+            models.Record.review_id == review.id, models.Record.is_duplicate.is_(True),
+            models.Record.duplicate_of == record.id, models.Record.import_id.is_not(None))))
+    files = [f for f in dict.fromkeys(files) if isinstance(own.get(f), dict)]
+    if not files:
+        return []
+    names = dict(db.execute(select(models.Import.id, models.Import.filename).where(models.Import.id.in_(files))).all())
+    return [{"name": names.get(f, ""), **{k: str(own[f].get(k) or "") for k in ("question", "inclusion", "exclusion")}}
+            for f in files]
+
+
 def search_keywords(review: models.Review) -> dict[str, dict[str, list[str]]]:
     """Highlight keywords that belong to one search (imported file), by import id."""
     raw = (review.criteria or {}).get("search_keywords") or {}

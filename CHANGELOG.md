@@ -24,6 +24,9 @@ Zenodo with its own DOI.
   a PDF, and `/health` says where PDFs are stored.
 - **Exports.** Each filter takes several values: several files, decisions,
   reasons, labels or PDF states at once.
+- **Searches.** Each imported file (one search) can have its own sub-question
+  and inclusion and exclusion criteria, shown while screening its records and
+  given to the AI with the review's own criteria.
 - **Files.** When duplicates are kept by the order of the imported files, each
   study belongs only to the file of the record kept: file filters, AI runs,
   keywords of each search and exports follow it. Screening exports gain a

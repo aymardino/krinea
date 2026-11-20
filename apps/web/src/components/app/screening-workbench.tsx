@@ -14,6 +14,7 @@ import { AiCard, AiRunSummary, aiErrorKind, DEFAULT_PROVIDER, type AiRunResult }
 import { JobProgress } from "@/components/app/job-progress";
 import { isLive, useJob } from "@/lib/use-job";
 import { KeywordsCard } from "@/components/app/keywords-card";
+import { SearchCriteriaCard } from "@/components/app/search-criteria-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Badge, StatusBadge } from "@/components/ui/badge";
@@ -469,6 +470,10 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("shortcuts")}</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
+        {/* The criteria of the search the list is filtered on, else of the searches the record
+            on screen belongs to (one under the file order, D-42). */}
+        <SearchCriteriaCard review={review} importIds={fileId !== "all" ? [fileId] : (rec?.found_in ?? [])}
+                            imports={imports.data ?? []} editable={admin} onChanged={refresh} />
         {editable && (
           <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")} hint={aiRunning ? undefined : aiHint}
                   options={(

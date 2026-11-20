@@ -75,9 +75,11 @@ def delete_import(import_id: str, access=Depends(ReviewAccess("admin")), user: m
         raise HTTPException(404, "Import not found")
     n = import_service.delete_import(db, review, imp)
     crit = dict(review.criteria or {})
-    sk = dict(crit.get("search_keywords") or {})
-    if sk.pop(import_id, None) is not None:                # the search's own keywords go with it
-        review.criteria = {**crit, "search_keywords": sk}
+    for key in ("search_keywords", "search_criteria"):     # the search's own keywords and criteria go with it
+        own = dict(crit.get(key) or {})
+        if own.pop(import_id, None) is not None:
+            crit[key] = own
+    review.criteria = crit
     settings = dict(review.settings or {})
     if import_id in (settings.get("file_priority") or []):   # and its place in the file order
         review.settings = {**settings, "file_priority": [f for f in settings["file_priority"] if f != import_id]}
@@ -113,6 +115,29 @@ def set_search_keywords(import_id: str, body: schemas.SearchKeywordsIn, access=D
         sk.pop(import_id, None)
     review.criteria = {**crit, "search_keywords": sk}
     log_activity(db, review.id, user.id, "search_keywords", filename=imp.filename)
+    db.commit()
+    return entry
+
+
+@router.put("/imports/{import_id}/criteria")
+def set_search_criteria(import_id: str, body: schemas.SearchCriteriaIn, access=Depends(ReviewAccess("admin")),
+                        user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+    """A search's own sub-question and inclusion and exclusion criteria (one search per
+    sub-question): shown while screening the records of that search, and given to the AI
+    with the review's own criteria (D-47). Empty fields remove them."""
+    review, _ = access
+    imp = db.get(models.Import, import_id)
+    if not imp or imp.review_id != review.id:
+        raise HTTPException(404, "Import not found")
+    crit = dict(review.criteria or {})
+    sc = dict(crit.get("search_criteria") or {})
+    entry = {k: (getattr(body, k) or "").strip()[:4000] for k in ("question", "inclusion", "exclusion")}
+    if any(entry.values()):
+        sc[import_id] = entry
+    else:
+        sc.pop(import_id, None)
+    review.criteria = {**crit, "search_criteria": sc}
+    log_activity(db, review.id, user.id, "search_criteria", filename=imp.filename)
     db.commit()
     return entry
 
