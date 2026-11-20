@@ -850,3 +850,18 @@ it again.
 
 **Consequences.** The hosted service needs a bucket on both `tamis-api` and `tamis-worker`
 (`docs/deploy-render.md`); `pdf_storage: local` on the hosted service means PDFs will be lost.
+
+## D-46 · 2026-11-20 · decided · Reports not retrieved leave the records to screen
+
+**Decision.** A report flagged "not retrievable" at full text (`pdf_status = not_retrieved`)
+leaves the full-text "To screen" view, the full-text pool of the summary and what each
+reviewer has left; the summary counts these reports (`stages.ft.not_retrieved`), and the
+screening list shows the number next to the progress. The full-text list gains two views:
+"No PDF yet" (records without a PDF that are not flagged, the PDFs still to find) and "Not
+retrievable". Unflagging a report brings it back. PRISMA was already right: these reports go
+to "Reports not retrieved" and not to the reports assessed, so they need no decision and no
+exclusion reason.
+
+**Why.** A report that cannot be obtained cannot be assessed, yet it stayed in the list to
+screen and in the count of what was left, which then never reached zero; and the list had no
+way to show the reports flagged, or those whose PDF was still to be found.

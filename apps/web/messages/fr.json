@@ -461,6 +461,8 @@
         "include": "Incluses",
         "exclude": "Exclues",
         "pending": "En attente",
+        "no_pdf": "Sans PDF",
+        "not_retrieved": "Introuvables",
         "all": "Toutes"
       },
       "search": "Titre, auteurs, résumé…",
@@ -487,6 +489,7 @@
       "shortcuts": "Raccourcis",
       "shortcutList": "I inclure · M peut-être · E exclure · ← → naviguer · P ouvrir le PDF",
       "progress": "{done} / {total} triées par vous",
+      "progressNotRetrieved": "{n, plural, one {# introuvable} other {# introuvables}}",
       "fullText": "Texte intégral",
       "uploadPdf": "Téléverser le PDF",
       "fetchPdf": "Chercher un PDF en accès libre",

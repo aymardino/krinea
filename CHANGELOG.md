@@ -12,7 +12,9 @@ Zenodo with its own DOI.
   whole list as filtered and ordered, not only the records loaded on the page,
   and a long run lets other jobs through every 50 records.
 - **Screening.** The list goes past its first 200 records, and it can be
-  ordered with the AI's exclusions first.
+  ordered with the AI's exclusions first. At full text, reports flagged not
+  retrievable leave the records to screen and the counts of what is left, and
+  the list has "No PDF yet" and "Not retrievable" views.
 - **Fixed.** The AI screening now receives the review's research question,
   which it never did. In full-text screening the AI only reads records with a
   readable PDF: records without a PDF are left out, and scans without text are

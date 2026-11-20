@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 type Stage = "ta" | "ft";
 const VIEWS: { [k in Stage]: string[] } = {
   ta: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "all"],
-  ft: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "all"],
+  ft: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "no_pdf", "not_retrieved", "all"],
 };
 // Orders of the queue (GET /records?sort=...); "import" is the order of the imported files.
 const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude"];
@@ -219,7 +219,16 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   });
   const pdfFetch = useMutation({ mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/fetch`), onSuccess: pdfChanged, onError });
   const pdfRemove = useMutation({ mutationFn: (id: number) => api.delete<StudyRecord>(`/reviews/${rid}/records/${id}/pdf`), onSuccess: () => { pdfChanged(); refresh(); }, onError });
-  const notRetrieved = useMutation({ mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/not-retrieved`), onSuccess: () => { qc.invalidateQueries({ queryKey: ["records", rid] }); refresh(); }, onError });
+  // Flagged not retrievable, a report leaves "To screen" and "No PDF" (D-46): go on to the next.
+  const notRetrieved = useMutation({
+    mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/not-retrieved`),
+    onSuccess: (r) => {
+      if (r.pdf_status === "not_retrieved" && (view === "todo" || view === "no_pdf")) setCurrent(items[index + 1]?.id ?? items[index - 1]?.id ?? null);
+      qc.invalidateQueries({ queryKey: ["records", rid] });
+      refresh();
+    },
+    onError,
+  });
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -319,7 +328,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           )}
           <div>
             <Progress value={stageStats.pool ? Math.round((stageStats.my_done / stageStats.pool) * 100) : 0} />
-            <p className="mt-1 text-xs text-muted-foreground">{t("progress", { done: stageStats.my_done, total: stageStats.pool })}{stageStats.my_seconds ? ` · ${formatDuration(stageStats.my_seconds)}` : ""}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("progress", { done: stageStats.my_done, total: stageStats.pool })}{stageStats.my_seconds ? ` · ${formatDuration(stageStats.my_seconds)}` : ""}{stageStats.not_retrieved ? ` · ${t("progressNotRetrieved", { n: stageStats.not_retrieved })}` : ""}</p>
           </div>
         </div>
         <ol className={cn("scrollbar-thin flex-1 overflow-y-auto p-1.5 transition-opacity", page.isPlaceholderData && "opacity-60")}>

@@ -461,6 +461,8 @@
         "include": "Included",
         "exclude": "Excluded",
         "pending": "Pending",
+        "no_pdf": "No PDF yet",
+        "not_retrieved": "Not retrievable",
         "all": "All"
       },
       "search": "Search title, authors, abstract…",
@@ -487,6 +489,7 @@
       "shortcuts": "Shortcuts",
       "shortcutList": "I include · M maybe · E exclude · ← → navigate · P open PDF",
       "progress": "{done} / {total} screened by you",
+      "progressNotRetrieved": "{n} not retrievable",
       "fullText": "Full text",
       "uploadPdf": "Upload PDF",
       "fetchPdf": "Find open-access PDF",

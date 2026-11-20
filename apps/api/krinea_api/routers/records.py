@@ -260,8 +260,13 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
     q = select(models.Record).where(models.Record.review_id == review.id)
     if stage != "all":
         q = q.where(models.Record.is_duplicate.is_(False))
+    # A report flagged not retrievable cannot be assessed: at full text it leaves the records
+    # to screen, and "no PDF" means a PDF still to find (D-46).
+    retrievable = or_(models.Record.pdf_status.is_(None), models.Record.pdf_status != "not_retrieved")
+    if view == "todo" and st_stage == "ft":
+        q = q.where(retrievable)
     if view == "no_pdf":
-        q = q.where(models.Record.pdf_key == "")
+        q = q.where(models.Record.pdf_key == "", retrievable)
     if view == "not_retrieved":
         q = q.where(models.Record.pdf_status == "not_retrieved")
     if search.strip():

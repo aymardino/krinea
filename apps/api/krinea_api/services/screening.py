@@ -86,8 +86,14 @@ def summary(db: Session, review: models.Review, user: models.User | None) -> dic
            "required_reviewers": c["required"], "stages": {}}
     members = {m.user_id: m for m in db.scalars(select(models.Membership).where(models.Membership.review_id == review.id))}
     users = {u.id: u for u in db.scalars(select(models.User).where(models.User.id.in_(list(members))))} if members else {}
+    # Reports flagged not retrievable are not assessed (PRISMA counts them apart): they leave
+    # the full-text pool, its progress and what is left to screen (D-46).
+    not_retrieved = set(db.scalars(select(models.Record.id).where(models.Record.review_id == review.id,
+                                                                  models.Record.pdf_status == "not_retrieved")))
     for stage in STAGES:
         pool = pool_ids(c, stage)
+        if stage == "ft":
+            pool = [rid for rid in pool if rid not in not_retrieved]
         status = c["ta_status"] if stage == "ta" else c["ft_status"]
         counts = defaultdict(int)
         for rid in pool:
@@ -113,6 +119,7 @@ def summary(db: Session, review: models.Review, user: models.User | None) -> dic
             "pool": len(pool), **{k: counts.get(k, 0) for k in ("pending", "include", "maybe", "exclude", "conflict")},
             "my_done": my_done, "my_left": max(0, len(pool) - my_done),
             "my_seconds": round(mine["seconds"]) if mine else 0, "reviewers": reviewers,
+            "not_retrieved": sum(1 for rid in pool_ids(c, stage) if rid in not_retrieved) if stage == "ft" else 0,
         }
     ex = db.execute(select(models.Extraction.status, func.count()).where(models.Extraction.review_id == review.id)
                     .group_by(models.Extraction.status)).all()
