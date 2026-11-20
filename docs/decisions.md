@@ -803,3 +803,15 @@ too.
 **Consequences.** Which copy is kept is set at the last duplicate detection. Detection starts
 again from scratch: a new run after screening may keep another copy of a study, and the
 decisions made on the copy set aside then no longer count, until it is restored.
+
+## D-43 · 2026-11-20 · decided · Any number of records per AI run, one at full text
+
+**Decision.** The AI panel takes the number of records a run handles as typed, from 1 (the
+record on screen, if it has neither a suggestion nor the reviewer's decision) up to the whole
+list, which a link fills in. It replaces the choice between 50, 200, 500 and all (D-40). The
+number starts at 50 in title and abstract screening and at 1 in full-text screening. The
+preview asks the server how many records of the list a run can take, and the page works out
+the next run from it, so typing the number sends no request.
+
+**Why.** At full text the prompt holds the whole text, up to 120,000 characters: 50 records
+at a time used a lot of the reviewer's API quota before they could judge the first answers.

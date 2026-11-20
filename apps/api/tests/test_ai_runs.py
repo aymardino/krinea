@@ -102,6 +102,9 @@ def test_a_run_follows_the_whole_list_from_the_record_on_screen(client, monkeypa
     seen.clear()
     client.post(f"/reviews/{rid}/ai/screen", json={**body, "redo": True, "start_id": ids[0], "limit": 2})
     assert seen == [1, 7]
+    seen.clear()
+    client.post(f"/reviews/{rid}/ai/screen", json={**body, "redo": True, "start_id": ids[6], "limit": 1})
+    assert seen == [7]                                         # one record: the one on screen
     assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 0, "next": 0}
     # The list's filters apply: a search keeps only the records it finds.
     narrow = {**body, "redo": True, "queue": {"view": "all", "search": "number 2"}}

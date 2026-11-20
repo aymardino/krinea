@@ -32,10 +32,11 @@ const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "
 const NO_REASON = "__none__";
 // The queue is read this many records at a time (GET /records?offset=...).
 const PAGE = 200;
-// How many records an AI run takes (D-40): "all" is the whole list (AI_MAX_RUN in the API). A
-// run bigger than AI_CONFIRM asks first, as each record is a call billed to the key used.
-const AI_BATCHES = ["50", "200", "500", "all"] as const;
-type AiBatch = (typeof AI_BATCHES)[number];
+// How many records an AI run takes (D-40, D-43): any number from the record on screen, at most
+// AI_ALL (AI_MAX_RUN in the API). A full text is a long prompt, so a full-text run starts at
+// one record. A run bigger than AI_CONFIRM asks first, as each record is a call billed to the
+// key used.
+const AI_DEFAULT_COUNT: { [k in Stage]: number } = { ta: 50, ft: 1 };
 const AI_ALL = 20000;
 const AI_CONFIRM = 500;
 
@@ -58,7 +59,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [labels, setLabels] = useState("");
-  const [aiBatch, setAiBatch] = useState<AiBatch>("50");
+  const [aiCount, setAiCount] = useState(String(AI_DEFAULT_COUNT[stage]));
   const [aiRedo, setAiRedo] = useState(false);
   // The queue is read PAGE records at a time, from the first page again whenever the list
   // changes; `last` lands on the last record of the page reached (going back with Previous).
@@ -166,32 +167,35 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   });
   // The AI follows the list as shown (view, file, label, keywords, search and order), from the
   // record on screen round to the top, and takes the records without your decision and (unless
-  // redone) without a suggestion, as many as picked. The server reads them from the whole list,
-  // not only from the page loaded here (D-40).
-  const aiQuery = {
-    stage, limit: aiBatch === "all" ? AI_ALL : Number(aiBatch), redo: aiRedo,
+  // redone) without a suggestion, as many as typed (1 = the record on screen, if it has neither).
+  // The server reads them from the whole list, not only from the page loaded here (D-40).
+  const aiLimit = Math.min(AI_ALL, Math.max(1, Math.floor(Number(aiCount)) || 1));
+  const aiList = {
+    stage, redo: aiRedo,
     queue: { view, search, sort, label: labelFilter !== "all" ? labelFilter : "", import_id: fileId !== "all" ? fileId : "", kw: kwFilter, kw_mode: kwMode },
   };
   const aiRun = useMutation({
-    mutationFn: () => api.post<Job>(`/reviews/${rid}/ai/screen`, { ...aiQuery, start_id: rec?.id ?? null }),
+    mutationFn: () => api.post<Job>(`/reviews/${rid}/ai/screen`, { ...aiList, limit: aiLimit, start_id: rec?.id ?? null }),
     onSuccess: aiJob.follow,
     onError,
   });
   const aiRunning = aiRun.isPending || aiJob.running;
-  // How many records the next run takes; asked again whenever the list or the decisions change
-  // (its key starts like the list's), but not while a run goes on.
+  // How many records of the list a run can take; asked again whenever the list or the
+  // decisions change (its key starts like the list's), but not while a run goes on, nor at
+  // each digit typed in the number (the next run takes the smaller of the two).
   const aiPreview = useQuery<{ available: number; next: number }>({
-    queryKey: ["records", rid, "ai-preview", JSON.stringify(aiQuery)],
-    queryFn: () => api.post(`/reviews/${rid}/ai/screen/preview`, aiQuery),
+    queryKey: ["records", rid, "ai-preview", JSON.stringify(aiList)],
+    queryFn: () => api.post(`/reviews/${rid}/ai/screen/preview`, { ...aiList, limit: AI_ALL }),
     enabled: editable && !aiRunning,
   });
-  const aiNext = aiPreview.data?.next ?? 0;
+  const aiAvailable = aiPreview.data?.available ?? 0;
+  const aiNext = Math.min(aiAvailable, aiLimit);
   const runAi = () => {
     if (!aiNext) toast.info(t(aiRedo ? "aiNothingRedo" : "aiNothing"));
     else if (aiNext <= AI_CONFIRM || window.confirm(t("aiConfirm", { n: aiNext }))) aiRun.mutate();
   };
   const aiHint = !aiPreview.data ? undefined
-    : aiPreview.data.available ? t(aiRedo ? "aiScopeRedo" : "aiScope", { n: aiPreview.data.available, k: aiPreview.data.next })
+    : aiAvailable ? t(aiRedo ? "aiScopeRedo" : "aiScope", { n: aiAvailable, k: aiNext })
     : t(aiRedo ? "aiNothingRedo" : "aiNothing");
   // While a run goes on, the queue is fetched again each time it saves one more suggestion
   // (a fetch already under way is let finish rather than restarted).
@@ -448,12 +452,17 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")} hint={aiRunning ? undefined : aiHint}
                   options={(
                     <div className="mt-3 space-y-2">
-                      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
-                        <span>{t("aiBatch")}</span>
-                        <Select value={aiBatch} onValueChange={(v: string) => setAiBatch(v as AiBatch)} disabled={aiRunning}>
-                          <SelectTrigger aria-label={t("aiBatch")} className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>{AI_BATCHES.map((b) => <SelectItem key={b} value={b}>{b === "all" ? t("aiBatchAll") : b}</SelectItem>)}</SelectContent>
-                        </Select>
+                      <div className="space-y-1 text-[11px] text-muted-foreground">
+                        <label htmlFor="ai-count" className="block">{t("aiBatch")}</label>
+                        <div className="flex items-center gap-2">
+                          <Input id="ai-count" type="number" inputMode="numeric" min={1} max={AI_ALL} className="h-7 w-20 px-2 text-xs tabular-nums"
+                                 value={aiCount} disabled={aiRunning} onChange={(e) => setAiCount(e.target.value)}
+                                 onBlur={() => setAiCount(String(aiLimit))} />
+                          {aiAvailable > 1 && (
+                            <button type="button" className="font-medium text-primary underline-offset-2 hover:underline disabled:opacity-50" disabled={aiRunning}
+                                    onClick={() => setAiCount(String(aiAvailable))}>{t("aiBatchAll")}</button>
+                          )}
+                        </div>
                       </div>
                       <label className="flex items-start gap-2 text-[11px] leading-snug text-muted-foreground">
                         <input type="checkbox" className="mt-0.5 accent-brand-600" checked={aiRedo} disabled={aiRunning} onChange={(e) => setAiRedo(e.target.checked)} />

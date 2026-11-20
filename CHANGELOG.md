@@ -6,8 +6,9 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
-- **AI.** The AI panel picks how many records a run takes (50, 200, 500 or
-  the whole list) and can redo the suggestions already made. A run follows the
+- **AI.** The AI panel takes any number of records per run, from the record
+  on screen (one by default at full text, 50 at title and abstract) up to the
+  whole list, and can redo the suggestions already made. A run follows the
   whole list as filtered and ordered, not only the records loaded on the page,
   and a long run lets other jobs through every 50 records.
 - **Screening.** The list goes past its first 200 records, and it can be
