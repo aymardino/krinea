@@ -89,6 +89,42 @@ def read_pdf(key: str) -> bytes | None:
     return path.read_bytes() if path is not None and path.exists() else None
 
 
+def mode() -> str:
+    """Where PDFs go: "s3" (a bucket, kept across deploys) or "local" (the server's own disk,
+    which a hosting service such as Render empties at each deploy or restart)."""
+    return "s3" if get_settings().s3_bucket else "local"
+
+
+def missing(key: str) -> bool:
+    """Whether a stored PDF is known to be gone: deleted, or lost with a server disk that did
+    not persist. True only when the storage says so, never on a network or access error."""
+    if not key:
+        return False
+    s = get_settings()
+    if s.s3_bucket:
+        try:
+            _s3().head_object(Bucket=s.s3_bucket, Key="pdfs/" + key)
+            return False
+        except Exception as e:            # noqa: BLE001
+            code = str((getattr(e, "response", None) or {}).get("Error", {}).get("Code", ""))
+            return code in ("404", "NoSuchKey", "NotFound")
+    path = _local_path(key)
+    return path is not None and not path.exists()
+
+
+def forget_if_lost(db, record) -> bool:
+    """Clear the PDF of a record whose file is gone from storage, so that the pages offer to
+    add it again and the counts of records with a PDF are right (D-45). Commits when it does."""
+    if not record.pdf_key or not missing(record.pdf_key):
+        return False
+    log.warning("PDF %s of record %s is no longer in storage (%s): cleared", record.pdf_key, record.id, mode())
+    record.pdf_key = ""
+    if record.pdf_status == "available":
+        record.pdf_status = ""
+    db.commit()
+    return True
+
+
 def delete_pdf(key: str) -> None:
     delete_pdfs([key])
 

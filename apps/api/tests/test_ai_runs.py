@@ -151,6 +151,27 @@ def test_full_text_runs_take_the_records_with_a_readable_pdf(client, monkeypatch
     assert len(prompts) == 1 and "FULL TEXT:" in prompts[0] and "HOMER" in prompts[0]
 
 
+def test_a_pdf_lost_from_storage_is_cleared_so_it_can_be_added_again(client, pdf_bytes):
+    from krinea_api.services import storage
+    rid, ids = _review(client, "ai-lostpdf@example.org")
+    rec = ids[0]
+    assert client.post(f"/reviews/{rid}/records/{rec}/decision", json={"stage": "ta", "decision": "include"}).status_code == 200
+    assert client.post(f"/reviews/{rid}/records/{rec}/pdf", files={"file": ("paper.pdf", pdf_bytes, "application/pdf")}).status_code == 200
+    db = session_factory()()
+    try:
+        key = db.get(models.Record, rec).pdf_key
+    finally:
+        db.close()
+    storage.delete_pdf(key)                                    # a server disk emptied by a deploy
+    r = client.get(f"/reviews/{rid}/records/{rec}/pdf")
+    assert r.status_code == 404 and "no longer stored" in r.json()["detail"]
+    after = client.get(f"/reviews/{rid}/records/{rec}").json()
+    assert (after["has_pdf"], after["pdf_status"]) == (False, "")
+    body = {"stage": "ft", "queue": {"view": "todo"}, "limit": 5}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 0, "next": 0, "no_pdf": 1}
+    assert client.get("/health").json()["pdf_storage"] == "local"
+
+
 def test_a_long_run_goes_back_in_line_between_turns(client, monkeypatch):
     rid, ids = _review(client, "ai-turns@example.org")
     monkeypatch.setattr(llm, "call_json", lambda prompt, provider, key, model=None, **kw: (ANSWER, llm.Usage(10, 5)))

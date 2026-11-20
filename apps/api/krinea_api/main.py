@@ -11,6 +11,7 @@ from krinea_api import __version__
 from krinea_api.config import get_settings
 from krinea_api.db import create_all
 from krinea_api.routers import admin, ai, auth, exports, records, reviews, stats
+from krinea_api.services import storage
 from krinea_api.services.ai import AIUnavailable
 from krinea_api.services.email import EmailError
 
@@ -40,7 +41,8 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     def health():
-        return {"ok": True, "version": __version__}
+        # pdf_storage "local" on a hosted service means PDFs are lost at each deploy (D-45).
+        return {"ok": True, "version": __version__, "pdf_storage": storage.mode()}
 
     @app.on_event("startup")
     def _startup():

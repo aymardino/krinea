@@ -17,6 +17,9 @@ Zenodo with its own DOI.
   which it never did. In full-text screening the AI only reads records with a
   readable PDF: records without a PDF are left out, and scans without text are
   left aside, so no call is spent on a title and abstract alone.
+- **Fixed.** A PDF lost from storage is cleared from its record, so it can be
+  uploaded or looked for again; the full-text view can also replace or remove
+  a PDF, and `/health` says where PDFs are stored.
 - **Exports.** Each filter takes several values: several files, decisions,
   reasons, labels or PDF states at once.
 - **Files.** When duplicates are kept by the order of the imported files, each

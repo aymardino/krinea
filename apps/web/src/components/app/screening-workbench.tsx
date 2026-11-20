@@ -210,11 +210,15 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   // How your last run on this stage went (runs from before the stage was recorded count for both).
   const lastAiRun = aiJob.jobs.find((j) => j.kind === "ai_screen" && !isLive(j) && !!me && j.user_id === me.id
     && ((j.result as { stage?: string }).stage ?? stage) === stage);
+  // A new PDF changes the viewer's address, so the browser shows it instead of the old one.
+  const [pdfVersion, setPdfVersion] = useState(0);
+  const pdfChanged = () => { setPdfVersion((v) => v + 1); qc.invalidateQueries({ queryKey: ["records", rid] }); };
   const pdfUpload = useMutation({
     mutationFn: async ({ id, file }: { id: number; file: File }) => { const f = new FormData(); f.append("file", file); return api.upload<StudyRecord>(`/reviews/${rid}/records/${id}/pdf`, f); },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["records", rid] }), onError,
+    onSuccess: pdfChanged, onError,
   });
-  const pdfFetch = useMutation({ mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/fetch`), onSuccess: () => qc.invalidateQueries({ queryKey: ["records", rid] }), onError });
+  const pdfFetch = useMutation({ mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/fetch`), onSuccess: pdfChanged, onError });
+  const pdfRemove = useMutation({ mutationFn: (id: number) => api.delete<StudyRecord>(`/reviews/${rid}/records/${id}/pdf`), onSuccess: () => { pdfChanged(); refresh(); }, onError });
   const notRetrieved = useMutation({ mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/not-retrieved`), onSuccess: () => { qc.invalidateQueries({ queryKey: ["records", rid] }); refresh(); }, onError });
 
   // Keyboard shortcuts
@@ -397,18 +401,23 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
               <div className="border-t border-border bg-muted/30 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium">{t("fullText")}</span>
+                  <input ref={fileInput} type="file" accept="application/pdf" className="hidden"
+                         onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) pdfUpload.mutate({ id: rec.id, file: f }); }} />
                   {rec.has_pdf ? (
-                    <Button size="sm" variant="outline" asChild><a href={api.url(`/reviews/${rid}/records/${rec.id}/pdf`)} target="_blank" rel="noreferrer"><FileText />{t("openPdf")}</a></Button>
+                    <>
+                      <Button size="sm" variant="outline" asChild><a href={api.url(`/reviews/${rid}/records/${rec.id}/pdf?v=${pdfVersion}`)} target="_blank" rel="noreferrer"><FileText />{t("openPdf")}</a></Button>
+                      {editable && <Button size="sm" variant="ghost" onClick={() => fileInput.current?.click()} disabled={pdfUpload.isPending}><Upload />{t("replacePdf")}</Button>}
+                      {editable && <Button size="sm" variant="ghost" onClick={() => window.confirm(t("removePdfConfirm")) && pdfRemove.mutate(rec.id)} disabled={pdfRemove.isPending}><XCircle />{t("removePdf")}</Button>}
+                    </>
                   ) : (
                     <>
-                      <input ref={fileInput} type="file" accept="application/pdf" className="hidden" onChange={(e) => e.target.files?.[0] && pdfUpload.mutate({ id: rec.id, file: e.target.files[0] })} />
                       <Button size="sm" variant="outline" onClick={() => fileInput.current?.click()} disabled={pdfUpload.isPending}><Upload />{t("uploadPdf")}</Button>
                       {rec.doi && <Button size="sm" variant="outline" onClick={() => pdfFetch.mutate(rec.id)} disabled={pdfFetch.isPending}><Search />{t("fetchPdf")}</Button>}
                       <Button size="sm" variant={rec.pdf_status === "not_retrieved" ? "secondary" : "ghost"} onClick={() => notRetrieved.mutate(rec.id)}><XCircle />{rec.pdf_status === "not_retrieved" ? t("notRetrievedOn") : t("notRetrieved")}</Button>
                     </>
                   )}
                 </div>
-                {rec.has_pdf && <iframe title="pdf" src={api.url(`/reviews/${rid}/records/${rec.id}/pdf`)} className="mt-3 h-[620px] w-full rounded-lg border border-border bg-white" />}
+                {rec.has_pdf && <iframe title="pdf" src={api.url(`/reviews/${rid}/records/${rec.id}/pdf?v=${pdfVersion}`)} className="mt-3 h-[620px] w-full rounded-lg border border-border bg-white" />}
                 {!rec.has_pdf && rec.pdf_status !== "not_retrieved" && <p className="mt-2 text-xs text-muted-foreground">{t("noPdf")}</p>}
               </div>
             )}

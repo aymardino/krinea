@@ -830,3 +830,23 @@ aside when its turn comes: the AI is not asked, the run goes on, and the result 
 while asking for a decision on the full text: a billed call whose answer said nothing more
 than the first screening. And the question that frames the review never reached the AI that
 screens for it.
+
+## D-45 · 2026-11-20 · decided · A PDF lost from storage can be added again
+
+**Decision.** When a record's PDF can no longer be read because the storage says the file is
+gone (`storage.missing`: a missing local file, or a 404 from the bucket, never a network
+error), Krinea clears the record's PDF (`storage.forget_if_lost`) where it notices: opening
+the PDF or its text, AI screening at full text, AI extraction. The full-text view then offers
+to upload the PDF or look for it again; it also has "Replace PDF" and "Remove PDF" next to
+"Open PDF" (the API already had `DELETE /records/{id}/pdf`). The PDF is served with
+`Cache-Control: private, no-store`, so a replaced PDF shows at once. `/health` says where PDFs
+are stored (`pdf_storage`: `s3` or `local`).
+
+**Why.** Without a bucket (`S3_BUCKET` unset), PDFs went to the API's own disk, which Render
+empties at each deploy or restart, and which the worker never sees. A PDF found through the
+open-access lookup vanished after a deploy: the record still pointed to it, the viewer showed
+"No PDF for this record", AI screening took it for a scan, and the page offered no way to add
+it again.
+
+**Consequences.** The hosted service needs a bucket on both `tamis-api` and `tamis-worker`
+(`docs/deploy-render.md`); `pdf_storage: local` on the hosted service means PDFs will be lost.

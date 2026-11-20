@@ -135,6 +135,10 @@ aliases.
 Deleting a review, records or an import also deletes their PDFs, from the
 bucket or from the disk.
 
+To check which one the API uses, open `/api/health` on the site: `"pdf_storage":
+"s3"` is a bucket. `"local"` on Render without a disk means every deploy or
+restart loses the PDFs; the records then offer to add them again (D-45).
+
 ### Custom domain
 
 1. Buy the domain at a registrar (Cloudflare Registrar, Porkbun, OVHcloud,

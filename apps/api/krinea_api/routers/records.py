@@ -462,9 +462,18 @@ def get_pdf(record_id: int, access=Depends(ReviewAccess("viewer")), db: DBSessio
     rec = _one(db, review, record_id)
     data = storage.read_pdf(rec.pdf_key)
     if not data:
-        raise HTTPException(404, "No PDF for this record")
-    return Response(data, media_type="application/pdf",
-                    headers={"Content-Disposition": f'inline; filename="record-{rec.id}.pdf"'})
+        raise HTTPException(404, _no_pdf(db, rec))
+    return Response(data, media_type="application/pdf",       # no-store: a replaced PDF shows at once
+                    headers={"Content-Disposition": f'inline; filename="record-{rec.id}.pdf"',
+                             "Cache-Control": "private, no-store"})
+
+
+def _no_pdf(db: DBSession, rec: models.Record) -> str:
+    """The message for a record whose PDF cannot be read; a PDF lost from storage is cleared
+    from the record, so the page offers to add it again (D-45)."""
+    if storage.forget_if_lost(db, rec):
+        return "The PDF of this record is no longer stored: add it again."
+    return "No PDF for this record"
 
 
 @router.get("/records/{record_id}/text")
@@ -473,7 +482,7 @@ def get_text(record_id: int, access=Depends(ReviewAccess("viewer")), db: DBSessi
     rec = _one(db, review, record_id)
     data = storage.read_pdf(rec.pdf_key)
     if not data:
-        raise HTTPException(404, "No PDF for this record")
+        raise HTTPException(404, _no_pdf(db, rec))
     return {"text": storage.pdf_text(data)}
 
 

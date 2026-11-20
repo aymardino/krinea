@@ -97,6 +97,8 @@ def screen_record(db: Session, review: models.Review, user: models.User, record:
     full_text = ""
     if stage == "ft":
         data = storage.read_pdf(record.pdf_key) if record.pdf_key else None
+        if data is None:
+            storage.forget_if_lost(db, record)       # a PDF lost from storage: add it again (D-45)
         full_text = storage.pdf_text(data, max_chars=120_000) if data else ""
         if len(full_text.strip()) < MIN_FULL_TEXT:
             raise NoFullText("No readable full text: no PDF, or a PDF without a text layer (a scan)")
@@ -132,6 +134,8 @@ def extract_record(db: Session, review: models.Review, user: models.User, record
         key, source = resolve_key(db, user, provider)
         data = storage.read_pdf(record.pdf_key) if record.pdf_key else None
         if not data:
+            if storage.forget_if_lost(db, record):
+                raise ValueError("The PDF of this record is no longer stored: add it again")
             raise ValueError("No PDF on file for this record")
         text = storage.pdf_text(data)
         if len(text) < 500:
