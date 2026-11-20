@@ -153,7 +153,7 @@
       "report": {
         "title": "Produisez le diagramme PRISMA 2020 officiel.",
         "b1": "Les effectifs du diagramme sont calculés à partir de vos décisions, si bien que vous n'avez rien à ressaisir.",
-        "b2": "Vous pouvez ensuite télécharger le diagramme en SVG, les études incluses en RIS ou CSV et les extractions validées en Excel.",
+        "b2": "Vous pouvez ensuite télécharger le diagramme en SVG, et les notices de chaque étape en RIS, CSV ou Excel, filtrées par décision, motif d'exclusion, fichier ou étiquette.",
         "b3": "Le journal des décisions s'exporte lui aussi, pour la traçabilité.",
         "alt": "Page PRISMA 2020 : six compteurs, le bouton de téléchargement SVG et le haut du diagramme de flux"
       }
@@ -379,6 +379,7 @@
       "fulltext": "Texte intégral",
       "extraction": "Extraction",
       "prisma": "PRISMA",
+      "exports": "Exports",
       "settings": "Paramètres"
     },
     "overview": {
@@ -468,6 +469,7 @@
       "noAbstract": "Pas de résumé dans l'export.",
       "keywords": "Mots-clés",
       "reason": "Motif d'exclusion",
+      "noReason": "Aucun motif",
       "note": "Note",
       "labels": "Étiquettes",
       "labelsHint": "Séparées par des virgules",
@@ -609,14 +611,61 @@
         "updated_v2": "Revue mise à jour, avec autres méthodes"
       },
       "downloadSvg": "Télécharger le SVG",
-      "exports": "Exports",
-      "included": "Études incluses",
-      "allRecords": "Toutes les notices avec statut",
-      "decisions": "Journal des décisions",
-      "extractions": "Extractions vérifiées",
-      "counts": "Comptages PRISMA",
       "bySource": "Par source",
       "reasons": "Motifs d'exclusion au texte intégral"
+    },
+    "exports": {
+      "title": "Exports",
+      "text": "Téléchargez les notices de chaque étape, filtrées selon vos besoins, pour un gestionnaire de références (RIS) ou un tableur (CSV, Excel).",
+      "records": "Notices",
+      "stage": "Étape",
+      "stages": {
+        "ta": "Tri sur titre et résumé",
+        "ft": "Tri sur texte intégral",
+        "extract": "Extraction des données"
+      },
+      "stageText": {
+        "ta": "Toutes les notices restantes une fois les doublons retirés, avec leur décision et leur motif d'exclusion à chaque étape.",
+        "ft": "Les notices retenues sur titre et résumé, avec leur décision au texte intégral, leur motif d'exclusion et leur PDF.",
+        "extract": "Les études incluses au texte intégral, avec la valeur extraite pour chaque champ du formulaire."
+      },
+      "decision": "Décision",
+      "allDecisions": "Toutes les décisions",
+      "statuses": {
+        "include": "Incluses",
+        "maybe": "Peut-être",
+        "exclude": "Exclues",
+        "conflict": "Conflits",
+        "pending": "En attente"
+      },
+      "reason": "Motif d'exclusion",
+      "allReasons": "Tous les motifs",
+      "noReason": "Sans motif",
+      "pdf": "Texte intégral (PDF)",
+      "allPdfs": "Tous",
+      "pdfs": {
+        "available": "PDF disponible",
+        "missing": "Sans PDF",
+        "not_retrieved": "Introuvable"
+      },
+      "extraction": "Extractions",
+      "extractionVerified": "Vérifiées seulement",
+      "extractionAll": "Toutes les études incluses, brouillons compris",
+      "file": "Fichier importé",
+      "allFiles": "Tous les fichiers",
+      "label": "Étiquette",
+      "allLabels": "Toutes les étiquettes",
+      "countRecords": "{n, plural, =0 {Aucune notice ne correspond à ces filtres.} one {# notice} other {# notices}}",
+      "countStudies": "{n, plural, =0 {Aucune étude ne correspond à ces filtres.} one {# étude} other {# études}}",
+      "formats": {
+        "ris": "RIS",
+        "csv": "CSV",
+        "xlsx": "Excel"
+      },
+      "other": "Autres exports",
+      "decisions": "Journal des décisions (CSV)",
+      "prismaCounts": "Comptages PRISMA (CSV)",
+      "allRecords": "Toutes les notices, doublons compris (CSV)"
     },
     "settings": {
       "title": "Paramètres de la revue",

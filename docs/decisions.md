@@ -722,3 +722,28 @@ tier covers it, so a reviewer can try the AI with a free Google AI Studio key.
 million tokens: 0.75 USD in and 3.75 USD out until 31 December 2026, then 1.50 and 7.50,
 against 0.30 and 2.50 for `gemini-3.5-flash-lite`. A reviewer who prefers the cheaper model
 types it in the review settings.
+
+## D-39 · 2026-11-20 · decided · Exports of each stage, filtered; "No reason" in screening
+
+**Decision.** A review has an Exports tab. It exports the records of a stage: title and
+abstract screening (every unique record), full-text screening (the records kept at title and
+abstract) or extraction (the studies included at full text). Filters: decision (included,
+maybe, excluded, conflict, pending), exclusion reason (or excluded without one), PDF at full
+text (on file, missing, not retrievable), imported file (a merged duplicate counts for every
+file that found it) and label (exact match). The page shows how many records the file will
+hold; formats are RIS, CSV and Excel. A screening export has one row per record, with its
+status and reason at both stages, PDF, labels, notes and the files it was found in; the
+reason is the one PRISMA counts (consensus first). The extraction export holds the verified
+extractions, or every included study with the status of its extraction. API:
+`GET /export/screening.{ris,csv,xlsx}`, `GET /export/extractions.{csv,xlsx,ris}` (with
+`status`, `import_id`, `label`) and `GET /export/count`; the earlier export URLs still work.
+Control characters that Excel refuses are dropped from Excel exports. In a blind review, a
+member below admin gets only their own reasons and, in the decision log, only their own
+decisions. The exclusion reason of the screening page has a "No reason" choice that empties
+it.
+
+**Why.** Exports were all or nothing, on the PRISMA page: the records kept after title and
+abstract screening (to fetch the full texts) or the reports excluded at full text with their
+reasons could only be had by filtering a full CSV by hand. The decision log gave a blind
+reviewer the other reviewers' decisions. A reason chosen for an exclusion, or proposed by
+the AI, could not be removed.

@@ -28,6 +28,8 @@ const VIEWS: { [k in Stage]: string[] } = {
 };
 // Orders of the queue (GET /records?sort=...); "import" is the order of the imported files.
 const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai"];
+// The "No reason" choice of the exclusion reason (a select item cannot have an empty value).
+const NO_REASON = "__none__";
 
 export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const t = useTranslations("review.screening");
@@ -352,9 +354,14 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
             {editable && (
               <div className="space-y-3 border-t border-border p-4">
                 <div className="grid gap-3 md:grid-cols-3">
-                  <Select value={reason} onValueChange={setReason}>
+                  {/* "No reason" empties the field, so an exclusion can go without one (even when
+                      the AI had proposed one). */}
+                  <Select value={reason} onValueChange={(v) => setReason(v === NO_REASON ? "" : v)}>
                     <SelectTrigger><SelectValue placeholder={t("reason")} /></SelectTrigger>
-                    <SelectContent>{review.criteria.exclusion_reasons.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                    <SelectContent>
+                      <SelectItem value={NO_REASON} className="text-muted-foreground">{t("noReason")}</SelectItem>
+                      {review.criteria.exclusion_reasons.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                   <div className="relative"><Tag className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder={`${t("labels")} (${t("labelsHint")})`} value={labels} onChange={(e) => setLabels(e.target.value)} /></div>
                   <Textarea className="min-h-9 md:h-9" placeholder={t("addNote")} value={note} onChange={(e) => setNote(e.target.value)} />

@@ -118,8 +118,7 @@ def set_search_keywords(import_id: str, body: schemas.SearchKeywordsIn, access=D
 
 
 # ── Listing ──────────────────────────────────────────────────────────────────────
-def _blind(review: models.Review, role: str) -> bool:
-    return bool((review.settings or {}).get("blind", True)) and ROLE_RANK[role] < ROLE_RANK["admin"]
+_blind = scr.is_blind
 
 
 def _decision_dict(d: models.Decision, names: dict[str, str]) -> dict:
@@ -161,8 +160,7 @@ def _merged_from(db: DBSession, review_id: str, ids: list[int]) -> dict[int, lis
     return out
 
 
-def _labels_of(text: str) -> set[str]:
-    return {x.strip().lower() for x in re.split(r"[;,]", text or "") if x.strip()}
+_labels_of = scr.labels_of
 
 
 def _names(db: DBSession, review_id: str) -> dict[str, str]:

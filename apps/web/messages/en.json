@@ -153,7 +153,7 @@
       "report": {
         "title": "Report with the official PRISMA 2020 diagram.",
         "b1": "The diagram's counts are computed from your decisions, so there is nothing to retype.",
-        "b2": "You can then download the diagram as SVG, the included studies as RIS or CSV and the validated extractions as Excel.",
+        "b2": "You can then download the diagram as SVG, and the records of each stage as RIS, CSV or Excel, filtered by decision, exclusion reason, file or label.",
         "b3": "The decision log exports too, for traceability.",
         "alt": "PRISMA 2020 page: six count tiles, the Download SVG button and the top of the flow diagram"
       }
@@ -379,6 +379,7 @@
       "fulltext": "Full text",
       "extraction": "Extraction",
       "prisma": "PRISMA",
+      "exports": "Exports",
       "settings": "Settings"
     },
     "overview": {
@@ -468,6 +469,7 @@
       "noAbstract": "No abstract in the export.",
       "keywords": "Keywords",
       "reason": "Exclusion reason",
+      "noReason": "No reason",
       "note": "Note",
       "labels": "Labels",
       "labelsHint": "Comma-separated",
@@ -609,14 +611,61 @@
         "updated_v2": "Updated review, with other methods"
       },
       "downloadSvg": "Download SVG",
-      "exports": "Exports",
-      "included": "Included studies",
-      "allRecords": "All records with status",
-      "decisions": "Decision log",
-      "extractions": "Verified extractions",
-      "counts": "PRISMA counts",
       "bySource": "By source",
       "reasons": "Full-text exclusion reasons"
+    },
+    "exports": {
+      "title": "Exports",
+      "text": "Download the records of each stage, filtered as you need, for a reference manager (RIS) or a spreadsheet (CSV, Excel).",
+      "records": "Records",
+      "stage": "Stage",
+      "stages": {
+        "ta": "Title and abstract screening",
+        "ft": "Full-text screening",
+        "extract": "Data extraction"
+      },
+      "stageText": {
+        "ta": "Every record left once duplicates are removed, with its decision and exclusion reason at each stage.",
+        "ft": "The records kept at title and abstract, with their full-text decision, exclusion reason and PDF.",
+        "extract": "The studies included at full text, with the value extracted for each field of the form."
+      },
+      "decision": "Decision",
+      "allDecisions": "All decisions",
+      "statuses": {
+        "include": "Included",
+        "maybe": "Maybe",
+        "exclude": "Excluded",
+        "conflict": "Conflicts",
+        "pending": "Pending"
+      },
+      "reason": "Exclusion reason",
+      "allReasons": "All reasons",
+      "noReason": "No reason given",
+      "pdf": "Full text (PDF)",
+      "allPdfs": "All",
+      "pdfs": {
+        "available": "PDF on file",
+        "missing": "No PDF",
+        "not_retrieved": "Not retrievable"
+      },
+      "extraction": "Extractions",
+      "extractionVerified": "Verified only",
+      "extractionAll": "All included studies, drafts too",
+      "file": "Imported file",
+      "allFiles": "All files",
+      "label": "Label",
+      "allLabels": "All labels",
+      "countRecords": "{n, plural, =0 {No record matches these filters.} one {# record} other {# records}}",
+      "countStudies": "{n, plural, =0 {No study matches these filters.} one {# study} other {# studies}}",
+      "formats": {
+        "ris": "RIS",
+        "csv": "CSV",
+        "xlsx": "Excel"
+      },
+      "other": "Other exports",
+      "decisions": "Decision log (CSV)",
+      "prismaCounts": "PRISMA counts (CSV)",
+      "allRecords": "All records, duplicates included (CSV)"
     },
     "settings": {
       "title": "Review settings",

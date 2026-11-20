@@ -9,9 +9,21 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from krinea_api import models
+from krinea_api.deps import ROLE_RANK
 from krinea_core import screening as core
 
 STAGES = ("ta", "ft")
+
+
+def is_blind(review: models.Review, role: str) -> bool:
+    """Whether a member with this role sees only their own decisions: every role below admin,
+    in a blind review."""
+    return bool((review.settings or {}).get("blind", True)) and ROLE_RANK[role] < ROLE_RANK["admin"]
+
+
+def labels_of(text: str) -> set[str]:
+    """The labels of a record, lower-cased ("SQ1; costs" gives {"sq1", "costs"})."""
+    return {x.strip().lower() for x in re.split(r"[;,]", text or "") if x.strip()}
 
 
 def required_reviewers(review: models.Review) -> int:

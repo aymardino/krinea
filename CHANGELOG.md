@@ -8,6 +8,13 @@ Zenodo with its own DOI.
 
 - **AI.** New reviews use Google Gemini, with `gemini-3.8-flash` for screening
   suggestions and extraction drafts. Existing reviews keep their settings.
+- **Exports.** A new Exports tab exports the records of each stage (title and
+  abstract, full text, extraction) as RIS, CSV or Excel, filtered by decision,
+  exclusion reason, PDF, imported file and label, with the number of records
+  shown first.
+- **Screening.** The exclusion reason has a "No reason" choice that empties it.
+- **Fixed.** In a blind review, the decision log export no longer shows a
+  reviewer the other reviewers' decisions.
 
 ## [0.1.0] - 2026-11-19
 

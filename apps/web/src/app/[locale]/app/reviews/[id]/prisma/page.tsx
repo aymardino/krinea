@@ -23,12 +23,6 @@ export default function PrismaPage() {
   const counts = useQuery<Prisma>({ queryKey: ["prisma", rid], queryFn: () => api.get(`/reviews/${rid}/prisma`) });
   const svgUrl = api.url(`/reviews/${rid}/prisma.svg?variant=${variant}&lang=${locale}`);
   const c = counts.data;
-  const exports: [string, string][] = [
-    [t("included") + " (RIS)", `/reviews/${rid}/export/included.ris`], [t("included") + " (CSV)", `/reviews/${rid}/export/included.csv`],
-    [t("allRecords"), `/reviews/${rid}/export/records.csv`], [t("decisions"), `/reviews/${rid}/export/decisions.csv`],
-    [t("extractions") + " (XLSX)", `/reviews/${rid}/export/extractions.xlsx`], [t("extractions") + " (CSV)", `/reviews/${rid}/export/extractions.csv`],
-    [t("counts"), `/reviews/${rid}/export/prisma.csv`],
-  ];
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} description={t("text")} actions={<>
@@ -63,12 +57,6 @@ export default function PrismaPage() {
               </CardContent>
             </Card>
           )}
-          <Card>
-            <CardHeader><CardTitle>{t("exports")}</CardTitle></CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              {exports.map(([label, path]) => <Button key={path} variant="outline" className="justify-start" asChild><a href={api.url(path)}><Download />{label}</a></Button>)}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

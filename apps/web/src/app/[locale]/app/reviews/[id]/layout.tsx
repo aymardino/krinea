@@ -24,6 +24,7 @@ export default function ReviewLayout({ children, params }: { children: React.Rea
     { href: `${base}/full-text`, label: t("fulltext"), n: s.stages.ft.my_left },
     { href: `${base}/extraction`, label: t("extraction"), n: s.extraction.pool },
     { href: `${base}/prisma`, label: t("prisma") },
+    { href: `${base}/exports`, label: t("exports") },
     { href: `${base}/settings`, label: t("settings") },
   ];
   return (
