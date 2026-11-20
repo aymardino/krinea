@@ -13,9 +13,9 @@ authors:
     given-names: Kodjovi Aymard
     orcid: "https://orcid.org/0009-0001-9500-6290"
     affiliation: "Mines Paris, Université PSL, Centre de Mathématiques Appliquées (CMA)"
-version: 0.1.0
+version: 0.2.0
 doi: 10.5281/zenodo.24380293
-date-released: "2026-11-19"
+date-released: "2026-11-20"
 license: AGPL-3.0-only
 repository-code: "https://github.com/aymardino/krinea"
 url: "https://krinea.org"

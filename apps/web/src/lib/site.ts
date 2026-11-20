@@ -3,7 +3,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://krinea.org
 /** Source code repository (the only place this URL is defined). */
 export const REPO_URL = "https://github.com/aymardino/krinea";
 /** Released version of Krinea, shown in the footer (see CITATION.cff). */
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "0.2.0";
 /** Where voluntary donations go (Buy Me a Coffee page of the maintainer). */
 export const SUPPORT_URL = "https://www.buymeacoffee.com/aymardinho";
 /** Public contact address; NEXT_PUBLIC_CONTACT_EMAIL overrides it at build time. */

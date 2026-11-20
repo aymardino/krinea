@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "krinea-core"
-version = "0.1.0"
+version = "0.2.0"
 description = "Bibliographic parsing, deduplication, screening and extraction-form logic for systematic reviews"
 readme = "README.md"
 license = "MIT"

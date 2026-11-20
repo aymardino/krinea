@@ -700,7 +700,8 @@ for research software such as JOSS ask for tagged releases or a changelog.
 
 **Consequences.** A new version changes the number everywhere it appears (`CITATION.cff`,
 `codemeta.json`, `apps/api/pyproject.toml`, `apps/api/krinea_api/__init__.py`,
-`packages/core/pyproject.toml`, `apps/web/package.json`, `apps/web/src/lib/site.ts`,
+`packages/core/pyproject.toml`, `packages/core/krinea_core/__init__.py`,
+`apps/web/package.json`, `apps/web/src/lib/site.ts`,
 `apps/web/content/{en,fr}/about.md`, README), adds a `CHANGELOG.md` section, then gets a
 tag and a GitHub release. Undo: switch the repository off in Zenodo; archived versions stay
 online.
