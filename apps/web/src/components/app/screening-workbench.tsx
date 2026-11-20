@@ -10,7 +10,7 @@ import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
 import { canEdit, canReview, useReview } from "@/components/app/review-context";
 import { Highlight } from "@/components/app/highlight";
-import { AiCard, AiRunSummary, aiErrorKind, type AiRunResult } from "@/components/app/ai-card";
+import { AiCard, AiRunSummary, aiErrorKind, DEFAULT_PROVIDER, type AiRunResult } from "@/components/app/ai-card";
 import { JobProgress } from "@/components/app/job-progress";
 import { isLive, useJob } from "@/lib/use-job";
 import { KeywordsCard } from "@/components/app/keywords-card";
@@ -387,7 +387,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
                   hint={aiTargets.length ? t("aiScope", { n: aiTargets.length }) : t("aiNothing")}
                   status={aiRunning
                     ? <JobProgress job={aiJob.job} label={aiProgress.total ? t("aiRunningCount", { ok: aiSaved, total: aiProgress.total }) : t("aiRunning")} />
-                    : lastAiRun && <AiRunSummary job={lastAiRun} provider={review.settings.ai_provider || "claude"} />} />
+                    : lastAiRun && <AiRunSummary job={lastAiRun} provider={review.settings.ai_provider || DEFAULT_PROVIDER} />} />
         )}
         <KeywordsCard review={review} counts={kw.data} editable={admin} picked={kwFilter} onPick={togglePick} onChanged={refresh}
                       search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />

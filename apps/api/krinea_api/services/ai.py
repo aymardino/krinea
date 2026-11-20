@@ -71,7 +71,7 @@ def record_usage(db: Session, user: models.User | None, review_id: str | None, p
 
 def provider_and_model(review: models.Review, purpose: str, provider: str | None, model: str | None) -> tuple[str, str]:
     s = review.settings or {}
-    provider = provider or s.get("ai_provider") or "claude"
+    provider = provider or s.get("ai_provider") or llm.DEFAULT_PROVIDER
     model = model or s.get(f"ai_model_{purpose}") or llm.DEFAULT_MODELS[purpose][provider]
     return provider, model
 

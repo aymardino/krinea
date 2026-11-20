@@ -100,7 +100,7 @@ def test_ai_runs_ignore_records_of_other_reviews(client, monkeypatch):
     other = client.post("/reviews", json={"title": "Other"}).json()["id"]
     _import(client, other, "other.ris", SCOPUS, "Scopus")
     foreign = [r["id"] for r in _records(client, other)]
-    client.put("/auth/keys/claude", json={"key": "sk-ant-test-key-1234567890"})
+    client.put("/auth/keys/gemini", json={"key": "AQ.test-key-1234567890"})
 
     def no_call(*a, **kw):
         raise AssertionError("the AI must not be called for another review's records")

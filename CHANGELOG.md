@@ -4,6 +4,11 @@ What each version of Krinea contains, newest first. Version numbers follow
 [semantic versioning](https://semver.org); every GitHub release is archived on
 Zenodo with its own DOI.
 
+## [Unreleased]
+
+- **AI.** New reviews use Google Gemini, with `gemini-3.8-flash` for screening
+  suggestions and extraction drafts. Existing reviews keep their settings.
+
 ## [0.1.0] - 2026-11-19
 
 First archived release, the version running on krinea.org. DOI:
@@ -34,4 +39,5 @@ First archived release, the version running on krinea.org. DOI:
 - **Streamlit edition.** The original single-user application
   (`review_app.py`), on the same engine.
 
+[Unreleased]: https://github.com/aymardino/krinea/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/aymardino/krinea/releases/tag/v0.1.0

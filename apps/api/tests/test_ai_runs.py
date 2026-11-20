@@ -1,9 +1,11 @@
-"""AI screening runs: records go in the order the page sends them (the one on screen first); a
-failure every record would hit stops the run at once and says what it means; a rate limit is
-waited out; the result keeps the tally the page follows, and never shows the key."""
+"""AI screening runs: a new review runs on Gemini 3.8 Flash; records go in the order the page
+sends them (the one on screen first); a failure every record would hit stops the run at once
+and says what it means; a rate limit is waited out; the result keeps the tally the page
+follows, and never shows the key."""
 import io
 
-from krinea_api.services import jobs
+from krinea_api import models
+from krinea_api.services import ai, jobs
 from krinea_core import llm
 from tests.conftest import register
 
@@ -39,6 +41,15 @@ def _run(client, rid: str, ids: list[int]) -> dict:
     return job
 
 
+def test_a_new_review_runs_on_gemini_3_8_flash(client):
+    register(client, "ai-default@example.org", "Owner")
+    s = client.post("/reviews", json={"title": "Defaults"}).json()["settings"]
+    assert (s["ai_provider"], s["ai_model_screening"], s["ai_model_extraction"]) == ("gemini", "", "")
+    for review in (models.Review(settings=s), models.Review(settings={})):     # stored, or none at all
+        for purpose in ("screening", "extraction"):
+            assert ai.provider_and_model(review, purpose, None, None) == ("gemini", "gemini-3.8-flash")
+
+
 def test_the_run_follows_the_order_sent_and_names_the_model(client, monkeypatch):
     rid, ids = _review(client, "ai-order@example.org")
     seen = []
@@ -51,9 +62,9 @@ def test_the_run_follows_the_order_sent_and_names_the_model(client, monkeypatch)
     job = _run(client, rid, [ids[2], ids[0]])                  # the record on screen first
     res = job["result"]
     assert (res["ok"], res["failed"], res["total"], res["stopped"], res["error_kind"]) == (2, 0, 2, False, "")
-    assert (res["stage"], res["provider"], res["model"]) == ("ta", "gemini", "gemini-3.5-flash-lite")
+    assert (res["stage"], res["provider"], res["model"]) == ("ta", "gemini", "gemini-3.8-flash")
     assert ["number 3" in prompt for prompt, *_ in seen] == [True, False]
-    assert {(p, k, m) for _, p, k, m in seen} == {("gemini", KEY, "gemini-3.5-flash-lite")}
+    assert {(p, k, m) for _, p, k, m in seen} == {("gemini", KEY, "gemini-3.8-flash")}
     assert job["user_id"]
     items = client.get(f"/reviews/{rid}/records?stage=ta&view=todo").json()["items"]
     assert [bool(x["ai"]) for x in items] == [True, False, True, False, False, False, False]

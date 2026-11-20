@@ -49,7 +49,8 @@ _WIDE = ({"width": "stretch"} if "width" in inspect.signature(st.button).paramet
          else {"use_container_width": True})
 
 PROVIDERS = ["claude", "gemini", "deepseek"]
-SCREEN_MODELS = {"claude": "claude-haiku-5-5", "gemini": "gemini-3.5-flash-lite",
+DEFAULT_PROVIDER = "gemini"                      # as in krinea_core.llm (decision D-38)
+SCREEN_MODELS = {"claude": "claude-haiku-5-5", "gemini": "gemini-3.8-flash",
                  "deepseek": "deepseek-v4-flash"}
 EXTRACT_MODELS = {"claude": "claude-sonnet-5", "gemini": "gemini-3.8-flash",
                   "deepseek": "deepseek-v4-flash"}
@@ -204,7 +205,7 @@ with st.sidebar:
 
     st.divider()
     st.markdown(f"### {t('ai_assistant')}")
-    provider = st.selectbox(t("provider"), PROVIDERS, key="ai_provider")
+    provider = st.selectbox(t("provider"), PROVIDERS, index=PROVIDERS.index(DEFAULT_PROVIDER), key="ai_provider")
     api_key = st.text_input(t("api_key", provider=provider.capitalize()), type="password",
                             value=os.environ.get(KEY_ENV[provider], ""), key=f"api_key_{provider}")
     screen_model = st.text_input(t("model"), value=SCREEN_MODELS[provider],

@@ -15,12 +15,12 @@ from krinea_api.services import dedup as dedup_service
 from krinea_api.services import email as email_service
 from krinea_api.services import screening as scr
 from krinea_api.services import storage
-from krinea_core import extraction_schema
+from krinea_core import extraction_schema, llm
 from krinea_core import screening as core_screening
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
-DEFAULT_SETTINGS = {"required_reviewers": 1, "blind": True, "ai_provider": "claude",
+DEFAULT_SETTINGS = {"required_reviewers": 1, "blind": True, "ai_provider": llm.DEFAULT_PROVIDER,
                     "ai_model_screening": "", "ai_model_extraction": "", "keeper_rule": "complete",
                     "file_priority": [], "source_priority": [],
                     "dedup_auto_threshold": 95, "dedup_review_threshold": 85}

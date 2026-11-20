@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const PROVIDER_NAMES: { [k: string]: string } = { claude: "Anthropic Claude", gemini: "Google Gemini", deepseek: "DeepSeek" };
+/** The provider of a review whose settings name none (krinea_core.llm.DEFAULT_PROVIDER). */
+export const DEFAULT_PROVIDER = "gemini";
 type KeyRow = { provider: string; masked: string; created_at: string };
 /** What an AI screening job reports (services/jobs.py); runs made before kinds existed only
  *  have ok, total and errors. */
@@ -55,7 +57,7 @@ export function AiCard({ review, onRun, running, label, hint, status }: { review
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
   const qc = useQueryClient();
-  const provider = review.settings.ai_provider || "claude";
+  const provider = review.settings.ai_provider || DEFAULT_PROVIDER;
   const name = PROVIDER_NAMES[provider] ?? provider;
   const keys = useQuery<KeyRow[]>({ queryKey: ["keys"], queryFn: () => api.get("/auth/keys") });
   const usage = useQuery<Usage>({ queryKey: ["usage"], queryFn: () => api.get("/auth/usage") });

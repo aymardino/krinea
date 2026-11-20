@@ -20,11 +20,12 @@ import re
 from dataclasses import dataclass
 
 PROVIDERS = ("claude", "gemini", "deepseek")
-# Gemini: since 18 September 2026 Google opens the 2.5 models only to projects that used them
-# before, and points new projects to 3.5 Flash-Lite or 3.8 Flash (its replacements for 2.5
-# Flash and 2.5 Pro).
+# New reviews start on Gemini, with 3.8 Flash for screening and extraction alike (Krinea
+# decision D-38). Since 18 September 2026 Google opens the 2.5 models only to projects that
+# used them before.
+DEFAULT_PROVIDER = "gemini"
 DEFAULT_MODELS = {
-    "screening": {"claude": "claude-haiku-5-5", "gemini": "gemini-3.5-flash-lite", "deepseek": "deepseek-v4-flash"},
+    "screening": {"claude": "claude-haiku-5-5", "gemini": "gemini-3.8-flash", "deepseek": "deepseek-v4-flash"},
     "extraction": {"claude": "claude-sonnet-5-5", "gemini": "gemini-3.8-flash", "deepseek": "deepseek-v4-pro"},
 }
 MARKER = "STUDY TEXT:"

@@ -704,3 +704,21 @@ for research software such as JOSS ask for tagged releases or a changelog.
 `apps/web/content/{en,fr}/about.md`, README), adds a `CHANGELOG.md` section, then gets a
 tag and a GitHub release. Undo: switch the repository off in Zenodo; archived versions stay
 online.
+
+## D-38 · 2026-11-20 · decided · Gemini 3.8 Flash by default
+
+**Decision.** New reviews use Google Gemini, and `gemini-3.8-flash` is the default model for
+screening suggestions as well as extraction drafts (it replaces `gemini-3.5-flash-lite` for
+screening, chosen in D-35). The default provider is `krinea_core.llm.DEFAULT_PROVIDER`; the
+API reads it for the settings of a new review and for a review whose settings name no
+provider, and the web app and the Streamlit edition repeat it. Existing reviews keep the
+provider stored in their settings, and a model typed in the review settings still wins.
+
+**Why.** One model for both tasks. Gemini 3.8 Flash is Google's current stable Flash model
+(from 1 December 2026 Google answers `gemini-2.5-pro` requests with it), and Gemini's free
+tier covers it, so a reviewer can try the AI with a free Google AI Studio key.
+
+**Consequences.** Screening costs more per record than with Flash-Lite. Google's prices per
+million tokens: 0.75 USD in and 3.75 USD out until 31 December 2026, then 1.50 and 7.50,
+against 0.30 and 2.50 for `gemini-3.5-flash-lite`. A reviewer who prefers the cheaper model
+types it in the review settings.

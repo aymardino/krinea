@@ -181,7 +181,7 @@ def test_full_flow(client, client2, pdf_bytes, monkeypatch):
 
     # AI: no key -> 402; with a key, a stubbed provider, inline job, metering
     assert client2.post(f"/reviews/{rid}/ai/screen", json={"stage": "ta"}).status_code == 402
-    client2.put("/auth/keys/claude", json={"key": "sk-ant-test-key-1234567890"})
+    client2.put("/auth/keys/gemini", json={"key": "AQ.test-key-1234567890"})    # new reviews run on Gemini
     monkeypatch.setattr(llm, "call_json", lambda prompt, provider, key, model=None, **kw: (
         {"decision": "exclude", "reason": "Wrong outcome", "rationale": "No cost data.", "confidence": 0.8},
         llm.Usage(120, 30)))
