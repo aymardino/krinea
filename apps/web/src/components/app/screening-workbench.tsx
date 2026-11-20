@@ -183,20 +183,23 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   // How many records of the list a run can take; asked again whenever the list or the
   // decisions change (its key starts like the list's), but not while a run goes on, nor at
   // each digit typed in the number (the next run takes the smaller of the two).
-  const aiPreview = useQuery<{ available: number; next: number }>({
+  const aiPreview = useQuery<{ available: number; next: number; no_pdf?: number }>({
     queryKey: ["records", rid, "ai-preview", JSON.stringify(aiList)],
     queryFn: () => api.post(`/reviews/${rid}/ai/screen/preview`, { ...aiList, limit: AI_ALL }),
     enabled: editable && !aiRunning,
   });
   const aiAvailable = aiPreview.data?.available ?? 0;
   const aiNext = Math.min(aiAvailable, aiLimit);
+  // In full-text screening the records without a PDF are left out (D-44), and the panel says so.
+  const aiNoPdf = aiPreview.data?.no_pdf ? t("aiNoPdf", { n: aiPreview.data.no_pdf }) : "";
+  const aiNothing = aiNoPdf || t(aiRedo ? "aiNothingRedo" : "aiNothing");
   const runAi = () => {
-    if (!aiNext) toast.info(t(aiRedo ? "aiNothingRedo" : "aiNothing"));
+    if (!aiNext) toast.info(aiNothing);
     else if (aiNext <= AI_CONFIRM || window.confirm(t("aiConfirm", { n: aiNext }))) aiRun.mutate();
   };
   const aiHint = !aiPreview.data ? undefined
-    : aiAvailable ? t(aiRedo ? "aiScopeRedo" : "aiScope", { n: aiAvailable, k: aiNext })
-    : t(aiRedo ? "aiNothingRedo" : "aiNothing");
+    : aiAvailable ? [t(aiRedo ? "aiScopeRedo" : "aiScope", { n: aiAvailable, k: aiNext }), aiNoPdf].filter(Boolean).join(" ")
+    : aiNothing;
   // While a run goes on, the queue is fetched again each time it saves one more suggestion
   // (a fetch already under way is let finish rather than restarted).
   const aiProgress = (aiJob.job?.result ?? {}) as AiRunResult;

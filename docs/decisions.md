@@ -815,3 +815,18 @@ the next run from it, so typing the number sends no request.
 
 **Why.** At full text the prompt holds the whole text, up to 120,000 characters: 50 records
 at a time used a lot of the reviewer's API quota before they could judge the first answers.
+
+## D-44 · 2026-11-20 · decided · AI screening reads the research question; full text or nothing
+
+**Decision.** The screening prompt carries the review's research question (the General
+settings field, `review.question`); it read `criteria.question`, which no page sets, and so
+always said "(not stated)". In full-text screening, an AI run takes only the records with a
+PDF, and the preview says how many of the list are left out for want of one (`no_pdf`). A
+record whose PDF gives less than 500 characters of text (a scan without a text layer) is left
+aside when its turn comes: the AI is not asked, the run goes on, and the result counts it
+(`skipped`), which the AI panel shows.
+
+**Why.** Without a PDF, or with a scan, the full-text prompt held only the title and abstract
+while asking for a decision on the full text: a billed call whose answer said nothing more
+than the first screening. And the question that frames the review never reached the AI that
+screens for it.

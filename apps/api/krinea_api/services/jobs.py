@@ -100,6 +100,9 @@ def _screen_one(db: Session, review: models.Review, user: models.User, rec: mode
         except ai.AIUnavailable as e:
             db.rollback()
             return "nokey", str(e)
+        except ai.NoFullText as e:                   # left aside, the AI not asked
+            db.rollback()
+            return "notext", str(e)
         except Exception as e:                       # noqa: BLE001  (reported to the user)
             db.rollback()
             wait = llm.retry_after(e)
@@ -121,7 +124,8 @@ def _run_ai_screen(db: Session, job: models.Job) -> dict | Requeue:
     too (key refused, model not available, quota, credit) stops the run at once, as do five
     failures in a row; the result says what happened (`error_kind`, `error`) and is kept up to
     date as the run goes, so the page can show each suggestion as it comes. `done` is where the
-    next turn starts."""
+    next turn starts. In full-text screening, a record without readable full text is left aside
+    (`skipped`): the AI is not asked, and the run goes on (D-44)."""
     from krinea_api.services import ai
     review = db.get(models.Review, job.review_id)
     user = db.get(models.User, job.user_id)
@@ -130,9 +134,9 @@ def _run_ai_screen(db: Session, job: models.Job) -> dict | Requeue:
     stage = p.get("stage", "ta")
     provider, model = ai.provider_and_model(review, "screening", p.get("provider"), p.get("model"))
     out = {"stage": stage, "provider": provider, "model": model, "total": len(ids), "ok": 0, "failed": 0,
-           "error_kind": "", "error": "", "errors": [], "stopped": False, "done": 0, "streak": 0}
+           "skipped": 0, "error_kind": "", "error": "", "errors": [], "stopped": False, "done": 0, "streak": 0}
     out.update({k: v for k, v in (job.result or {}).items()                 # a later turn of the run
-                if k in ("ok", "failed", "error_kind", "error", "errors", "done", "streak")})
+                if k in ("ok", "failed", "skipped", "error_kind", "error", "errors", "done", "streak")})
     start = int(out["done"])
     for i in range(start, len(ids)):
         if i - start >= AI_CHUNK:
@@ -143,6 +147,8 @@ def _run_ai_screen(db: Session, job: models.Job) -> dict | Requeue:
             failure = _screen_one(db, review, user, rec, stage, provider, model)
             if failure is None:
                 out["ok"], out["streak"] = out["ok"] + 1, 0
+            elif failure[0] == "notext":
+                out["skipped"] += 1
             else:
                 kind, message = failure
                 out["failed"], out["streak"] = out["failed"] + 1, out["streak"] + 1

@@ -16,7 +16,7 @@ export const DEFAULT_PROVIDER = "gemini";
 type KeyRow = { provider: string; masked: string; created_at: string };
 /** What an AI screening job reports (services/jobs.py); runs made before kinds existed only
  *  have ok, total and errors. */
-export type AiRunResult = { ok?: number; failed?: number; total?: number; provider?: string; model?: string; error_kind?: string; error?: string; errors?: string[]; stopped?: boolean };
+export type AiRunResult = { ok?: number; failed?: number; skipped?: number; total?: number; provider?: string; model?: string; error_kind?: string; error?: string; errors?: string[]; stopped?: boolean };
 const ERROR_KINDS = ["nokey", "key", "model", "quota", "credit", "output", "other"];
 
 /** What went wrong in an AI run, in words the reviewer can act on, or "" when nothing did. */
@@ -39,6 +39,7 @@ export function AiRunSummary({ job, provider }: { job: Job; provider: string }) 
   return (
     <div className="space-y-1.5 text-[11px] leading-snug text-muted-foreground">
       <p>{t("aiLast", { ok: Number(r.ok ?? 0), total: Number(r.total ?? 0) })}{r.model && <> {t("aiLastModel", { model: r.model })}</>}</p>
+      {!!r.skipped && <p>{t("aiSkipped", { n: Number(r.skipped) })}</p>}
       {kind && <p className="text-exclude">{kind === "failed" ? t("aiFailed") : t(`aiError.${kind}`, { provider: name, model: r.model || "?" })}</p>}
       {detail && (
         <details>

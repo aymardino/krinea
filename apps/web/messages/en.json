@@ -535,6 +535,8 @@
       "aiScopeRedo": "{n, plural, one {# reference of this list is} other {# references of this list are}} still without your decision. The next run takes {k}, starting with the one shown, and replaces the suggestions they already have.",
       "aiNothing": "Every reference in the list already has a suggestion or your decision.",
       "aiNothingRedo": "Every reference in the list already has your decision.",
+      "aiNoPdf": "{n, plural, one {# reference of the list has no PDF yet and is left out.} other {# references of the list have no PDF yet and are left out.}}",
+      "aiSkipped": "{n, plural, one {# reference left aside: its PDF has no readable text (a scan?).} other {# references left aside: their PDF has no readable text (scans?).}}",
       "aiBatch": "References per run",
       "aiBatchAll": "The whole list",
       "aiRedo": "Also redo the references that already have a suggestion",

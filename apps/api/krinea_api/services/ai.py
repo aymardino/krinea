@@ -19,6 +19,16 @@ class AIUnavailable(Exception):
     """No usable key: the caller turns it into a 402/400 for the client."""
 
 
+class NoFullText(Exception):
+    """Full-text screening of a record without a PDF, or whose PDF has no readable text (a
+    scan): the AI is not asked, as it would only have the title and abstract (D-44)."""
+
+
+# Below this many characters a PDF's text is taken for a scan without a text layer (as for
+# extraction).
+MIN_FULL_TEXT = 500
+
+
 def month_start() -> dt.datetime:
     now = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
     return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -85,12 +95,16 @@ def screen_record(db: Session, review: models.Review, user: models.User, record:
     provider, model = provider_and_model(review, "screening", provider, model)
     key, source = resolve_key(db, user, provider)
     full_text = ""
-    if stage == "ft" and record.pdf_key:
-        data = storage.read_pdf(record.pdf_key)
-        if data:
-            full_text = storage.pdf_text(data, max_chars=120_000)
-    prompt = core_screening.build_screening_prompt(review.criteria or {}, record_dict(record), stage=stage,
-                                                   full_text=full_text)
+    if stage == "ft":
+        data = storage.read_pdf(record.pdf_key) if record.pdf_key else None
+        full_text = storage.pdf_text(data, max_chars=120_000) if data else ""
+        if len(full_text.strip()) < MIN_FULL_TEXT:
+            raise NoFullText("No readable full text: no PDF, or a PDF without a text layer (a scan)")
+    # The research question is the review's own field (General settings): the prompt reads it
+    # from the criteria, where the settings never put it.
+    criteria = dict(review.criteria or {})
+    criteria["question"] = criteria.get("question") or review.question or ""
+    prompt = core_screening.build_screening_prompt(criteria, record_dict(record), stage=stage, full_text=full_text)
     raw, usage = llm.call_json(prompt, provider, key, model, purpose="screening", max_tokens=1024)
     s = core_screening.parse_suggestion(raw)
     record_usage(db, user, review.id, provider, model, "screening", usage, source)

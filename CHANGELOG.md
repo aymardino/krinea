@@ -13,6 +13,10 @@ Zenodo with its own DOI.
   and a long run lets other jobs through every 50 records.
 - **Screening.** The list goes past its first 200 records, and it can be
   ordered with the AI's exclusions first.
+- **Fixed.** The AI screening now receives the review's research question,
+  which it never did. In full-text screening the AI only reads records with a
+  readable PDF: records without a PDF are left out, and scans without text are
+  left aside, so no call is spent on a title and abstract alone.
 - **Exports.** Each filter takes several values: several files, decisions,
   reasons, labels or PDF states at once.
 - **Files.** When duplicates are kept by the order of the imported files, each

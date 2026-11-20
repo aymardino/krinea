@@ -21,12 +21,14 @@ router = APIRouter(tags=["ai"])
 AI_MAX_RUN = 20000
 
 
-def _ai_targets(db: DBSession, review: models.Review, user: models.User, body: schemas.AIScreenIn) -> list[int]:
-    """The records an AI screening run takes, in order (D-40). With `queue`: the list as the
-    page shows it, whole and not only the part loaded there, from the record on screen and going
-    round to the top, without the records the member decided or (unless `redo`) those with a
-    suggestion. Otherwise the ids sent (records of the stage only), or every pending record
-    without a suggestion."""
+def _ai_targets(db: DBSession, review: models.Review, user: models.User,
+                body: schemas.AIScreenIn) -> tuple[list[int], int]:
+    """The records an AI screening run takes, in order (D-40), and how many were left out for
+    want of a PDF. With `queue`: the list as the page shows it, whole and not only the part
+    loaded there, from the record on screen and going round to the top, without the records the
+    member decided or (unless `redo`) those with a suggestion. Otherwise the ids sent (records
+    of the stage only), or every pending record without a suggestion. In full-text screening only
+    the records with a PDF are taken (D-44)."""
     if body.stage not in ("ta", "ft"):
         raise HTTPException(400, "stage must be ta or ft")
     limit = max(1, min(body.limit, AI_MAX_RUN))
@@ -42,33 +44,41 @@ def _ai_targets(db: DBSession, review: models.Review, user: models.User, body: s
             ids = ids[at:] + ids[:at]
         mine = {rid for rid, decs in c["decisions"][st].items() if user.id in decs}
         skip = mine if body.redo else mine | have
-        return [rid for rid in ids if rid not in skip][:limit]
-    c = scr.compute(db, review)
-    ids = body.record_ids
-    if ids is None:
-        status = c["ta_status"] if body.stage == "ta" else c["ft_status"]
-        ids = [rid for rid in scr.pool_ids(c, body.stage) if rid not in have and status.get(rid) == "pending"]
+        ids = [rid for rid in ids if rid not in skip]
     else:
-        pool = set(scr.pool_ids(c, body.stage))
-        ids = [rid for rid in ids if rid in pool]          # never another review's records
-    return ids[:limit]
+        c = scr.compute(db, review)
+        ids = body.record_ids
+        if ids is None:
+            status = c["ta_status"] if body.stage == "ta" else c["ft_status"]
+            ids = [rid for rid in scr.pool_ids(c, body.stage) if rid not in have and status.get(rid) == "pending"]
+        else:
+            pool = set(scr.pool_ids(c, body.stage))
+            ids = [rid for rid in ids if rid in pool]          # never another review's records
+    no_pdf = 0
+    if body.stage == "ft" and ids:
+        with_pdf = set(db.scalars(select(models.Record.id).where(models.Record.review_id == review.id,
+                                                                 models.Record.pdf_key != "")))
+        kept = [rid for rid in ids if rid in with_pdf]
+        no_pdf, ids = len(ids) - len(kept), kept
+    return ids[:limit], no_pdf
 
 
 @router.post("/reviews/{review_id}/ai/screen/preview")
 def ai_screen_preview(body: schemas.AIScreenIn, access=Depends(ReviewAccess("reviewer")),
                       user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     """What a run with these settings would do: how many records of the list it could take
-    (`available`) and how many the next run takes (`next`)."""
+    (`available`), how many the next run takes (`next`), and in full-text screening how many
+    have no PDF and are left out (`no_pdf`)."""
     review, _ = access
-    available = len(_ai_targets(db, review, user, body.model_copy(update={"limit": AI_MAX_RUN})))
-    return {"available": available, "next": min(available, max(1, min(body.limit, AI_MAX_RUN)))}
+    ids, no_pdf = _ai_targets(db, review, user, body.model_copy(update={"limit": AI_MAX_RUN}))
+    return {"available": len(ids), "next": min(len(ids), max(1, min(body.limit, AI_MAX_RUN))), "no_pdf": no_pdf}
 
 
 @router.post("/reviews/{review_id}/ai/screen", response_model=schemas.JobOut)
 def ai_screen(body: schemas.AIScreenIn, access=Depends(ReviewAccess("reviewer")),
               user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     review, _ = access
-    ids = _ai_targets(db, review, user, body)
+    ids, _no_pdf = _ai_targets(db, review, user, body)
     try:                                            # fail fast when no key is usable
         provider, _model = ai_service.provider_and_model(review, "screening", body.provider, body.model)
         ai_service.resolve_key(db, user, provider)

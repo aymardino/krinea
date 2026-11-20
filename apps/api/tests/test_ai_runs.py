@@ -89,13 +89,13 @@ def test_a_run_follows_the_whole_list_from_the_record_on_screen(client, monkeypa
     # skips 4, which the reviewer decided.
     body = {"stage": "ta", "queue": {"view": "all", "sort": "title_desc"}, "start_id": ids[4], "limit": 3}
     preview = client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json()
-    assert preview == {"available": 6, "next": 3}
+    assert preview == {"available": 6, "next": 3, "no_pdf": 0}
     job = client.post(f"/reviews/{rid}/ai/screen", json=body).json()
     assert job["status"] == "done" and job["result"]["ok"] == 3
     assert seen == [5, 3, 2]
     # Records with a suggestion are left out of the next run, unless they are to be redone.
-    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 3, "next": 3}
-    assert client.post(f"/reviews/{rid}/ai/screen/preview", json={**body, "redo": True}).json() == {"available": 6, "next": 3}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 3, "next": 3, "no_pdf": 0}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json={**body, "redo": True}).json() == {"available": 6, "next": 3, "no_pdf": 0}
     seen.clear()
     client.post(f"/reviews/{rid}/ai/screen", json={**body, "limit": 20000})
     assert seen == [1, 7, 6]
@@ -105,12 +105,50 @@ def test_a_run_follows_the_whole_list_from_the_record_on_screen(client, monkeypa
     seen.clear()
     client.post(f"/reviews/{rid}/ai/screen", json={**body, "redo": True, "start_id": ids[6], "limit": 1})
     assert seen == [7]                                         # one record: the one on screen
-    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 0, "next": 0}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 0, "next": 0, "no_pdf": 0}
     # The list's filters apply: a search keeps only the records it finds.
     narrow = {**body, "redo": True, "queue": {"view": "all", "search": "number 2"}}
-    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=narrow).json() == {"available": 1, "next": 1}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=narrow).json() == {"available": 1, "next": 1, "no_pdf": 0}
     assert client.post(f"/reviews/{rid}/ai/screen/preview", json={**body, "queue": {"view": "bogus"}}).status_code == 400
     assert number[ids[4]] == 5
+
+
+def test_screening_prompts_carry_the_research_question(client, monkeypatch):
+    rid, ids = _review(client, "ai-question@example.org")
+    assert client.patch(f"/reviews/{rid}", json={"question": "Do solar mini-grids lower electricity costs?"}).status_code == 200
+    prompts = []
+
+    def answer(prompt, provider, key, model=None, **kw):
+        prompts.append(prompt)
+        return ANSWER, llm.Usage(10, 5)
+
+    monkeypatch.setattr(llm, "call_json", answer)
+    _run(client, rid, ids[:1])
+    assert "Research question: Do solar mini-grids lower electricity costs?" in prompts[0]
+
+
+def test_full_text_runs_take_the_records_with_a_readable_pdf(client, monkeypatch, pdf_bytes):
+    import pymupdf
+    rid, ids = _review(client, "ai-fulltext@example.org")
+    for rec in ids[:3]:                                        # kept at title and abstract
+        assert client.post(f"/reviews/{rid}/records/{rec}/decision", json={"stage": "ta", "decision": "include"}).status_code == 200
+    blank = pymupdf.open()
+    blank.new_page()                                           # a scan: a page with no text layer
+    for rec, name, data in ((ids[0], "paper.pdf", pdf_bytes), (ids[1], "scan.pdf", blank.tobytes())):
+        assert client.post(f"/reviews/{rid}/records/{rec}/pdf", files={"file": (name, data, "application/pdf")}).status_code == 200
+    prompts = []
+
+    def answer(prompt, provider, key, model=None, **kw):
+        prompts.append(prompt)
+        return ANSWER, llm.Usage(10, 5)
+
+    monkeypatch.setattr(llm, "call_json", answer)
+    # The record without a PDF is left out; the scan is taken but left aside, the AI not asked.
+    body = {"stage": "ft", "queue": {"view": "todo"}, "limit": 10}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 2, "next": 2, "no_pdf": 1}
+    res = client.post(f"/reviews/{rid}/ai/screen", json=body).json()["result"]
+    assert (res["ok"], res["skipped"], res["failed"], res["total"], res["stopped"]) == (1, 1, 0, 2, False)
+    assert len(prompts) == 1 and "FULL TEXT:" in prompts[0] and "HOMER" in prompts[0]
 
 
 def test_a_long_run_goes_back_in_line_between_turns(client, monkeypatch):
