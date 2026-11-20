@@ -51,9 +51,10 @@ export function AiRunSummary({ job, provider }: { job: Job; provider: string }) 
 }
 
 /** The AI panel of the screening rail: run suggestions, and add the provider key
- *  right here when none is on file (instead of going to the user settings). `status` shows
+ *  right here when none is on file (instead of going to the user settings). `options` (how
+ *  many records, redo) show above the button once a key or credits are there; `status` shows
  *  the run under way, or how the last one went. */
-export function AiCard({ review, onRun, running, label, hint, status }: { review: Review; onRun: () => void; running: boolean; label: string; hint?: string; status?: ReactNode }) {
+export function AiCard({ review, onRun, running, label, hint, options, status }: { review: Review; onRun: () => void; running: boolean; label: string; hint?: string; options?: ReactNode; status?: ReactNode }) {
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
   const qc = useQueryClient();
@@ -92,6 +93,7 @@ export function AiCard({ review, onRun, running, label, hint, status }: { review
           <p className="text-[11px] text-muted-foreground">{t("aiKeyStored")} <Link href="/security" target="_blank" className="underline underline-offset-2 hover:text-foreground">{t("aiKeyMore")}</Link></p>
         </form>
       ))}
+      {ready && options}
       <Button className="mt-3 w-full" size="sm" variant={ready ? "default" : "outline"} onClick={onRun} disabled={running || (keys.isSuccess && !ready)}>{label}</Button>
       {hint && <p className="mt-1.5 text-[11px] text-muted-foreground">{hint}</p>}
       {status && <div className="mt-3 border-t border-border pt-3">{status}</div>}

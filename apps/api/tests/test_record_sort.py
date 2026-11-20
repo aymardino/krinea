@@ -76,6 +76,8 @@ def test_lists_come_in_the_order_picked(client):
         db.close()
     # include first, then the exclusions the AI is least sure of, then records without a suggestion
     assert ids("ai") == [electricite, kenya, zebra, battery]
+    # exclude first, the surest first, then the inclusions; records without a suggestion still last
+    assert ids("ai_exclude") == [zebra, kenya, electricite, battery]
     assert client.get(f"/reviews/{rid}/records?sort=shuffle").status_code == 400
 
 
@@ -85,3 +87,7 @@ def test_the_cursor_follows_the_order(client):
     assert [x["id"] for x in first["items"]] == [battery, electricite] and first["total"] == 4
     rest = _order(client, rid, "title", limit=2, cursor=first["next_cursor"])
     assert [x["id"] for x in rest["items"]] == [kenya, zebra] and rest["next_cursor"] is None
+    # The screening page reads its list by offset instead, 200 records at a time.
+    page = _order(client, rid, "title", limit=2, offset=2)
+    assert [x["id"] for x in page["items"]] == [kenya, zebra] and page["total"] == 4
+    assert _order(client, rid, "title", limit=2, offset=4)["items"] == []

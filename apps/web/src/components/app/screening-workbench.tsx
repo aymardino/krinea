@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowUpDown, Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, X, XCircle } from "lucide-react";
 import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type LabelCount, type StudyRecord, type RecordPage } from "@/lib/api";
@@ -27,9 +27,17 @@ const VIEWS: { [k in Stage]: string[] } = {
   ft: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "all"],
 };
 // Orders of the queue (GET /records?sort=...); "import" is the order of the imported files.
-const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai"];
+const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude"];
 // The "No reason" choice of the exclusion reason (a select item cannot have an empty value).
 const NO_REASON = "__none__";
+// The queue is read this many records at a time (GET /records?offset=...).
+const PAGE = 200;
+// How many records an AI run takes (D-40): "all" is the whole list (AI_MAX_RUN in the API). A
+// run bigger than AI_CONFIRM asks first, as each record is a call billed to the key used.
+const AI_BATCHES = ["50", "200", "500", "all"] as const;
+type AiBatch = (typeof AI_BATCHES)[number];
+const AI_ALL = 20000;
+const AI_CONFIRM = 500;
 
 export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const t = useTranslations("review.screening");
@@ -50,11 +58,20 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [labels, setLabels] = useState("");
+  const [aiBatch, setAiBatch] = useState<AiBatch>("50");
+  const [aiRedo, setAiRedo] = useState(false);
+  // The queue is read PAGE records at a time, from the first page again whenever the list
+  // changes; `last` lands on the last record of the page reached (going back with Previous).
+  const listKey = JSON.stringify([view, search, fileId, labelFilter, sort, kwFilter, kwMode]);
+  const [paging, setPaging] = useState({ key: "", offset: 0, last: false });
+  const offset = paging.key === listKey ? paging.offset : 0;
+  const landOnLast = paging.key === listKey && paging.last;
   const openedAt = useRef<number>(Date.now());
   const onError = (e: unknown) => toast.error(e instanceof ApiError && e.status === 402 ? t("aiNeedKey") : e instanceof ApiError ? e.message : c("error"));
 
   const params = new URLSearchParams({
-    stage, view, search, limit: "200",
+    stage, view, search, limit: String(PAGE),
+    ...(offset ? { offset: String(offset) } : {}),
     ...(fileId !== "all" ? { import_id: fileId } : {}),
     ...(labelFilter !== "all" ? { label: labelFilter } : {}),
     ...(sort !== "import" ? { sort } : {}),
@@ -62,7 +79,8 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   kwFilter.forEach((k) => params.append("kw", k));
   if (kwFilter.length > 1) params.set("kw_mode", kwMode);
   const qs = params.toString();
-  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter, kwFilter, kwMode, sort], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  // The list on screen stays (dimmed) while the next one loads.
+  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter, kwFilter, kwMode, sort, offset], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`), placeholderData: keepPreviousData });
   const samekw = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
   const togglePick = (k: string) => {
     setKwFilter((f) => (f.some((x) => samekw(x, k)) ? f.filter((x) => !samekw(x, k)) : [...f, k]));
@@ -76,12 +94,22 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     queryFn: () => api.get(`/reviews/${rid}/keywords${fileId !== "all" ? `?import_id=${fileId}` : ""}`),
   });
   const items = useMemo(() => page.data?.items ?? [], [page.data]);
+  const total = page.data?.total ?? 0;
   const index = Math.max(0, items.findIndex((r) => r.id === current));
   const rec: StudyRecord | undefined = items[index] ?? items[0];
+  const pageTo = useCallback((o: number, last = false) => { setPaging({ key: listKey, offset: o, last }); setCurrent(null); }, [listKey]);
 
   useEffect(() => {
-    if (items.length && (current === null || !items.some((r) => r.id === current))) setCurrent(items[0].id);
-  }, [items, current]);
+    if (page.isPlaceholderData || !page.data) return;
+    if (!items.length) {                     // a page emptied by decisions: back to the one before
+      if (offset > 0) setPaging({ key: listKey, offset: Math.max(0, offset - PAGE), last: false });
+      return;
+    }
+    if (current === null || !items.some((r) => r.id === current)) {
+      setCurrent(landOnLast ? items[items.length - 1].id : items[0].id);
+      if (landOnLast) setPaging((p) => ({ ...p, last: false }));
+    }
+  }, [items, current, landOnLast, offset, listKey, page.isPlaceholderData, page.data]);
   useEffect(() => {
     openedAt.current = Date.now();
     setNote(rec?.my_decision?.note ?? "");
@@ -98,11 +126,14 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const editable = canReview(review.my_role);
   const admin = canEdit(review.my_role);
 
+  // Next and Previous go on to the next or previous page at the ends of the one loaded.
   const goto = useCallback((delta: number) => {
     if (!items.length) return;
-    const i = Math.min(items.length - 1, Math.max(0, index + delta));
-    setCurrent(items[i].id);
-  }, [items, index]);
+    const i = index + delta;
+    if (i >= items.length && offset + items.length < total) pageTo(offset + PAGE);
+    else if (i < 0 && offset > 0) pageTo(Math.max(0, offset - PAGE), true);
+    else setCurrent(items[Math.min(items.length - 1, Math.max(0, i))].id);
+  }, [items, index, offset, total, pageTo]);
 
   const decide = useMutation({
     mutationFn: ({ id, decision, consensus }: { id: number; decision: string; consensus?: boolean }) =>
@@ -133,17 +164,35 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     else toast.error(t("aiNone"), { description: t("aiSeePanel") });
     qc.invalidateQueries({ queryKey: ["records", rid] });
   });
-  // The AI starts with the record on screen, then takes the next ones in the queue as shown
-  // (view, file, label, keywords and search applied) that have neither a suggestion nor your
-  // decision, going round to the top of the list: 50 at most per run.
-  const aiTargets = [...items.slice(index), ...items.slice(0, index)].filter((r) => !r.ai && !r.my_decision).slice(0, 50).map((r) => r.id);
+  // The AI follows the list as shown (view, file, label, keywords, search and order), from the
+  // record on screen round to the top, and takes the records without your decision and (unless
+  // redone) without a suggestion, as many as picked. The server reads them from the whole list,
+  // not only from the page loaded here (D-40).
+  const aiQuery = {
+    stage, limit: aiBatch === "all" ? AI_ALL : Number(aiBatch), redo: aiRedo,
+    queue: { view, search, sort, label: labelFilter !== "all" ? labelFilter : "", import_id: fileId !== "all" ? fileId : "", kw: kwFilter, kw_mode: kwMode },
+  };
   const aiRun = useMutation({
-    mutationFn: (ids: number[]) => api.post<Job>(`/reviews/${rid}/ai/screen`, { stage, record_ids: ids, limit: ids.length }),
+    mutationFn: () => api.post<Job>(`/reviews/${rid}/ai/screen`, { ...aiQuery, start_id: rec?.id ?? null }),
     onSuccess: aiJob.follow,
     onError,
   });
-  const runAi = () => (aiTargets.length ? aiRun.mutate(aiTargets) : toast.info(t("aiNothing")));
   const aiRunning = aiRun.isPending || aiJob.running;
+  // How many records the next run takes; asked again whenever the list or the decisions change
+  // (its key starts like the list's), but not while a run goes on.
+  const aiPreview = useQuery<{ available: number; next: number }>({
+    queryKey: ["records", rid, "ai-preview", JSON.stringify(aiQuery)],
+    queryFn: () => api.post(`/reviews/${rid}/ai/screen/preview`, aiQuery),
+    enabled: editable && !aiRunning,
+  });
+  const aiNext = aiPreview.data?.next ?? 0;
+  const runAi = () => {
+    if (!aiNext) toast.info(t(aiRedo ? "aiNothingRedo" : "aiNothing"));
+    else if (aiNext <= AI_CONFIRM || window.confirm(t("aiConfirm", { n: aiNext }))) aiRun.mutate();
+  };
+  const aiHint = !aiPreview.data ? undefined
+    : aiPreview.data.available ? t(aiRedo ? "aiScopeRedo" : "aiScope", { n: aiPreview.data.available, k: aiPreview.data.next })
+    : t(aiRedo ? "aiNothingRedo" : "aiNothing");
   // While a run goes on, the queue is fetched again each time it saves one more suggestion
   // (a fetch already under way is let finish rather than restarted).
   const aiProgress = (aiJob.job?.result ?? {}) as AiRunResult;
@@ -262,13 +311,16 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
             <p className="mt-1 text-xs text-muted-foreground">{t("progress", { done: stageStats.my_done, total: stageStats.pool })}{stageStats.my_seconds ? ` · ${formatDuration(stageStats.my_seconds)}` : ""}</p>
           </div>
         </div>
-        <ol className="scrollbar-thin flex-1 overflow-y-auto p-1.5">
+        <ol className={cn("scrollbar-thin flex-1 overflow-y-auto p-1.5 transition-opacity", page.isPlaceholderData && "opacity-60")}>
+          {offset > 0 && (
+            <li><button type="button" onClick={() => pageTo(Math.max(0, offset - PAGE), true)} className="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] font-medium text-primary hover:bg-muted">{t("pagePrev", { n: Math.min(PAGE, offset) })}</button></li>
+          )}
           {items.map((r, i) => (
             <li key={r.id}>
               <button onClick={() => setCurrent(r.id)} className={cn("w-full rounded-lg px-2.5 py-2 text-left transition-colors", r.id === rec?.id ? "bg-brand-50 dark:bg-brand-950" : "hover:bg-muted")}>
                 <p className="line-clamp-2 text-xs font-medium leading-snug">{r.title || "(untitled)"}</p>
                 <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <span>{i + 1}</span>{r.year && <span>· {r.year}</span>}
+                  <span>{offset + i + 1}</span>{r.year && <span>· {r.year}</span>}
                   {r.ai && (
                     <span title={t("aiListMark", { decision: c(`decision.${r.ai.decision}` as "decision.include") })}
                           className={cn("inline-flex", r.ai.decision === "include" && "text-include", r.ai.decision === "maybe" && "text-maybe", r.ai.decision === "exclude" && "text-exclude")}>
@@ -281,13 +333,16 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
               </button>
             </li>
           ))}
+          {offset + items.length < total && (
+            <li><button type="button" onClick={() => pageTo(offset + PAGE)} className="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] font-medium text-primary hover:bg-muted">{t("pageNext", { n: Math.min(PAGE, total - offset - items.length) })}</button></li>
+          )}
           {page.isLoading && <li className="p-3 text-xs text-muted-foreground">{c("loading")}</li>}
           {!page.isLoading && !items.length && <li className="p-3 text-xs text-muted-foreground">{view === "todo" ? t("allDone") : t("empty")}</li>}
         </ol>
         <div className="flex items-center justify-between border-t border-border p-2 text-xs text-muted-foreground">
-          <Button size="xs" variant="ghost" onClick={() => goto(-1)} disabled={index <= 0}><ChevronLeft />{c("previous")}</Button>
-          <span>{items.length ? `${index + 1} / ${page.data?.total ?? items.length}` : "0"}</span>
-          <Button size="xs" variant="ghost" onClick={() => goto(1)} disabled={index >= items.length - 1}>{c("next")}<ChevronRight /></Button>
+          <Button size="xs" variant="ghost" onClick={() => goto(-1)} disabled={offset + index <= 0}><ChevronLeft />{c("previous")}</Button>
+          <span>{items.length ? `${offset + index + 1} / ${total || items.length}` : "0"}</span>
+          <Button size="xs" variant="ghost" onClick={() => goto(1)} disabled={offset + index >= total - 1}>{c("next")}<ChevronRight /></Button>
         </div>
       </aside>
 
@@ -390,8 +445,22 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{t("shortcutList")}</p>
         </div>
         {editable && (
-          <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")}
-                  hint={aiTargets.length ? t("aiScope", { n: aiTargets.length }) : t("aiNothing")}
+          <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")} hint={aiRunning ? undefined : aiHint}
+                  options={(
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                        <span>{t("aiBatch")}</span>
+                        <Select value={aiBatch} onValueChange={(v: string) => setAiBatch(v as AiBatch)} disabled={aiRunning}>
+                          <SelectTrigger aria-label={t("aiBatch")} className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent>{AI_BATCHES.map((b) => <SelectItem key={b} value={b}>{b === "all" ? t("aiBatchAll") : b}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <label className="flex items-start gap-2 text-[11px] leading-snug text-muted-foreground">
+                        <input type="checkbox" className="mt-0.5 accent-brand-600" checked={aiRedo} disabled={aiRunning} onChange={(e) => setAiRedo(e.target.checked)} />
+                        {t("aiRedo")}
+                      </label>
+                    </div>
+                  )}
                   status={aiRunning
                     ? <JobProgress job={aiJob.job} label={aiProgress.total ? t("aiRunningCount", { ok: aiSaved, total: aiProgress.total }) : t("aiRunning")} />
                     : lastAiRun && <AiRunSummary job={lastAiRun} provider={review.settings.ai_provider || DEFAULT_PROVIDER} />} />

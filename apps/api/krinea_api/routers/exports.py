@@ -1,15 +1,15 @@
 """PRISMA counts and diagram, and file exports. The records of a screening stage and the
 extraction table can be filtered by decision, exclusion reason, imported file, label and PDF
-(decision D-39)."""
+(decision D-39), several values at once in each filter (D-41)."""
 from __future__ import annotations
 
 import csv
 import io
 import re
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session as DBSession
 
 from krinea_api import models
@@ -102,40 +102,51 @@ def _found_in(db: DBSession, review_id: str) -> dict[int, list[str]]:
     return out
 
 
-def _select(db: DBSession, review: models.Review, role: str, user_id: str, stage: str, status: str = "",
-            reason: str = "", import_id: str = "", label: str = "", pdf: str = ""):
+def _values(raw: list[str] | str | None) -> list[str]:
+    """The values given for a filter that may be repeated (?status=a&status=b), blanks left out."""
+    raw = [raw] if isinstance(raw, str) else (raw or [])
+    return list(dict.fromkeys(v.strip() for v in raw if v and v.strip()))
+
+
+def _select(db: DBSession, review: models.Review, role: str, user_id: str, stage: str, status=(), reason=(),
+            import_id=(), label=(), pdf=()):
     """The records of a stage that pass the filters, in import order, with the screening state
     of the review and whether the member sees it blind. Stages: "ta" (every unique record),
-    "ft" (those kept at title and abstract), "extract" (those included at full text)."""
+    "ft" (those kept at title and abstract), "extract" (those included at full text). Each
+    filter takes one value or several: a record passes when it matches any of them, and every
+    filter given. A reason filter keeps the records excluded for one of the reasons given
+    (NO_REASON: excluded without one)."""
     if stage not in ("ta", "ft", "extract"):
         raise HTTPException(400, "stage must be ta, ft or extract")
-    if status and status not in STATUSES:
-        raise HTTPException(400, f"status must be one of {', '.join(STATUSES)}")
-    if pdf and pdf not in PDF_STATES:
-        raise HTTPException(400, f"pdf must be one of {', '.join(PDF_STATES)}")
+    status, reasons, files, labels, pdfs = (_values(v) for v in (status, reason, import_id, label, pdf))
+    if set(status) - set(STATUSES):
+        raise HTTPException(400, f"status must be among {', '.join(STATUSES)}")
+    if set(pdfs) - set(PDF_STATES):
+        raise HTTPException(400, f"pdf must be among {', '.join(PDF_STATES)}")
     c = scr.compute(db, review)
     blind = scr.is_blind(review, role)
     st = "ta" if stage == "ta" else "ft"
     statuses, decs = c[f"{st}_status"], c["decisions"][st]
     ids = set(scr.pool_ids(c, stage))
     if status:
-        ids = {i for i in ids if statuses.get(i, "pending") == status}
-    if reason.strip():
-        want = "" if reason.strip() == NO_REASON else reason.strip()
-        ids = {i for i in ids if _reason(decs.get(i, {}), user_id, blind) == want
-               and (want or statuses.get(i) == "exclude")}
+        ids = {i for i in ids if statuses.get(i, "pending") in status}
+    if reasons:
+        def excluded_for(i: int) -> bool:
+            given = _reason(decs.get(i, {}), user_id, blind)
+            return given in reasons if given else (NO_REASON in reasons and statuses.get(i) == "exclude")
+        ids = {i for i in ids if excluded_for(i)}
     q = select(models.Record).where(models.Record.review_id == review.id, models.Record.is_duplicate.is_(False))
-    if import_id:
-        q = q.where(scr.found_in_import(review.id, import_id))
-    if pdf == "available":
-        q = q.where(models.Record.pdf_key != "")
-    elif pdf == "not_retrieved":
-        q = q.where(models.Record.pdf_status == "not_retrieved")
-    elif pdf == "missing":
-        q = q.where(models.Record.pdf_key == "", models.Record.pdf_status != "not_retrieved")
+    if files:
+        q = q.where(or_(*(scr.found_in_import(review.id, f) for f in files)))
+    if pdfs:
+        has = {"available": models.Record.pdf_key != "",
+               "not_retrieved": models.Record.pdf_status == "not_retrieved",
+               "missing": and_(models.Record.pdf_key == "", models.Record.pdf_status != "not_retrieved")}
+        q = q.where(or_(*(has[p] for p in pdfs)))
     rows = [r for r in db.scalars(q.order_by(models.Record.id)) if r.id in ids]
-    if label.strip():                          # exact label: "SQ1" must not match "SQ10"
-        rows = [r for r in rows if label.strip().lower() in scr.labels_of(r.labels)]
+    if labels:                                 # exact labels: "SQ1" must not match "SQ10"
+        wanted = {lab.lower() for lab in labels}
+        rows = [r for r in rows if scr.labels_of(r.labels) & wanted]
     return rows, c, blind
 
 
@@ -155,7 +166,7 @@ def _screening_rows(db: DBSession, review: models.Review, rows: list[models.Reco
 
 
 def _extraction_pairs(db: DBSession, review: models.Review, role: str, user_id: str, status: str,
-                      import_id: str = "", label: str = "") -> list[tuple[models.Record, models.Extraction | None]]:
+                      import_id=(), label=()) -> list[tuple[models.Record, models.Extraction | None]]:
     """The studies included at full text that pass the filters, with their extraction: only
     the verified ones, or all of them (with or without an extraction)."""
     if status not in EXTRACTION_STATES:
@@ -187,22 +198,26 @@ def prisma_svg(variant: str = "new_v1", lang: str = "en", download: bool = False
 
 
 @router.get("/export/count")
-def export_count(stage: str = "ta", status: str = "", reason: str = "", import_id: str = "", label: str = "",
-                 pdf: str = "", access=Depends(ReviewAccess("viewer")), user: models.User = Depends(current_user),
-                 db: DBSession = Depends(get_db)):
+def export_count(stage: str = "ta", status: list[str] = Query(default=[]), reason: list[str] = Query(default=[]),
+                 import_id: list[str] = Query(default=[]), label: list[str] = Query(default=[]),
+                 pdf: list[str] = Query(default=[]), access=Depends(ReviewAccess("viewer")),
+                 user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     """How many records the export with these filters holds; for stage "extract", `status` is
     the extraction status (verified or all)."""
     review, m = access
     if stage == "extract":
-        return {"n": len(_extraction_pairs(db, review, m.role, user.id, status or "verified", import_id, label))}
+        extraction = (_values(status) or ["verified"])[0]
+        return {"n": len(_extraction_pairs(db, review, m.role, user.id, extraction, import_id, label))}
     rows, _c, _blind = _select(db, review, m.role, user.id, stage, status, reason, import_id, label, pdf)
     return {"n": len(rows)}
 
 
 @router.get("/export/screening.{fmt}")
-def export_screening(fmt: str, stage: str = "ta", status: str = "", reason: str = "", import_id: str = "",
-                     label: str = "", pdf: str = "", access=Depends(ReviewAccess("viewer")),
-                     user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+def export_screening(fmt: str, stage: str = "ta", status: list[str] = Query(default=[]),
+                     reason: list[str] = Query(default=[]), import_id: list[str] = Query(default=[]),
+                     label: list[str] = Query(default=[]), pdf: list[str] = Query(default=[]),
+                     access=Depends(ReviewAccess("viewer")), user: models.User = Depends(current_user),
+                     db: DBSession = Depends(get_db)):
     """The records of a screening stage, filtered, as RIS, CSV or Excel, with their status and
     exclusion reason at each stage."""
     review, m = access
@@ -212,7 +227,8 @@ def export_screening(fmt: str, stage: str = "ta", status: str = "", reason: str 
         raise HTTPException(400, "stage must be ta or ft")
     rows, c, blind = _select(db, review, m.role, user.id, stage, status, reason, import_id, label, pdf)
     recs = _screening_rows(db, review, rows, c, user.id, blind)
-    name = STAGE_FILES[stage] + (f"-{STATUS_FILES[status]}" if status else "")
+    picked = [s for s in STATUSES if s in _values(status)]
+    name = "-".join([STAGE_FILES[stage], *(STATUS_FILES[s] for s in picked)])
     if fmt == "ris":
         return _file(biblio.to_ris(recs), f"{name}.ris", RIS)
     table = [[r.get(col, "") for col in SCREENING_COLUMNS] for r in recs]
@@ -264,9 +280,9 @@ def export_decisions(access=Depends(ReviewAccess("viewer")), user: models.User =
 
 
 @router.get("/export/extractions.{fmt}")
-def export_extractions(fmt: str, status: str = "verified", import_id: str = "", label: str = "",
-                       access=Depends(ReviewAccess("viewer")), user: models.User = Depends(current_user),
-                       db: DBSession = Depends(get_db)):
+def export_extractions(fmt: str, status: str = "verified", import_id: list[str] = Query(default=[]),
+                       label: list[str] = Query(default=[]), access=Depends(ReviewAccess("viewer")),
+                       user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     """The extraction table of the studies included at full text: the verified extractions (the
     default) or every study with the status of its extraction, filtered by file and label."""
     review, m = access

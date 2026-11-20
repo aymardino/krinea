@@ -531,8 +531,16 @@
       "kwModeAll": "Tous",
       "kwModeAny": "Au moins un",
       "showAll": "Tout afficher",
-      "aiScope": "Commence par la référence affichée, puis les suivantes de la liste sans suggestion ni décision de votre part : {n} au prochain clic (50 au plus).",
+      "aiScope": "{n, plural, one {# référence de cette liste n'a} other {# références de cette liste n'ont}} ni suggestion ni décision de votre part. Le prochain lancement en traite {k}, en commençant par celle affichée et en suivant la liste.",
+      "aiScopeRedo": "{n, plural, one {# référence de cette liste n'a} other {# références de cette liste n'ont}} pas encore votre décision. Le prochain lancement en traite {k}, en commençant par celle affichée, et remplace les suggestions déjà faites.",
       "aiNothing": "Toutes les références de la liste ont déjà une suggestion ou votre décision.",
+      "aiNothingRedo": "Toutes les références de la liste ont déjà votre décision.",
+      "aiBatch": "Références par lancement",
+      "aiBatchAll": "Toute la liste",
+      "aiRedo": "Refaire aussi celles qui ont déjà une suggestion",
+      "aiConfirm": "Interroger l'IA sur {n} références ? Chaque référence est un appel facturé sur la clé utilisée.",
+      "pagePrev": "Afficher les {n} précédentes",
+      "pageNext": "Afficher les {n} suivantes",
       "aiRunningCount": "Suggestions de l'IA : {ok} sur {total}",
       "aiLast": "Dernier passage : {ok, plural, one {# suggestion enregistrée} other {# suggestions enregistrées}} sur {total}.",
       "aiLastModel": "Modèle : {model}.",
@@ -559,7 +567,8 @@
         "year": "Année, anciennes d'abord",
         "author": "Premier auteur, de A à Z",
         "journal": "Revue, de A à Z",
-        "ai": "IA : à inclure d'abord"
+        "ai": "IA : à inclure d'abord",
+        "ai_exclude": "IA : à exclure d'abord"
       }
     },
     "extraction": {
@@ -655,6 +664,7 @@
       "allFiles": "Tous les fichiers",
       "label": "Étiquette",
       "allLabels": "Toutes les étiquettes",
+      "chosen": "{n} choix",
       "countRecords": "{n, plural, =0 {Aucune notice ne correspond à ces filtres.} one {# notice} other {# notices}}",
       "countStudies": "{n, plural, =0 {Aucune étude ne correspond à ces filtres.} one {# étude} other {# études}}",
       "formats": {

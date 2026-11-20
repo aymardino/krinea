@@ -266,9 +266,23 @@ class JobOut(BaseModel):
         from_attributes = True
 
 
+class QueueIn(BaseModel):
+    """A list as a screening page shows it: view, filters, picked keywords and order."""
+    view: str = "todo"
+    search: str = ""
+    label: str = ""
+    import_id: str = ""
+    kw: list[str] = []
+    kw_mode: str = "all"
+    sort: str = "import"
+
+
 class AIScreenIn(BaseModel):
     stage: str = "ta"
-    record_ids: list[int] | None = None       # None = every pending record without a suggestion
+    record_ids: list[int] | None = None       # None (and no queue) = every pending record without a suggestion
+    queue: QueueIn | None = None              # the page's list, which the run follows (D-40)
+    start_id: int | None = None               # with a queue: the record on screen, taken first
+    redo: bool = False                        # with a queue: also replace the suggestions already made
     limit: int = 100
     provider: str | None = None
     model: str | None = None

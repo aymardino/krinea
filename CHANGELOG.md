@@ -4,6 +4,17 @@ What each version of Krinea contains, newest first. Version numbers follow
 [semantic versioning](https://semver.org); every GitHub release is archived on
 Zenodo with its own DOI.
 
+## [Unreleased]
+
+- **AI.** The AI panel picks how many records a run takes (50, 200, 500 or
+  the whole list) and can redo the suggestions already made. A run follows the
+  whole list as filtered and ordered, not only the records loaded on the page,
+  and a long run lets other jobs through every 50 records.
+- **Screening.** The list goes past its first 200 records, and it can be
+  ordered with the AI's exclusions first.
+- **Exports.** Each filter takes several values: several files, decisions,
+  reasons, labels or PDF states at once.
+
 ## [0.2.0] - 2026-11-20
 
 - **AI.** New reviews use Google Gemini, with `gemini-3.8-flash` for screening
@@ -46,5 +57,6 @@ First archived release, the version running on krinea.org. DOI:
 - **Streamlit edition.** The original single-user application
   (`review_app.py`), on the same engine.
 
+[Unreleased]: https://github.com/aymardino/krinea/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/aymardino/krinea/releases/tag/v0.2.0
 [0.1.0]: https://github.com/aymardino/krinea/releases/tag/v0.1.0

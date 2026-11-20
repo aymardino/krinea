@@ -124,6 +124,16 @@ def test_each_stage_exports_with_its_filters(client):
     assert _ids(client, rid, stage="ft", pdf="not_retrieved") == {nigeria}
     assert _ids(client, rid, stage="ft", pdf="missing") == {kenya, tanzania}
     assert _ids(client, rid, stage="ft", pdf="available") == set()
+    # Several values in one filter: any of them; several filters: all of them (D-41).
+    assert _ids(client, rid, stage="ta", status=["include", "exclude"]) == {kenya, nigeria, europe, chile, tanzania}
+    assert _ids(client, rid, stage="ta", status="exclude", reason=[POPULATION, "-"]) == {europe, chile}
+    assert _ids(client, rid, stage="ta", reason=POPULATION) == {europe}     # a reason keeps its exclusions only
+    assert _ids(client, rid, stage="ta", import_id=[scopus, pubmed]) == {kenya, nigeria, europe, chile, tanzania}
+    assert _ids(client, rid, stage="ta", import_id=pubmed, status=["include", "maybe"]) == {kenya, tanzania}
+    assert _ids(client, rid, stage="ta", label=["sq1", "SQ10"]) == {kenya, nigeria}
+    assert _ids(client, rid, stage="ft", status="include", pdf=["not_retrieved", "missing"]) == {kenya, nigeria}
+    r = client.get(f"/reviews/{rid}/export/screening.csv", params={"stage": "ta", "status": ["exclude", "include"]})
+    assert r.headers["content-disposition"].endswith('"title-abstract-included-excluded.csv"')
 
     rows = {int(r["id"]): r for r in _rows(client, rid, stage="ta")}
     assert list(rows[kenya]) == SCREENING_COLUMNS
@@ -147,6 +157,8 @@ def test_each_stage_exports_with_its_filters(client):
     every = list(csv.DictReader(io.StringIO(client.get(f"/reviews/{rid}/export/extractions.csv", params={"status": "all"}).text)))
     assert {int(r["record_id"]): r["status"] for r in every} == {kenya: "verified", nigeria: ""}
     assert client.get(f"/reviews/{rid}/export/extractions.csv", params={"status": "all", "label": "SQ1"}).text.count("\n") == 2
+    assert client.get(f"/reviews/{rid}/export/count",
+                      params={"stage": "extract", "status": "all", "label": ["SQ1", "SQ10"]}).json()["n"] == 2
     book = load_workbook(io.BytesIO(client.get(f"/reviews/{rid}/export/extractions.xlsx", params={"status": "all"}).content))
     assert book.sheetnames == ["values", "quotes", "fields"] and book["values"].max_row == 3
     assert client.get(f"/reviews/{rid}/export/extractions.ris").text.count("TY  - ") == 1

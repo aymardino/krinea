@@ -748,3 +748,38 @@ abstract screening (to fetch the full texts) or the reports excluded at full tex
 reasons could only be had by filtering a full CSV by hand. The decision log gave a blind
 reviewer the other reviewers' decisions. A reason chosen for an exclusion, or proposed by
 the AI, could not be removed.
+
+## D-40 · 2026-11-20 · decided · AI runs over the whole list; lists read 200 at a time
+
+**Decision.** The AI panel of a screening page picks how many records a run takes: 50, 200,
+500 or the whole list. The server reads them from the list as the page shows it (view, file,
+label, keywords, search and order; `queue` in `POST /ai/screen`), whole and not only the
+records the page has loaded: from the record on screen, down the list and round to the top,
+without the records the reviewer decided and, unless "redo" is ticked, without those that
+already have a suggestion (a redo replaces them). `POST /ai/screen/preview` says how many
+records of the list a run can take and how many the next one takes; the panel shows both, and
+a run of more than 500 records asks first. A run goes back in line every 50 records
+(`Requeue` in `services/jobs.py`), so that the jobs queued meanwhile, anybody's, do not wait
+for its end; when jobs run inline, the turns follow each other at once. The screening list is
+read 200 records at a time (`GET /records?offset=`): Next and Previous go on to the next or
+previous 200 at the ends of the list, as do links at both ends. The list can also be ordered
+with the AI's exclusions first (`sort=ai_exclude`): exclude, the surest first, then maybe,
+then include, the least sure first; records without a suggestion last.
+
+**Why.** A run took 50 records at most, chosen among the 200 the page had loaded: once these
+had a suggestion, the panel said there was nothing left to do although thousands of records
+had none, and the list could not be read past its 200th record. A suggestion could not be
+made again after a change of criteria or model. With a single worker (D-17), a run over
+thousands of records would have held up every other job for hours.
+
+## D-41 · 2026-11-20 · decided · Export filters take several values
+
+**Decision.** The filters of the Exports tab (D-39) are lists to tick: decision, exclusion
+reason, PDF, imported file and label each take several values. A record passes when it
+matches any value ticked in a filter, and every filter used. The reason filter shows when the
+exclusions are part of the export (no decision filter, or "Excluded" ticked) and keeps the
+records excluded for one of the reasons ticked ("No reason given": excluded without one). The
+API takes repeated parameters (`?import_id=a&import_id=b`); a single value works as before.
+
+**Why.** The records of two searches, or the exclusions for two reasons, took two files to
+merge by hand.

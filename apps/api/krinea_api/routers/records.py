@@ -27,7 +27,7 @@ router = APIRouter(prefix="/reviews/{review_id}", tags=["records"])
 VIEWS = ("todo", "mine_include", "mine_maybe", "mine_exclude", "include", "maybe", "exclude",
          "conflict", "pending", "all", "no_pdf", "not_retrieved")
 # Orders of the record lists (`sort`): "import" is the order of the imported files.
-SORTS = ("import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai")
+SORTS = ("import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude")
 
 
 # ── Imports ──────────────────────────────────────────────────────────────────────
@@ -192,10 +192,10 @@ def _year(rec: models.Record) -> int | None:
     return int(m.group(1)) if m else None
 
 
-def _ai_rank(db: DBSession, review_id: str, stage: str) -> dict[int, tuple[int, float]]:
+def _ai_rank(db: DBSession, review_id: str, stage: str, exclude_first: bool = False) -> dict[int, tuple[int, float]]:
     """Records by how likely the AI finds their inclusion: include (most confident first),
-    maybe, then exclude (least confident first)."""
-    order = {"include": 0, "maybe": 1, "exclude": 2}
+    maybe, then exclude (least confident first); or the other way round, exclude first."""
+    order = {"exclude": 0, "maybe": 1, "include": 2} if exclude_first else {"include": 0, "maybe": 1, "exclude": 2}
     out: dict[int, tuple[int, float]] = {}
     for rid, decision, confidence in db.execute(
             select(models.AISuggestion.record_id, models.AISuggestion.decision, models.AISuggestion.confidence)
@@ -211,8 +211,8 @@ def _sorted(db: DBSession, review_id: str, stage: str, rows: list[models.Record]
     import order, in both directions (Python's sort is stable, reversed too)."""
     if sort == "import":
         return rows
-    if sort == "ai":
-        ranks = _ai_rank(db, review_id, stage)
+    if sort in ("ai", "ai_exclude"):
+        ranks = _ai_rank(db, review_id, stage, exclude_first=sort == "ai_exclude")
         return sorted(rows, key=lambda r: ranks.get(r.id, (3, 0.0)))
     if sort in ("year", "year_desc"):
         keyed = [(_year(r), r) for r in rows]
@@ -225,27 +225,27 @@ def _sorted(db: DBSession, review_id: str, stage: str, rows: list[models.Record]
     return [r for _, r in known] + [r for k, r in keyed if k in (None, "")]
 
 
-@router.get("/records", response_model=schemas.RecordPage)
-def list_records(stage: str = "ta", view: str = "all", search: str = "", source: str = "", label: str = "",
-                 import_id: str = "", year_from: str = "", year_to: str = "", cursor: int = 0,
-                 kw: list[str] = Query(default=[]), kw_mode: str = "all", sort: str = "import",
-                 limit: int = Query(50, ge=1, le=500), access=Depends(ReviewAccess("viewer")),
-                 user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
-    review, m = access
+def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str = "ta", view: str = "all",
+                  search: str = "", source: str = "", label: str = "", import_id: str = "", year_from: str = "",
+                  year_to: str = "", kw: list[str] | None = None, kw_mode: str = "all",
+                  sort: str = "import") -> tuple[list[models.Record], dict, str]:
+    """Every record of a list as a screening page shows it (view, filters, keywords, order),
+    with the screening state of the review and the stage whose decisions count. The record
+    list and the AI runs that follow it (D-40) both read it from here."""
     if stage not in ("ta", "ft", "extract", "all") or view not in VIEWS:
         raise HTTPException(400, "Unknown stage or view")
     if sort not in SORTS:
         raise HTTPException(400, f"Unknown sort; use one of {', '.join(SORTS)}")
+    kw = kw or []
     c = scr.compute(db, review)
     pool = (db.scalars(select(models.Record.id).where(models.Record.review_id == review.id)).all()
             if stage == "all" else scr.pool_ids(c, stage))
     st_stage = "ft" if stage in ("ft", "extract") else "ta"
     status = c["ft_status"] if st_stage == "ft" else c["ta_status"]
     decs = c["decisions"][st_stage]
-    blind = _blind(review, m.role)
 
     def keep(rid: int) -> bool:
-        mine = decs.get(rid, {}).get(user.id)
+        mine = decs.get(rid, {}).get(user_id)
         s = status.get(rid, "pending")
         if view == "todo":
             return mine is None
@@ -288,9 +288,25 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     if any(k.strip() for k in kw):            # highlight keywords picked in the screening rail
         match = scr.keyword_filter(kw, kw_mode)
         rows = [r for r in rows if match(r)]
-    rows = _sorted(db, review.id, st_stage, rows, sort)
+    return _sorted(db, review.id, st_stage, rows, sort), c, st_stage
+
+
+@router.get("/records", response_model=schemas.RecordPage)
+def list_records(stage: str = "ta", view: str = "all", search: str = "", source: str = "", label: str = "",
+                 import_id: str = "", year_from: str = "", year_to: str = "", cursor: int = 0,
+                 offset: int = Query(0, ge=0), kw: list[str] = Query(default=[]), kw_mode: str = "all",
+                 sort: str = "import", limit: int = Query(50, ge=1, le=500), access=Depends(ReviewAccess("viewer")),
+                 user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+    """One page of a list: from `offset` (the screening page reads its list 200 records at a
+    time), else after `cursor`."""
+    review, m = access
+    rows, c, st_stage = queue_records(db, review, user.id, stage, view, search, source, label, import_id,
+                                      year_from, year_to, kw, kw_mode, sort)
+    blind = _blind(review, m.role)
     total = len(rows)
-    if sort == "import":
+    if offset:
+        page = rows[offset:offset + limit]
+    elif sort == "import":
         page = [r for r in rows if r.id > cursor][:limit]
     else:                                     # the cursor is the last record of the previous page
         start = next((i + 1 for i, r in enumerate(rows) if r.id == cursor), 0) if cursor else 0

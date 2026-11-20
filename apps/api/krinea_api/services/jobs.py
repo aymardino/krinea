@@ -72,6 +72,17 @@ def _run_dedup(db: Session, job: models.Job) -> dict:
 
 # Failures that every following record would hit as well: the run stops at the first one.
 AI_FATAL = {"nokey", "key", "model", "credit", "quota"}
+# Records an AI screening run handles per turn of the worker; a longer run goes back in line in
+# between, so that the jobs queued meanwhile (anybody's) do not wait for its end (D-40).
+AI_CHUNK = 50
+
+
+class Requeue:
+    """What a runner returns when it has done its share of a long job: the job goes back to the
+    end of the queue with this result, and the runner takes it up from there next time."""
+
+    def __init__(self, result: dict):
+        self.result = result
 
 
 def _screen_one(db: Session, review: models.Review, user: models.User, rec: models.Record, stage: str,
@@ -104,12 +115,13 @@ def _screen_one(db: Session, review: models.Review, user: models.User, rec: mode
             time.sleep(wait)
 
 
-def _run_ai_screen(db: Session, job: models.Job) -> dict:
+def _run_ai_screen(db: Session, job: models.Job) -> dict | Requeue:
     """Suggestions for the job's records, in the order sent (the page sends the record on
-    screen first). A failure that every following record would hit too (key refused, model
-    not available, quota, credit) stops the run at once, as do five failures in a row; the
-    result says what happened (`error_kind`, `error`) and is kept up to date as the run goes,
-    so the page can show each suggestion as it comes."""
+    screen first), AI_CHUNK records per turn. A failure that every following record would hit
+    too (key refused, model not available, quota, credit) stops the run at once, as do five
+    failures in a row; the result says what happened (`error_kind`, `error`) and is kept up to
+    date as the run goes, so the page can show each suggestion as it comes. `done` is where the
+    next turn starts."""
     from krinea_api.services import ai
     review = db.get(models.Review, job.review_id)
     user = db.get(models.User, job.user_id)
@@ -118,21 +130,27 @@ def _run_ai_screen(db: Session, job: models.Job) -> dict:
     stage = p.get("stage", "ta")
     provider, model = ai.provider_and_model(review, "screening", p.get("provider"), p.get("model"))
     out = {"stage": stage, "provider": provider, "model": model, "total": len(ids), "ok": 0, "failed": 0,
-           "error_kind": "", "error": "", "errors": [], "stopped": False}
-    streak = 0
-    for i, rid in enumerate(ids, 1):
+           "error_kind": "", "error": "", "errors": [], "stopped": False, "done": 0, "streak": 0}
+    out.update({k: v for k, v in (job.result or {}).items()                 # a later turn of the run
+                if k in ("ok", "failed", "error_kind", "error", "errors", "done", "streak")})
+    start = int(out["done"])
+    for i in range(start, len(ids)):
+        if i - start >= AI_CHUNK:
+            return Requeue(out)
+        rid = ids[i]
         rec = db.get(models.Record, rid)
         if rec and rec.review_id == job.review_id:
             failure = _screen_one(db, review, user, rec, stage, provider, model)
             if failure is None:
-                out["ok"], streak = out["ok"] + 1, 0
+                out["ok"], out["streak"] = out["ok"] + 1, 0
             else:
                 kind, message = failure
-                out["failed"], streak = out["failed"] + 1, streak + 1
+                out["failed"], out["streak"] = out["failed"] + 1, out["streak"] + 1
                 out["error_kind"], out["error"] = kind, message[:800]
                 out["errors"] = [*out["errors"], f"#{rid}: {message[:300]}"][-5:]
-                out["stopped"] = kind in AI_FATAL or streak >= 5
-        _progress(db, job, i, len(ids), dict(out))
+                out["stopped"] = kind in AI_FATAL or out["streak"] >= 5
+        out["done"] = i + 1
+        _progress(db, job, i + 1, len(ids), dict(out))
         if out["stopped"]:
             break
     return out
@@ -160,15 +178,26 @@ RUNNERS = {"dedup": _run_dedup, "ai_screen": _run_ai_screen, "extract": _run_ext
 
 
 def run_job(job_id: str) -> None:
+    """Run a job, or its next turn when the job is long: a runner that answers Requeue puts it
+    back at the end of the queue (created_at is the place in line), unless jobs run inline, where
+    no worker would come back to it and the turns follow each other at once."""
     db: Session = session_factory()()
     try:
         job = db.get(models.Job, job_id)
         if not job or job.status not in ("queued", "running"):
             return
-        job.status, job.started_at = "running", models.now()
+        job.status, job.started_at = "running", job.started_at or models.now()
         db.commit()
         try:
             result = RUNNERS[job.kind](db, job)
+            while isinstance(result, Requeue) and get_settings().inline_jobs:
+                job.result = result.result
+                db.commit()
+                result = RUNNERS[job.kind](db, job)
+            if isinstance(result, Requeue):
+                job.status, job.result, job.created_at = "queued", result.result, models.now()
+                db.commit()
+                return
             job.status, job.result, job.progress = "done", result, 1.0
         except Exception as e:                       # noqa: BLE001
             db.rollback()

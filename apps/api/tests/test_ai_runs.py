@@ -1,10 +1,14 @@
 """AI screening runs: a new review runs on Gemini 3.8 Flash; records go in the order the page
-sends them (the one on screen first); a failure every record would hit stops the run at once
-and says what it means; a rate limit is waited out; the result keeps the tally the page
-follows, and never shows the key."""
+sends them (the one on screen first), or follow the page's whole list; a failure every record
+would hit stops the run at once and says what it means; a rate limit is waited out; a long run
+goes back in line between turns; the result keeps the tally the page follows, and never shows
+the key."""
 import io
+import re
 
 from krinea_api import models
+from krinea_api.config import get_settings
+from krinea_api.db import session_factory
 from krinea_api.services import ai, jobs
 from krinea_core import llm
 from tests.conftest import register
@@ -68,6 +72,67 @@ def test_the_run_follows_the_order_sent_and_names_the_model(client, monkeypatch)
     assert job["user_id"]
     items = client.get(f"/reviews/{rid}/records?stage=ta&view=todo").json()["items"]
     assert [bool(x["ai"]) for x in items] == [True, False, True, False, False, False, False]
+
+
+def test_a_run_follows_the_whole_list_from_the_record_on_screen(client, monkeypatch):
+    rid, ids = _review(client, "ai-queue@example.org")
+    number = {rec: i for i, rec in enumerate(ids, 1)}                # "study number N", in import order
+    seen = []
+
+    def answer(prompt, provider, key, model=None, **kw):
+        seen.append(int(re.search(r"study number (\d+)", prompt).group(1)))
+        return ANSWER, llm.Usage(10, 5)
+
+    monkeypatch.setattr(llm, "call_json", answer)
+    assert client.post(f"/reviews/{rid}/records/{ids[3]}/decision", json={"stage": "ta", "decision": "exclude"}).status_code == 200
+    # Title Z to A puts 7 first; the run starts at 5, goes down the list, round to the top, and
+    # skips 4, which the reviewer decided.
+    body = {"stage": "ta", "queue": {"view": "all", "sort": "title_desc"}, "start_id": ids[4], "limit": 3}
+    preview = client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json()
+    assert preview == {"available": 6, "next": 3}
+    job = client.post(f"/reviews/{rid}/ai/screen", json=body).json()
+    assert job["status"] == "done" and job["result"]["ok"] == 3
+    assert seen == [5, 3, 2]
+    # Records with a suggestion are left out of the next run, unless they are to be redone.
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 3, "next": 3}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json={**body, "redo": True}).json() == {"available": 6, "next": 3}
+    seen.clear()
+    client.post(f"/reviews/{rid}/ai/screen", json={**body, "limit": 20000})
+    assert seen == [1, 7, 6]
+    seen.clear()
+    client.post(f"/reviews/{rid}/ai/screen", json={**body, "redo": True, "start_id": ids[0], "limit": 2})
+    assert seen == [1, 7]
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=body).json() == {"available": 0, "next": 0}
+    # The list's filters apply: a search keeps only the records it finds.
+    narrow = {**body, "redo": True, "queue": {"view": "all", "search": "number 2"}}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json=narrow).json() == {"available": 1, "next": 1}
+    assert client.post(f"/reviews/{rid}/ai/screen/preview", json={**body, "queue": {"view": "bogus"}}).status_code == 400
+    assert number[ids[4]] == 5
+
+
+def test_a_long_run_goes_back_in_line_between_turns(client, monkeypatch):
+    rid, ids = _review(client, "ai-turns@example.org")
+    monkeypatch.setattr(llm, "call_json", lambda prompt, provider, key, model=None, **kw: (ANSWER, llm.Usage(10, 5)))
+    monkeypatch.setattr(jobs, "AI_CHUNK", 3)
+    # Jobs run inline (tests, development): the turns follow each other at once.
+    res = _run(client, rid, ids)["result"]
+    assert (res["ok"], res["done"], res["total"]) == (7, 7, 7)
+    # With a worker, the job goes back to the end of the queue after each turn of 3 records.
+    monkeypatch.setattr(get_settings(), "inline_jobs", False)
+    job = client.post(f"/reviews/{rid}/ai/screen", json={"stage": "ta", "record_ids": ids, "limit": len(ids)}).json()
+    assert job["status"] == "queued"
+    db = session_factory()()
+    try:
+        placed = []
+        for done, status in ((3, "queued"), (6, "queued"), (7, "done")):
+            jobs.run_job(job["id"])
+            db.expire_all()
+            row = db.get(models.Job, job["id"])
+            assert (row.status, row.result["done"], row.result["ok"]) == (status, done, done)
+            placed.append(row.created_at)
+        assert placed[0] <= placed[1] and row.progress == 1.0 and row.started_at is not None
+    finally:
+        db.close()
 
 
 def test_a_model_closed_to_the_key_stops_the_run_at_once(client, monkeypatch):

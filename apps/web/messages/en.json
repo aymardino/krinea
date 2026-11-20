@@ -531,8 +531,16 @@
       "kwModeAll": "All of them",
       "kwModeAny": "At least one",
       "showAll": "Show all",
-      "aiScope": "Starts with the reference shown, then the next ones in the list with neither a suggestion nor your decision: {n} on the next click (50 at most).",
+      "aiScope": "{n, plural, one {# reference of this list has} other {# references of this list have}} neither a suggestion nor your decision. The next run takes {k}, starting with the one shown and following the list.",
+      "aiScopeRedo": "{n, plural, one {# reference of this list is} other {# references of this list are}} still without your decision. The next run takes {k}, starting with the one shown, and replaces the suggestions they already have.",
       "aiNothing": "Every reference in the list already has a suggestion or your decision.",
+      "aiNothingRedo": "Every reference in the list already has your decision.",
+      "aiBatch": "References per run",
+      "aiBatchAll": "The whole list",
+      "aiRedo": "Also redo the references that already have a suggestion",
+      "aiConfirm": "Ask the AI about {n} references? Each one is a call billed to the key used.",
+      "pagePrev": "Show the previous {n}",
+      "pageNext": "Show the next {n}",
       "aiRunningCount": "AI suggestions: {ok} of {total}",
       "aiLast": "Last run: {ok, plural, one {# suggestion saved} other {# suggestions saved}} out of {total}.",
       "aiLastModel": "Model: {model}.",
@@ -559,7 +567,8 @@
         "year": "Year, oldest first",
         "author": "First author, A to Z",
         "journal": "Journal, A to Z",
-        "ai": "AI: include first"
+        "ai": "AI: include first",
+        "ai_exclude": "AI: exclude first"
       }
     },
     "extraction": {
@@ -655,6 +664,7 @@
       "allFiles": "All files",
       "label": "Label",
       "allLabels": "All labels",
+      "chosen": "{n} selected",
       "countRecords": "{n, plural, =0 {No record matches these filters.} one {# record} other {# records}}",
       "countStudies": "{n, plural, =0 {No study matches these filters.} one {# study} other {# studies}}",
       "formats": {
