@@ -126,7 +126,9 @@ def screen_record(db: Session, review: models.Review, user: models.User, record:
 def extract_record(db: Session, review: models.Review, user: models.User, record: models.Record,
                    provider: str | None = None, model: str | None = None) -> models.Extraction:
     provider, model = provider_and_model(review, "extraction", provider, model)
-    fields = extraction_schema.from_json(review.extraction_schema or [])
+    # The fields of every study, and those of the search the study belongs to (D-48).
+    fields = extraction_schema.fields_for(extraction_schema.from_json(review.extraction_schema or []),
+                                          scr.record_files(db, review, record))
     ex = db.scalar(select(models.Extraction).where(models.Extraction.record_id == record.id))
     if not ex:
         ex = models.Extraction(review_id=review.id, record_id=record.id)

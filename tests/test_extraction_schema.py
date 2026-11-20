@@ -15,6 +15,17 @@ def test_normalise_and_validate():
     assert es.validate_schema([]) == ["The schema has no field."]
 
 
+def test_fields_of_one_search_apply_to_its_studies_only():
+    general = es.normalise_field({"name": "country"})
+    tariffs = es.normalise_field({"name": "tariff", "searches": "imp3 | imp5 | imp3"})
+    storage = es.normalise_field({"name": "storage", "searches": ["imp1"]})
+    assert "searches" not in general and tariffs["searches"] == ["imp3", "imp5"]
+    fields = [general, tariffs, storage]
+    assert [f["name"] for f in es.fields_for(fields, ["imp5"])] == ["country", "tariff"]
+    assert [f["name"] for f in es.fields_for(fields, ["imp1", "imp3"])] == ["country", "tariff", "storage"]
+    assert [f["name"] for f in es.fields_for(fields, [])] == ["country"]
+
+
 def test_json_csv_roundtrip():
     fields = es.from_json("")
     assert fields == [es.normalise_field(f) for f in es.DEFAULT_SCHEMA]

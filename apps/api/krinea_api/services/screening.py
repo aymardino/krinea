@@ -163,6 +163,30 @@ def in_file(review: models.Review, import_id: str):
     return found_in_import(review.id, import_id)
 
 
+def record_files(db: Session, review: models.Review, record: models.Record) -> list[str]:
+    """The searches (imported files) a record belongs to: the file of the copy kept under the
+    file order (D-42), else every file that found it, merged duplicates included."""
+    files = [record.import_id] if record.import_id else []
+    if not by_kept_file(review):
+        files += list(db.scalars(select(models.Record.import_id).where(
+            models.Record.review_id == review.id, models.Record.is_duplicate.is_(True),
+            models.Record.duplicate_of == record.id, models.Record.import_id.is_not(None))))
+    return list(dict.fromkeys(files))
+
+
+def files_by_record(db: Session, review: models.Review) -> dict[int, list[str]]:
+    """`record_files` for every record of the review, in one query."""
+    kept_only = by_kept_file(review)
+    out: dict[int, list[str]] = defaultdict(list)
+    rows = db.execute(select(models.Record.id, models.Record.import_id, models.Record.is_duplicate,
+                             models.Record.duplicate_of).where(models.Record.review_id == review.id)).all()
+    for rid, imp, dup, keeper in sorted(rows, key=lambda row: bool(row[2])):      # kept copies first
+        target = (None if kept_only or keeper is None else keeper) if dup else rid
+        if imp and target is not None and imp not in out[target]:
+            out[target].append(imp)
+    return out
+
+
 def record_searches(db: Session, review: models.Review, record: models.Record) -> list[dict]:
     """The searches (imported files) a record belongs to that have their own sub-question or
     criteria, as `{name, question, inclusion, exclusion}` for the AI (D-47): the file of the copy
@@ -170,12 +194,7 @@ def record_searches(db: Session, review: models.Review, record: models.Record) -
     own = (review.criteria or {}).get("search_criteria") or {}
     if not own:
         return []
-    files = [record.import_id] if record.import_id else []
-    if not by_kept_file(review):
-        files += list(db.scalars(select(models.Record.import_id).where(
-            models.Record.review_id == review.id, models.Record.is_duplicate.is_(True),
-            models.Record.duplicate_of == record.id, models.Record.import_id.is_not(None))))
-    files = [f for f in dict.fromkeys(files) if isinstance(own.get(f), dict)]
+    files = [f for f in record_files(db, review, record) if isinstance(own.get(f), dict)]
     if not files:
         return []
     names = dict(db.execute(select(models.Import.id, models.Import.filename).where(models.Import.id.in_(files))).all())

@@ -883,3 +883,19 @@ of the review or of a search, still never reach the AI (D-30).
 criteria of its own search, but the AI only had the review's criteria, the same for every
 search, and so could judge a study of one sub-question by the criteria of another, or by
 none.
+
+## D-48 · 2026-11-20 · decided · Extraction fields in order, general or of some searches
+
+**Decision.** The extraction form of the settings has arrows to move a field up or down; the
+order is that of the form, of the AI's instructions and of the export columns. A field can be
+limited to some searches (imported files): `searches`, a list of import ids, absent for a
+field asked of every study (`extraction_schema.fields_for`). A study gets the general fields
+and those of the searches it belongs to (`screening.record_files`: the file of the copy kept
+under the file order, D-42, else every file that found it): the extraction view shows only
+these, the AI extracts only these, and only these are checked (a required field of another
+search is not reported missing). Exports keep one column per field, empty where a field does
+not apply; the "fields" sheet of the Excel export names the searches of each field.
+
+**Why.** A review with one search per sub-question extracts some data from every study and
+some only from the studies of one sub-question; with one form for all, the AI was asked for
+fields that did not apply, and their absence was reported as an error.

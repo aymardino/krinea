@@ -711,7 +711,7 @@
       "inviteRole": "Rôle",
       "pending": "Invitations en attente",
       "form": "Grille d'extraction",
-      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list.",
+      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list. Les flèches règlent l'ordre du formulaire et des colonnes des exports ; « Requêtes » réserve un champ aux études de certaines requêtes.",
       "addField": "Ajouter un champ",
       "templates": "Modèles",
       "templateDefault": "PICO (par défaut)",
@@ -730,6 +730,9 @@
         "kind": "Type",
         "options": "Options (a | b | c)",
         "hint": "Consigne pour l'IA",
+        "searches": "Requêtes",
+        "allSearches": "Toutes",
+        "nSearches": "{n, plural, one {# requête} other {# requêtes}}",
         "required": "Obligatoire"
       },
       "sourcesNone": "Aucune source pour l'instant : importez d'abord des résultats de recherche.",

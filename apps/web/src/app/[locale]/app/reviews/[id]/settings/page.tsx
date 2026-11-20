@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2, UserPlus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2, UserPlus, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import { api, ApiError, type Criteria, type Field, type Invitation, type Member, type Review, type Settings } from "@/lib/api";
+import { api, ApiError, type Criteria, type Field, type ImportRow, type Invitation, type Member, type Review, type Settings } from "@/lib/api";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { canEdit, useReview } from "@/components/app/review-context";
 import { KeeperRuleCard } from "@/components/app/keeper-rule-card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,31 @@ import { Avatar, PageHeader } from "@/components/ui/misc";
 
 const KINDS = ["text", "sentences", "number", "year", "yesno", "enum", "multi", "list"];
 const PROVIDERS = ["claude", "gemini", "deepseek"];
+
+/** The searches (imported files) an extraction field belongs to (D-48): none ticked, the field
+ *  is asked of every study; else only of the studies of the searches ticked. */
+function FieldSearches({ value, imports, disabled, onChange }: { value: string[]; imports: ImportRow[]; disabled: boolean; onChange: (v: string[]) => void }) {
+  const t = useTranslations("review.settings");
+  const known = imports.filter((i) => value.includes(i.id));
+  const summary = !value.length ? t("field.allSearches") : known.length === 1 ? known[0].filename : t("field.nSearches", { n: known.length });
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <Button variant="outline" className="h-9 w-full justify-between px-2 text-xs font-normal" disabled={disabled} title={known.map((i) => i.filename).join(", ")}>
+          <span className="truncate">{summary}</span><ChevronDown className="size-3.5 shrink-0 opacity-50" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
+        <DropdownMenuCheckboxItem checked={!value.length} onSelect={(e) => e.preventDefault()} onCheckedChange={() => onChange([])}>{t("field.allSearches")}</DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        {imports.map((i) => (
+          <DropdownMenuCheckboxItem key={i.id} checked={value.includes(i.id)} onSelect={(e) => e.preventDefault()}
+                                    onCheckedChange={(on) => onChange(on ? [...value, i.id] : value.filter((x) => x !== i.id))}>{i.filename}</DropdownMenuCheckboxItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export default function SettingsPage() {
   const t = useTranslations("review.settings");
@@ -44,6 +70,7 @@ export default function SettingsPage() {
 
   const invitations = useQuery<Invitation[]>({ queryKey: ["invitations", rid], queryFn: () => api.get(`/reviews/${rid}/invitations`), enabled: editable });
   const templates = useQuery<{ default: Field[]; energy?: Field[] }>({ queryKey: ["templates"], queryFn: () => api.get("/reviews/templates/extraction") });
+  const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
 
   const patch = useMutation({
     mutationFn: (body: Omit<Partial<Review>, "criteria" | "settings"> & { criteria?: Partial<Criteria>; settings?: Partial<Settings> }) => api.patch<Review>(`/reviews/${rid}`, body),
@@ -61,6 +88,14 @@ export default function SettingsPage() {
   const destroy = useMutation({ mutationFn: () => api.delete(`/reviews/${rid}`), onSuccess: () => { qc.invalidateQueries({ queryKey: ["reviews"] }); router.push("/app"); }, onError });
 
   const updateField = (i: number, k: keyof Field, v: string | boolean | string[]) => setFields(fields.map((f, j) => (j === i ? { ...f, [k]: v } : f)));
+  // The order of the fields is that of the form, of the AI's instructions and of the export columns.
+  const moveField = (i: number, to: number) => {
+    if (to < 0 || to >= fields.length) return;
+    const next = [...fields];
+    const [f] = next.splice(i, 1);
+    next.splice(to, 0, f);
+    setFields(next);
+  };
   const parseList = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
 
   return (
@@ -135,16 +170,21 @@ export default function SettingsPage() {
       <Card>
         <CardHeader><CardTitle>{t("form")}</CardTitle><CardDescription>{t("formHint")}</CardDescription></CardHeader>
         <CardContent className="space-y-3">
-          <div className="hidden grid-cols-[1fr_1fr_120px_1fr_1.4fr_60px_32px] gap-2 text-xs font-medium text-muted-foreground md:grid">
-            <span>{t("field.name")}</span><span>{t("field.label")}</span><span>{t("field.kind")}</span><span>{t("field.options")}</span><span>{t("field.hint")}</span><span>{t("field.required")}</span><span />
+          <div className="hidden grid-cols-[60px_1fr_1fr_110px_1fr_1.2fr_140px_60px_32px] gap-2 text-xs font-medium text-muted-foreground md:grid">
+            <span /><span>{t("field.name")}</span><span>{t("field.label")}</span><span>{t("field.kind")}</span><span>{t("field.options")}</span><span>{t("field.hint")}</span><span>{t("field.searches")}</span><span>{t("field.required")}</span><span />
           </div>
           {fields.map((f, i) => (
-            <div key={i} className="grid gap-2 rounded-lg border border-border p-2 md:grid-cols-[1fr_1fr_120px_1fr_1.4fr_60px_32px] md:border-0 md:p-0">
+            <div key={i} className="grid gap-2 rounded-lg border border-border p-2 md:grid-cols-[60px_1fr_1fr_110px_1fr_1.2fr_140px_60px_32px] md:border-0 md:p-0">
+              <div className="flex items-center gap-0.5">
+                <Button size="icon" variant="ghost" className="size-7" aria-label={t("moveUp")} disabled={!editable || i === 0} onClick={() => moveField(i, i - 1)}><ArrowUp /></Button>
+                <Button size="icon" variant="ghost" className="size-7" aria-label={t("moveDown")} disabled={!editable || i === fields.length - 1} onClick={() => moveField(i, i + 1)}><ArrowDown /></Button>
+              </div>
               <Input value={f.name} onChange={(e) => updateField(i, "name", e.target.value)} disabled={!editable} placeholder={t("field.name")} />
               <Input value={f.label} onChange={(e) => updateField(i, "label", e.target.value)} disabled={!editable} placeholder={t("field.label")} />
               <Select value={f.kind} onValueChange={(v) => updateField(i, "kind", v)} disabled={!editable}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{KINDS.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}</SelectContent></Select>
               <Input value={f.options.join(" | ")} onChange={(e) => updateField(i, "options", e.target.value.split("|").map((s) => s.trim()).filter(Boolean))} disabled={!editable || !["enum", "multi"].includes(f.kind)} placeholder="a | b | c" />
               <Input value={f.hint} onChange={(e) => updateField(i, "hint", e.target.value)} disabled={!editable} placeholder={t("field.hint")} />
+              <FieldSearches value={f.searches ?? []} imports={imports.data ?? []} disabled={!editable || !imports.data?.length} onChange={(v) => updateField(i, "searches", v)} />
               <div className="flex items-center justify-center"><Checkbox checked={f.required} onCheckedChange={(v) => updateField(i, "required", !!v)} disabled={!editable} /></div>
               <Button size="icon" variant="ghost" disabled={!editable} onClick={() => setFields(fields.filter((_, j) => j !== i))}><Trash2 /></Button>
             </div>

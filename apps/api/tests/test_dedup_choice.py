@@ -160,6 +160,39 @@ def test_each_search_brings_its_own_criteria_to_the_ai(client, monkeypatch):
     assert client.get(f"/reviews/{rid}").json()["criteria"]["search_criteria"] == {}
 
 
+def test_extraction_fields_of_one_search_apply_to_its_studies_only(client, monkeypatch, pdf_bytes):
+    """General fields plus fields of one search (D-48): a study is extracted and checked with the
+    general fields and those of the search it belongs to."""
+    register(client, "search-fields@example.org", "Owner")
+    rid = client.post("/reviews", json={"title": "Fields per search"}).json()["id"]
+    file_a = _import(client, rid, "query1.ris", SCOPUS, "Scopus")
+    file_b = _import(client, rid, "query3.ris", PUBMED, "PubMed")
+    y_b = {(r["source_db"], r["year"]): r["id"] for r in _records(client, rid)}[("PubMed", "2020")]
+    client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "file", "file_priority": [file_b, file_a]}})
+    client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85})
+    schema = [{"name": "country", "kind": "text"},
+              {"name": "tariff", "kind": "text", "required": True, "searches": [file_b]},
+              {"name": "storage", "kind": "text", "required": True, "searches": [file_a]}]
+    r = client.patch(f"/reviews/{rid}", json={"extraction_schema": schema})
+    assert [f.get("searches") for f in r.json()["extraction_schema"]] == [None, [file_b], [file_a]]
+    for stage in ("ta", "ft"):
+        client.post(f"/reviews/{rid}/records/{y_b}/decision", json={"stage": stage, "decision": "include"})
+    assert client.post(f"/reviews/{rid}/records/{y_b}/pdf", files={"file": ("p.pdf", pdf_bytes, "application/pdf")}).status_code == 200
+
+    client.put("/auth/keys/gemini", json={"key": "AQ.test-key-1234567890"})
+    prompts = []
+
+    def answer(prompt, provider, key, model=None, **kw):
+        prompts.append(prompt)
+        return {"country": {"value": "Nigeria", "quote": "Nigeria"}}, llm.Usage(1, 1)
+
+    monkeypatch.setattr(llm, "call_json", answer)
+    assert client.post(f"/reviews/{rid}/extraction/run", json={"record_ids": [y_b]}).json()["result"]["ok"] == 1
+    assert "- country:" in prompts[0] and "- tariff:" in prompts[0] and "- storage:" not in prompts[0]
+    flags = client.put(f"/reviews/{rid}/extraction/{y_b}", json={"values": {"country": "Nigeria"}}).json()["flags"]
+    assert "tariff" in flags and "storage" not in flags          # required, but for query 1 only
+
+
 def test_ai_runs_ignore_records_of_other_reviews(client, monkeypatch):
     register(client, "dedup-scope@example.org", "Scope")
     mine = client.post("/reviews", json={"title": "Mine"}).json()["id"]

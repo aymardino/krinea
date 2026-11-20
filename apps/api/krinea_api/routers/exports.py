@@ -310,10 +310,15 @@ def export_extractions(fmt: str, status: str = "verified", import_id: list[str] 
     values = [line(r, e, "values") for r, e in pairs]
     if fmt == "csv":
         return _file(_csv(meta + names, values), f"{name}.csv", "text/csv")
-    import pandas as pd
     quotes = [line(r, e, "quotes") for r, e in pairs]
-    content = _xlsx({"values": (meta + names, values), "quotes": (meta + names, quotes)},
-                    extra={"fields": pd.DataFrame(fields)})
+    # The form, one row per field; "searches" names the files a field belongs to (D-48), the
+    # cells of the studies of other searches being empty.
+    files = dict(db.execute(select(models.Import.id, models.Import.filename)
+                            .where(models.Import.review_id == review.id)).all())
+    form = [[f["name"], f["label"], f["kind"], " | ".join(f["options"]), f["hint"], "yes" if f["required"] else "no",
+             "; ".join(files.get(s, s) for s in f.get("searches", [])) or "all"] for f in fields]
+    content = _xlsx({"values": (meta + names, values), "quotes": (meta + names, quotes),
+                     "fields": (["name", "label", "kind", "options", "hint", "required", "searches"], form)})
     return _file(content, f"{name}.xlsx", XLSX)
 
 

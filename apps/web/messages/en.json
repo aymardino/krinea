@@ -711,7 +711,7 @@
       "inviteRole": "Role",
       "pending": "Pending invitations",
       "form": "Extraction form",
-      "formHint": "The fields the AI extracts and you verify. Kinds: text, sentences, number, year, yesno, enum, multi, list.",
+      "formHint": "The fields the AI extracts and you verify. Kinds: text, sentences, number, year, yesno, enum, multi, list. The arrows set the order of the form and of the export columns; \"Searches\" limits a field to the studies of some searches.",
       "addField": "Add field",
       "templates": "Templates",
       "templateDefault": "PICO (default)",
@@ -730,6 +730,9 @@
         "kind": "Kind",
         "options": "Options (a | b | c)",
         "hint": "Instruction for the AI",
+        "searches": "Searches",
+        "allSearches": "All",
+        "nSearches": "{n, plural, one {# search} other {# searches}}",
         "required": "Required"
       },
       "sourcesNone": "No source yet: import search results first.",

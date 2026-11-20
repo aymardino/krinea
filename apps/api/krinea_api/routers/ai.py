@@ -100,13 +100,20 @@ def suggestions(stage: str = "ta", access=Depends(ReviewAccess("viewer")), db: D
 
 
 # ── Extraction ───────────────────────────────────────────────────────────────────
-def _ex_out(ex: models.Extraction, fields: list[dict], with_text: bool = False) -> schemas.ExtractionOut:
+def _ex_out(ex: models.Extraction, fields: list[dict], files: list[str], with_text: bool = False) -> schemas.ExtractionOut:
+    """An extraction, checked against the fields that apply to its study: those of every study
+    and those of the searches it belongs to (`files`, D-48)."""
     return schemas.ExtractionOut(record_id=ex.record_id, status=ex.status, model=ex.model, values=ex.values or {},
                                  quotes=ex.quotes or {}, ai_values=ex.ai_values or {},
                                  text_extracted=(ex.text_extracted or "") if with_text else "", error=ex.error,
                                  created_at=ex.created_at, verified_at=ex.verified_at,
                                  flags={k: list(v) for k, v in extraction_schema.check_values(
-                                     fields, ex.values or {}, ex.quotes or {}).items()})
+                                     extraction_schema.fields_for(fields, files), ex.values or {}, ex.quotes or {}).items()})
+
+
+def _files(db: DBSession, review: models.Review, record_id: int) -> list[str]:
+    rec = db.get(models.Record, record_id)
+    return scr.record_files(db, review, rec) if rec is not None and rec.review_id == review.id else []
 
 
 @router.post("/reviews/{review_id}/extraction/run", response_model=schemas.JobOut)
@@ -141,7 +148,8 @@ def list_extractions(access=Depends(ReviewAccess("viewer")), db: DBSession = Dep
     fields = extraction_schema.from_json(review.extraction_schema or [])
     rows = db.scalars(select(models.Extraction).where(models.Extraction.review_id == review.id)
                       .order_by(models.Extraction.record_id)).all()
-    return [_ex_out(e, fields) for e in rows]
+    files = scr.files_by_record(db, review)
+    return [_ex_out(e, fields, files.get(e.record_id, [])) for e in rows]
 
 
 @router.get("/reviews/{review_id}/extraction/{record_id}", response_model=schemas.ExtractionOut)
@@ -151,7 +159,8 @@ def get_extraction(record_id: int, access=Depends(ReviewAccess("viewer")), db: D
                                                    models.Extraction.record_id == record_id))
     if not ex:
         raise HTTPException(404, "No extraction for this record")
-    return _ex_out(ex, extraction_schema.from_json(review.extraction_schema or []), with_text=True)
+    return _ex_out(ex, extraction_schema.from_json(review.extraction_schema or []), _files(db, review, record_id),
+                   with_text=True)
 
 
 @router.put("/reviews/{review_id}/extraction/{record_id}", response_model=schemas.ExtractionOut)
@@ -173,7 +182,7 @@ def verify_extraction(record_id: int, body: schemas.ExtractionVerifyIn, access=D
     ex.status, ex.error, ex.verified_at, ex.verified_by, ex.seconds = "verified", "", models.now(), user.id, body.seconds
     log_activity(db, review.id, user.id, "extraction_verified", record_id=record_id)
     db.commit()
-    return _ex_out(ex, fields)
+    return _ex_out(ex, fields, _files(db, review, record_id))
 
 
 @router.delete("/reviews/{review_id}/extraction/{record_id}", response_model=schemas.Ok)

@@ -82,9 +82,25 @@ def normalise_field(f: dict) -> dict:
     required = f.get("required", False)
     if isinstance(required, str):
         required = required.strip().lower() in ("1", "true", "yes", "y", "oui")
-    return {"name": name, "label": label or name.replace("_", " ").capitalize(),
-            "kind": kind, "options": opts, "hint": str(f.get("hint", "") or "").strip(),
-            "required": bool(required)}
+    out = {"name": name, "label": label or name.replace("_", " ").capitalize(),
+           "kind": kind, "options": opts, "hint": str(f.get("hint", "") or "").strip(),
+           "required": bool(required)}
+    # The searches (imported files) a field belongs to, when a review runs one search per
+    # sub-question; absent, the field applies to every study.
+    searches = f.get("searches") or []
+    if isinstance(searches, str):
+        searches = re.split(r"[|;,\s]+", searches)
+    searches = list(dict.fromkeys(str(s).strip() for s in searches if str(s).strip()))[:50]
+    if searches:
+        out["searches"] = searches
+    return out
+
+
+def fields_for(fields, files) -> list[dict]:
+    """The fields that apply to a study: those of every study, and those of the searches
+    (imported files) it belongs to."""
+    files = set(files or [])
+    return [f for f in fields if not f.get("searches") or files & set(f["searches"])]
 
 
 def validate_schema(fields) -> list[str]:

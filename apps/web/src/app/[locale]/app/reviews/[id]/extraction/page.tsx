@@ -105,6 +105,8 @@ export default function ExtractionPage() {
   const todo = items.filter((r) => r.has_pdf && !byRecord.has(r.id)).map((r) => r.id);
   const current: Rec | undefined = all.find((r) => r.id === open);
   const ex = one.data;
+  // The fields of every study, and those of the search the study belongs to (D-48).
+  const shownFields = fields.filter((f) => !f.searches?.length || f.searches.some((id) => (current?.found_in ?? []).includes(id)));
 
   if (open !== null && current) {
     const flags = ex?.flags ?? {};
@@ -126,7 +128,7 @@ export default function ExtractionPage() {
           <div className="space-y-4 rounded-xl border border-border bg-card p-5">
             <div className={`rounded-md px-3 py-2 text-sm ${Object.keys(flags).length ? "bg-maybe-bg text-maybe" : "bg-include-bg text-include"}`}>{Object.keys(flags).length ? t("flags", { errors: nErr, warnings: nWarn }) : t("noFlags")}</div>
             {ex?.error && <p className="rounded-md bg-exclude-bg px-3 py-2 text-sm text-exclude">{ex.error}</p>}
-            {fields.map((f) => (
+            {shownFields.map((f) => (
               <div key={f.name} className="space-y-1.5">
                 <Label className="flex items-center gap-2">{f.label}{f.required && <span className="text-exclude">*</span>}<span className="text-xs font-normal text-muted-foreground">{f.kind}</span></Label>
                 <FieldInput f={f} value={values[f.name] ?? ""} onChange={(v) => setValues({ ...values, [f.name]: v })} />
