@@ -147,14 +147,15 @@ def record_out(rec: models.Record, computed: dict, user_id: str, blind: bool, na
         found_in=list(dict.fromkeys([i for i in [rec.import_id, *(merged_from or [])] if i])))
 
 
-def _merged_from(db: DBSession, review_id: str, ids: list[int]) -> dict[int, list[str]]:
+def _merged_from(db: DBSession, review: models.Review, ids: list[int]) -> dict[int, list[str]]:
     """Imports of the duplicates merged into each record: a record counts for every search
-    that found it."""
+    that found it, unless the review keeps duplicates by file order, where it belongs to its
+    own file only (D-42)."""
     out: dict[int, list[str]] = {}
-    if not ids:
+    if not ids or scr.by_kept_file(review):
         return out
     for keeper, imp in db.execute(select(models.Record.duplicate_of, models.Record.import_id)
-                                  .where(models.Record.review_id == review_id, models.Record.is_duplicate.is_(True),
+                                  .where(models.Record.review_id == review.id, models.Record.is_duplicate.is_(True),
                                          models.Record.duplicate_of.in_(ids), models.Record.import_id.is_not(None))):
         out.setdefault(keeper, []).append(imp)
     return out
@@ -273,9 +274,10 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
     if label.strip():
         q = q.where(models.Record.labels.ilike(f"%{label.strip()}%"))
     if import_id:
-        # A record found in this file may have been merged into a record from another file:
-        # the kept record counts for every file it was found in.
-        q = q.where(scr.found_in_import(review.id, import_id))
+        # A record found in this file may have been merged into a record from another file: the
+        # kept record counts for every file it was found in, or only for its own file when the
+        # review keeps duplicates by file order (D-42).
+        q = q.where(scr.in_file(review, import_id))
     if year_from.strip():
         q = q.where(models.Record.year >= year_from.strip()[:4])
     if year_to.strip():
@@ -313,7 +315,7 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
         page = rows[start:start + limit]
     names = _names(db, review.id)
     ai = _ai_map(db, review.id, st_stage, [r.id for r in page])
-    merged = _merged_from(db, review.id, [r.id for r in page])
+    merged = _merged_from(db, review, [r.id for r in page])
     items = [record_out(r, c, user.id, blind, names, ai.get(r.id), st_stage, merged.get(r.id)) for r in page]
     next_cursor = page[-1].id if len(page) == limit and page[-1].id != rows[-1].id else None
     return schemas.RecordPage(items=items, total=total, next_cursor=next_cursor)
@@ -334,7 +336,7 @@ def get_record(record_id: int, stage: str = "ta", access=Depends(ReviewAccess("v
     c = scr.compute(db, review)
     st = "ft" if stage == "ft" else "ta"
     return record_out(rec, c, user.id, _blind(review, m.role), _names(db, review.id),
-                      _ai_map(db, review.id, st, [rec.id]).get(rec.id), st, _merged_from(db, review.id, [rec.id]).get(rec.id))
+                      _ai_map(db, review.id, st, [rec.id]).get(rec.id), st, _merged_from(db, review, [rec.id]).get(rec.id))
 
 
 @router.patch("/records/{record_id}", response_model=schemas.RecordOut)

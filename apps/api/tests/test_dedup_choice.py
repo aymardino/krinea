@@ -1,5 +1,7 @@
-"""Choosing which duplicate to keep, the source order of a review, the file filter, and AI
-runs that only ever touch the review's own records."""
+"""Choosing which duplicate to keep, the source order of a review, the file filter (a record
+belongs to its kept file only under the file order), and AI runs that only ever touch the
+review's own records."""
+import csv
 import io
 
 from krinea_api import models
@@ -92,6 +94,34 @@ def test_source_order_and_explicit_choice(client):
     assert {r["id"] for r in _records(client, rid, import_id=file_a)} == {x_a, y_b}
     assert {r["id"] for r in _records(client, rid, import_id=file_b)} == {x_a, y_b}
     assert len(_records(client, rid)) == 2
+
+
+def test_with_the_file_order_a_record_belongs_to_the_file_it_was_kept_from(client):
+    """One file per search, each with its own criteria (D-42): the order of the files decides
+    the record kept and the one file it counts for, in lists, keywords and exports."""
+    register(client, "dedup-files@example.org", "Owner")
+    rid = client.post("/reviews", json={"title": "One file per search"}).json()["id"]
+    file_a = _import(client, rid, "query1.ris", SCOPUS, "Scopus")
+    file_b = _import(client, rid, "query3.ris", PUBMED, "PubMed")
+    recs = {(r["source_db"], r["year"]): r["id"] for r in _records(client, rid)}
+    x_a, y_a, x_b, y_b = recs[("Scopus", "2021")], recs[("Scopus", "2020")], recs[("PubMed", "2021")], recs[("PubMed", "2020")]
+    r = client.patch(f"/reviews/{rid}", json={"settings": {"keeper_rule": "file", "file_priority": [file_b, file_a]}})
+    assert r.json()["settings"]["keeper_rule"] == "file"
+    client.put(f"/reviews/{rid}/imports/{file_a}/keywords", json={"include": ["Nigeria"], "exclude": []})
+    assert client.post(f"/reviews/{rid}/dedup/run", json={"auto_threshold": 95, "review_threshold": 85}).status_code == 200
+
+    # The Nigeria study, found by both searches, is kept from query 3, ranked first: it counts
+    # for query 3 only, and query 1 keeps the Tanzania study it found.
+    assert [(d["id"], d["kept_id"]) for d in client.get(f"/reviews/{rid}/dedup/duplicates").json()] == [(y_a, y_b)]
+    assert {r["id"] for r in _records(client, rid, import_id=file_a)} == {x_a}
+    assert {r["id"] for r in _records(client, rid, import_id=file_b)} == {x_b, y_b}
+    assert client.get(f"/reviews/{rid}/records/{y_b}").json()["found_in"] == [file_b]
+    kw = client.get(f"/reviews/{rid}/keywords", params={"import_id": file_a}).json()
+    assert kw["search"]["include"] == [{"keyword": "Nigeria", "n": 0}]
+    assert client.get(f"/reviews/{rid}/export/count", params={"stage": "ta", "import_id": file_a}).json()["n"] == 1
+    export = client.get(f"/reviews/{rid}/export/screening.csv", params={"stage": "ta"}).text
+    rows = {int(row["id"]): row for row in csv.DictReader(io.StringIO(export))}
+    assert (rows[y_b]["file"], rows[y_b]["files"]) == ("query3.ris", "query3.ris; query1.ris")
 
 
 def test_ai_runs_ignore_records_of_other_reviews(client, monkeypatch):

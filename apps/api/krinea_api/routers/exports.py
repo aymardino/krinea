@@ -28,10 +28,11 @@ EXTRACTION_STATES = ("verified", "all")
 STAGE_FILES = {"ta": "title-abstract", "ft": "full-text"}
 STATUS_FILES = {"include": "included", "maybe": "maybe", "exclude": "excluded", "conflict": "conflicts",
                 "pending": "not-screened"}
-# Columns of a screening export, the most read first.
+# Columns of a screening export, the most read first. `file` is the file of the copy kept
+# among duplicates, `files` every file that found the record (the kept copy's first).
 SCREENING_COLUMNS = ["id", "title", "authors", "year", "journal", "doi", "ta_status", "ta_reason", "ft_status",
-                     "ft_reason", "pdf", "labels", "notes", "files", "abstract", "keywords", "volume", "issue",
-                     "pages", "url", "pmid", "publisher", "type", "language", "source_db", "raw_id"]
+                     "ft_reason", "pdf", "labels", "notes", "file", "files", "abstract", "keywords", "volume",
+                     "issue", "pages", "url", "pmid", "publisher", "type", "language", "source_db", "raw_id"]
 RIS = "application/x-research-info-systems"
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # Characters an Excel cell refuses (control characters some database exports carry).
@@ -87,14 +88,15 @@ def _reason(decs: dict[str, models.Decision], user_id: str, blind: bool) -> str:
 
 
 def _found_in(db: DBSession, review_id: str) -> dict[int, list[str]]:
-    """The names of the imported files each record was found in: its own, and those of the
-    duplicates merged into it."""
+    """The names of the imported files each record was found in: its own first, then those of
+    the duplicates merged into it."""
     names = dict(db.execute(select(models.Import.id, models.Import.filename)
                             .where(models.Import.review_id == review_id)).all())
+    rows = db.execute(select(models.Record.id, models.Record.import_id, models.Record.is_duplicate,
+                             models.Record.duplicate_of)
+                      .where(models.Record.review_id == review_id).order_by(models.Record.id)).all()
     out: dict[int, list[str]] = {}
-    for rid, imp, dup, keeper in db.execute(
-            select(models.Record.id, models.Record.import_id, models.Record.is_duplicate, models.Record.duplicate_of)
-            .where(models.Record.review_id == review_id).order_by(models.Record.id)):
+    for rid, imp, dup, keeper in sorted(rows, key=lambda row: bool(row[2])):      # kept copies first
         target = keeper if dup and keeper is not None else rid
         name = names.get(imp or "")
         if name and name not in out.setdefault(target, []):
@@ -136,8 +138,8 @@ def _select(db: DBSession, review: models.Review, role: str, user_id: str, stage
             return given in reasons if given else (NO_REASON in reasons and statuses.get(i) == "exclude")
         ids = {i for i in ids if excluded_for(i)}
     q = select(models.Record).where(models.Record.review_id == review.id, models.Record.is_duplicate.is_(False))
-    if files:
-        q = q.where(or_(*(scr.found_in_import(review.id, f) for f in files)))
+    if files:                                  # what counts for a file: scr.in_file (D-29, D-42)
+        q = q.where(or_(*(scr.in_file(review, f) for f in files)))
     if pdfs:
         has = {"available": models.Record.pdf_key != "",
                "not_retrieved": models.Record.pdf_status == "not_retrieved",
@@ -153,10 +155,12 @@ def _select(db: DBSession, review: models.Review, role: str, user_id: str, stage
 def _screening_rows(db: DBSession, review: models.Review, rows: list[models.Record], c: dict, user_id: str,
                     blind: bool) -> list[dict]:
     found = _found_in(db, review.id)
+    names = dict(db.execute(select(models.Import.id, models.Import.filename)
+                            .where(models.Import.review_id == review.id)).all())
     out = []
     for r in rows:
         d = {f: getattr(r, f) for f in biblio.RECORD_FIELDS}
-        d.update(id=r.id, files="; ".join(found.get(r.id, [])),
+        d.update(id=r.id, file=names.get(r.import_id or "", ""), files="; ".join(found.get(r.id, [])),
                  ta_status=c["ta_status"].get(r.id, ""), ta_reason=_reason(c["decisions"]["ta"].get(r.id, {}), user_id, blind),
                  ft_status=c["ft_status"].get(r.id, ""), ft_reason=_reason(c["decisions"]["ft"].get(r.id, {}), user_id, blind),
                  pdf="available" if r.pdf_key else ("not retrieved" if r.pdf_status == "not_retrieved" else ""),

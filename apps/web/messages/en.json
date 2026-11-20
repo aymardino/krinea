@@ -726,7 +726,7 @@
         "complete": "The most complete record",
         "completeHint": "The default: the one with an abstract, a DOI, keywords and so on.",
         "file": "Follow the order of my imported files",
-        "fileHint": "For instance one file per search query, the most reliable first.",
+        "fileHint": "For instance one file per search query, the most reliable first. Each study then belongs to the file of the record kept: the file filters, the AI runs, the keywords of each search and the exports follow it.",
         "database": "Follow the order of the databases",
         "databaseHint": "PubMed, Scopus, Web of Science and so on."
       },

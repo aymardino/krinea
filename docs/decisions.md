@@ -783,3 +783,23 @@ API takes repeated parameters (`?import_id=a&import_id=b`); a single value works
 
 **Why.** The records of two searches, or the exclusions for two reasons, took two files to
 merge by hand.
+
+## D-42 · 2026-11-20 · decided · Under the file order, a record belongs to its kept file
+
+**Decision.** When a review keeps duplicates by the order of its imported files
+(`keeper_rule = "file"`, D-31), each record belongs to one file only: that of the copy kept.
+The file filters of the screening, full-text and extraction lists, the AI runs that follow
+them (D-40), the keywords of each search (D-30) and the file filter of the exports count it
+for that file alone (`screening.in_file`); under the other rules a record still counts for
+every file that found it (D-29). Screening exports add a `file` column, the file of the copy
+kept, and list it first in `files`. Decisions do not move: a record is screened once, whatever
+file shows it.
+
+**Why.** A review that runs one search per sub-question screens each study against the
+criteria of one search, and ranks the files to say which. Shown under every search that had
+found it, a study included with the criteria of query 1 seemed included for queries 3 and 5
+too.
+
+**Consequences.** Which copy is kept is set at the last duplicate detection. Detection starts
+again from scratch: a new run after screening may keep another copy of a study, and the
+decisions made on the copy set aside then no longer count, until it is restored.

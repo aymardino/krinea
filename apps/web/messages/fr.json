@@ -726,7 +726,7 @@
         "complete": "La notice la plus complète",
         "completeHint": "Par défaut : celle qui a un résumé, un DOI, des mots-clés, etc.",
         "file": "Suivre l'ordre de mes fichiers importés",
-        "fileHint": "Par exemple un fichier par requête, la plus fiable en premier.",
+        "fileHint": "Par exemple un fichier par requête, la plus fiable en premier. Chaque étude appartient alors au fichier de la notice gardée : les filtres par fichier, l'IA, les mots-clés de chaque requête et les exports le suivent.",
         "database": "Suivre l'ordre des bases de données",
         "databaseHint": "PubMed, Scopus, Web of Science, etc."
       },

@@ -14,6 +14,10 @@ Zenodo with its own DOI.
   ordered with the AI's exclusions first.
 - **Exports.** Each filter takes several values: several files, decisions,
   reasons, labels or PDF states at once.
+- **Files.** When duplicates are kept by the order of the imported files, each
+  study belongs only to the file of the record kept: file filters, AI runs,
+  keywords of each search and exports follow it. Screening exports gain a
+  `file` column.
 
 ## [0.2.0] - 2026-11-20
 

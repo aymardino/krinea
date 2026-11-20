@@ -141,6 +141,21 @@ def found_in_import(review_id: str, import_id: str):
     return or_(models.Record.import_id == import_id, models.Record.id.in_(merged_into))
 
 
+def by_kept_file(review: models.Review) -> bool:
+    """Whether each record belongs to one file only, that of the copy kept among duplicates:
+    when the review keeps duplicates by file order (one file per search, each with its own
+    criteria; D-42)."""
+    return (review.settings or {}).get("keeper_rule") == "file"
+
+
+def in_file(review: models.Review, import_id: str):
+    """The records that count for an imported file: those kept from it when the review keeps
+    duplicates by file order, else every record the file found, merged duplicates included."""
+    if by_kept_file(review):
+        return models.Record.import_id == import_id
+    return found_in_import(review.id, import_id)
+
+
 def search_keywords(review: models.Review) -> dict[str, dict[str, list[str]]]:
     """Highlight keywords that belong to one search (imported file), by import id."""
     raw = (review.criteria or {}).get("search_keywords") or {}
@@ -184,7 +199,7 @@ def keyword_counts(db: Session, review: models.Review, import_id: str = "") -> d
         texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base).all()]
         out = {"include": _counts(texts, inc), "exclude": _counts(texts, exc)}
     if import_id:
-        texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base.where(found_in_import(review.id, import_id))).all()] \
+        texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base.where(in_file(review, import_id))).all()] \
             if (s_inc or s_exc) else []
         out["search"] = {"include": _counts(texts, s_inc), "exclude": _counts(texts, s_exc)}
     return out
