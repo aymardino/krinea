@@ -21,6 +21,7 @@ from krinea_api.services import imports as import_service
 from krinea_api.services import jobs as job_service
 from krinea_api.services import screening as scr
 from krinea_api.services import storage
+from krinea_core import biblio
 
 router = APIRouter(prefix="/reviews/{review_id}", tags=["records"])
 
@@ -374,10 +375,13 @@ def update_record(record_id: int, body: schemas.RecordUpdate, access=Depends(Rev
                   user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     review, m = access
     rec = _one(db, review, record_id)
+    if body.doi is not None and body.doi.strip() and not biblio.clean_doi(body.doi):
+        raise HTTPException(400, "This is not a DOI (10.xxxx/...)")
     for f in ("labels", "notes", "title", "abstract", "year", "doi"):
         v = getattr(body, f)
         if v is not None:
-            setattr(rec, f, v.strip() if f != "abstract" else v)
+            # A DOI is kept bare, as the imports write it, whatever form it was typed in.
+            setattr(rec, f, biblio.clean_doi(v) if f == "doi" else v.strip() if f != "abstract" else v)
     db.commit()
     c = scr.compute(db, review)
     return record_out(rec, c, user.id, _blind(review, m.role), _names(db, review.id), None)

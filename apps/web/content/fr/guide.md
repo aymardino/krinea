@@ -143,8 +143,11 @@ Les flèches règlent l'ordre des champs : l'ordre de la grille, des consignes 
 | multi | une ou plusieurs des options |
 | list | une liste séparée par des virgules |
 | search | rien : Krinea le remplit |
+| doi | rien : Krinea le remplit |
 
 Un champ *search* est rempli par Krinea avec la requête de l'étude, c'est-à-dire le nom du fichier de sa notice gardée. Il n'est jamais demandé à l'IA. Ajoutez-le seulement si vous voulez cette colonne.
+
+Un champ *doi* est rempli par Krinea avec le lien du DOI de la notice de l'étude, par exemple `https://doi.org/10.1016/...`, cliquable dans la vue d'extraction et dans l'export Excel. La notice est plus sûre que le PDF, qui n'imprime pas toujours son DOI. Une étude dont la notice n'a pas de DOI affiche une case pour le saisir : il va alors dans la notice, et dans tous les exports.
 
 **Les champs de certaines requêtes.** Laissez **Requêtes** sur *Toutes* pour un champ demandé à toutes les études, ou cochez une ou plusieurs requêtes. Une étude n'affiche, ne fait extraire et ne contrôle alors que les champs généraux et ceux de sa propre requête.
 
@@ -156,7 +159,7 @@ Un champ *search* est rempli par Krinea avec la requête de l'étude, c'est-à-d
 
 **Lancer l'IA.** **Extraire avec l'IA** traite les études affichées qui ont un PDF et pas encore de brouillon ; filtrez la liste pour en traiter moins. Dans une étude ouverte, **Relancer l'IA** ne refait que celle-ci.
 
-**Vérifier.** Ouvrez une étude pour voir les valeurs à côté du PDF et de son texte extrait. Les erreurs et avertissements signalent ce qu'il faut regarder : un champ obligatoire vide, une valeur hors des options, une citation manquante. Corrigez ce qui doit l'être, puis cliquez sur **Enregistrer comme vérifiée**. Les valeurs de l'IA sont gardées à côté des valeurs vérifiées.
+**Vérifier.** Ouvrez une étude pour voir les valeurs à côté du PDF et de son texte extrait. Les erreurs et avertissements signalent ce qu'il faut regarder : un champ obligatoire vide, une valeur hors des options, une citation manquante. Une réponse de l'IA qui n'est pas une des options s'affiche en orange, marquée « hors liste », à garder ou à remplacer. Les options sont reconnues sans tenir compte des majuscules, des accents, des espaces, des tirets et des tirets bas. Si la réponse de l'IA s'arrête avant les derniers champs, l'étude l'indique : relancez l'IA. Corrigez ce qui doit l'être, puis cliquez sur **Enregistrer comme vérifiée**. Les valeurs de l'IA sont gardées à côté des valeurs vérifiées.
 
 ## 7. Exports (onglet Exports)
 
@@ -172,6 +175,8 @@ Un champ *search* est rempli par Krinea avec la requête de l'étude, c'est-à-d
 
 - **Les exports du tri** donnent pour chaque notice sa décision et son motif aux deux étapes, son PDF, ses étiquettes et notes, le fichier de sa notice gardée (`file`) et tous les fichiers qui l'ont trouvée (`files`).
 - **Les exports de l'extraction** contiennent les extractions vérifiées, ou toutes les études incluses avec l'état de leur extraction. Le fichier Excel a trois feuilles : les valeurs, les citations et la grille.
+
+Dans les fichiers Excel, les DOI et les adresses web sont des liens cliquables.
 
 **Autres exports.** Le journal des décisions, les comptages PRISMA, et toutes les notices doublons compris.
 

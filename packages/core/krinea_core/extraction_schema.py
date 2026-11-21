@@ -10,6 +10,8 @@ Field kinds:
     sentences  one or two sentences            year      4-digit year
     yesno      yes | no                        enum      exactly one of `options`
     multi      one or more of `options`        list      free comma-separated list
+    search     the study's search (filled in by the application)
+    doi        the DOI link of the study's citation (filled in by the application)
 
     fields = extraction_schema.from_json(project["schema_json"])
     prompt = extraction_schema.build_prompt(fields, text, context=question)
@@ -23,11 +25,14 @@ import datetime as _dt
 import io
 import json
 import re
+import unicodedata
 
 FIELD_KINDS = ["text", "sentences", "number", "year", "yesno", "enum", "multi", "list"]
-# Kinds the application fills in itself, never asked of the AI: "search", the search (imported
-# file) a study belongs to, which a review adds to its form if it wants that column.
-AUTO_KINDS = ["search"]
+# Kinds the application fills in itself, never asked of the AI, which a review adds to its form
+# if it wants that column: "search", the search (imported file) a study belongs to (D-49), and
+# "doi", the https://doi.org/ link of the DOI of the study's citation, which some PDFs do not
+# print (D-52).
+AUTO_KINDS = ["search", "doi"]
 KIND_LABELS = {
     "text": "Short text", "sentences": "Sentences (summary)", "number": "Number",
     "year": "Year", "yesno": "Yes / no", "enum": "Single choice", "multi": "Multiple choice",
@@ -259,7 +264,8 @@ def build_prompt(fields, text: str, context: str = "") -> str:
 Extract ONLY what the text supports. If a field cannot be determined, use "" (empty string).
 
 Return a SINGLE JSON object. For EVERY field below, return an object with:
-  "value": the extracted value, respecting the allowed options EXACTLY (lowercase for options)
+  "value": the extracted value; for a field with options, one of them (or several, if allowed),
+           copied exactly as written above
   "quote": a short verbatim snippet (< 25 words) from the text justifying it, or ""
 
 FIELDS:
@@ -285,12 +291,48 @@ def clean_result(fields, raw: dict) -> tuple[dict, dict]:
             v, q = item, ""
         if isinstance(v, (list, tuple)):
             v = ", ".join(str(x) for x in v)
-        v = " ".join(str(v if v is not None else "").split())
-        if f["kind"] in ("enum", "multi", "yesno"):
-            v = v.lower()
-        values[f["name"]] = v
+        values[f["name"]] = " ".join(str(v if v is not None else "").split())
         quotes[f["name"]] = " ".join(str(q or "").split())
-    return values, quotes
+    return canonical(fields, values), quotes
+
+
+def answer_tokens(fields) -> int:
+    """The output tokens to allow for an extraction: room for every field's value and quote,
+    so that a long form is not cut off (a cut answer loses its last fields)."""
+    asked = sum(1 for f in fields if f["kind"] not in AUTO_KINDS)
+    return min(16384, max(8192, 1024 + 200 * asked))
+
+
+# ── Choice values ────────────────────────────────────────────────────────────────
+YES_NO = {"yes": "yes", "no": "no", "y": "yes", "n": "no", "true": "yes", "false": "no", "oui": "yes", "non": "no"}
+
+
+def _key(s) -> str:
+    """A value compared loosely with the options: case, accents, spaces, hyphens and
+    underscores aside."""
+    s = "".join(c for c in unicodedata.normalize("NFKD", str(s)) if not unicodedata.combining(c))
+    return re.sub(r"[\s_\-]+", " ", s.lower()).strip()
+
+
+def canonical(fields, values: dict) -> dict:
+    """The values of choice fields written as the options are (D-53): "capacity expansion" or
+    "Capacity-expansion" becomes the option "Capacity expansion". A value that is no option
+    is kept as it is, for the checks to flag it."""
+    out = dict(values or {})
+    for f in fields:
+        v = out.get(f["name"])
+        if not isinstance(v, str) or not v.strip():
+            continue
+        if f["kind"] == "yesno":
+            out[f["name"]] = YES_NO.get(v.strip().lower(), v.strip())
+        elif f["kind"] in ("enum", "multi"):
+            by_key = {_key(o): o for o in f["options"]}
+            if f["kind"] == "enum":
+                out[f["name"]] = by_key.get(_key(v), v.strip())
+            else:
+                items = [x.strip() for x in re.split(r"[,;]", v) if x.strip()]
+                out[f["name"]] = ", ".join(dict.fromkeys(by_key.get(_key(x), x) for x in items))
+    return out
 
 
 # ── Generic consistency checks (schema-driven) ────────────
@@ -309,11 +351,11 @@ def check_values(fields, values: dict, quotes: dict | None = None) -> dict:
                 flags[name] = ("error", "Required field is empty")
             continue
         low = val.lower()
-        if kind == "enum" and low not in [o.lower() for o in f["options"]]:
+        keys = {_key(o) for o in f["options"]}
+        if kind == "enum" and _key(val) not in keys:
             flags[name] = ("error", f"'{val}' is not one of: {', '.join(f['options'])}")
         elif kind == "multi":
-            bad = [x.strip() for x in re.split(r"[,;]", val)
-                   if x.strip() and x.strip().lower() not in [o.lower() for o in f["options"]]]
+            bad = [x.strip() for x in re.split(r"[,;]", val) if x.strip() and _key(x) not in keys]
             if bad:
                 flags[name] = ("error", f"Not allowed: {', '.join(bad)}")
         elif kind == "yesno" and low not in ("yes", "no"):
@@ -346,6 +388,6 @@ def extract_pdf(fields, pdf_path: str, api_key: str, provider: str, model: str,
     if len(text) < 500:
         raise ValueError("Extracted text too short — PDF may be scanned (needs OCR).")
     raw, _usage = llm.call_json(build_prompt(fields, text, context), provider, api_key, model,
-                                purpose="extraction", max_retries=2)
+                                purpose="extraction", max_tokens=answer_tokens(fields), max_retries=2)
     values, quotes = clean_result(fields, raw)
     return values, quotes, text

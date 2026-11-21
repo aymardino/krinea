@@ -37,6 +37,8 @@ RIS = "application/x-research-info-systems"
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 # Characters an Excel cell refuses (control characters some database exports carry).
 _ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+# Excel keeps at most 65,530 links per sheet, each at most 2,079 characters long.
+_MAX_LINKS, _MAX_URL = 65000, 2000
 
 
 def _record_dicts(db: DBSession, review_id: str, ids: list[int] | None = None) -> list[dict]:
@@ -72,9 +74,28 @@ def _xlsx(sheets: dict[str, tuple[list[str], list[list]]], extra: dict | None = 
         for name, (columns, rows) in sheets.items():
             clean = [[_ILLEGAL.sub("", v) if isinstance(v, str) else v for v in row] for row in rows]
             pd.DataFrame(clean, columns=columns).to_excel(xl, sheet_name=name, index=False)
+            _link_cells(xl.sheets[name], columns)
         for name, frame in (extra or {}).items():
             frame.to_excel(xl, sheet_name=name, index=False)
     return buf.getvalue()
+
+
+def _link_cells(ws, columns: list[str]) -> None:
+    """Make a sheet's DOIs and web addresses clickable: a `doi` cell keeps its bare DOI and
+    links to https://doi.org/, a cell holding one address links to it."""
+    doi_col = columns.index("doi") + 1 if "doi" in columns else 0
+    n = 0
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            v = cell.value
+            if not isinstance(v, str) or not v:
+                continue
+            url = biblio.doi_url(v) if cell.column == doi_col else v if v.startswith(("https://", "http://")) else ""
+            if url and len(url) <= _MAX_URL and not any(c.isspace() for c in url):
+                cell.hyperlink, cell.style = url, "Hyperlink"
+                n += 1
+                if n >= _MAX_LINKS:
+                    return
 
 
 # ── Selection ────────────────────────────────────────────────────────────────────
@@ -303,14 +324,20 @@ def export_extractions(fmt: str, status: str = "verified", import_id: list[str] 
     files = dict(db.execute(select(models.Import.id, models.Import.filename)
                             .where(models.Import.review_id == review.id)).all())
     meta = ["record_id", "title", "authors", "year", "journal", "doi"] + (["status"] if with_status else [])
-    auto = {f["name"] for f in fields if f["kind"] in extraction_schema.AUTO_KINDS}
+    auto = {f["name"]: f["kind"] for f in fields if f["kind"] in extraction_schema.AUTO_KINDS}
+
+    def filled(r: models.Record, kind: str) -> str:
+        # A "search" field holds the study's search, the file of its kept copy (D-49); a "doi"
+        # field the link of the DOI of its citation (D-52).
+        return files.get(r.import_id or "", "") if kind == "search" else biblio.doi_url(r.doi)
 
     def line(r: models.Record, e: models.Extraction | None, attr: str) -> list:
         head = [r.id, r.title, r.authors, r.year, r.journal, r.doi] + ([e.status if e else ""] if with_status else [])
         cells = (getattr(e, attr) or {}) if e else {}
-        # A "search" field, when the form has one, holds the study's search: the file of its
-        # kept copy (D-49); it has no quote.
-        return head + [(files.get(r.import_id or "", "") if attr == "values" else "") if n in auto else cells.get(n, "")
+        if attr == "values":
+            cells = extraction_schema.canonical(fields, cells)        # choices as the options are (D-53)
+        # The fields Krinea fills in have no quote.
+        return head + [(filled(r, auto[n]) if attr == "values" else "") if n in auto else cells.get(n, "")
                        for n in names]
 
     values = [line(r, e, "values") for r, e in pairs]

@@ -30,8 +30,11 @@ DEFAULT_MODELS = {
 }
 MARKER = "STUDY TEXT:"
 # Gemini models think before they answer and the thinking counts against max_output_tokens:
-# under a small cap the call ends before the answer starts, with an empty reply.
-GEMINI_MIN_OUTPUT_TOKENS = 8192
+# under a small cap the call ends before the answer starts, with an empty reply, and a long
+# answer is cut off. The thinking gets this room on top of the answer's.
+GEMINI_THINKING_TOKENS = 8192
+# The largest answer the DeepSeek models are asked for.
+DEEPSEEK_MAX_OUTPUT_TOKENS = 8192
 
 
 @dataclass
@@ -103,7 +106,7 @@ def _call_gemini(prompt: str, api_key: str, model: str, max_tokens: int) -> tupl
     # temperature: Gemini 3 models are meant to run at their default one.
     with genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=300_000)) as client:
         resp = client.models.generate_content(model=model, contents=prompt, config=types.GenerateContentConfig(
-            response_mime_type="application/json", max_output_tokens=max(max_tokens, GEMINI_MIN_OUTPUT_TOKENS)))
+            response_mime_type="application/json", max_output_tokens=max_tokens + GEMINI_THINKING_TOKENS))
     um = getattr(resp, "usage_metadata", None)
     usage = Usage(int(getattr(um, "prompt_token_count", 0) or 0),          # thinking is billed as output
                   int(getattr(um, "candidates_token_count", 0) or 0) + int(getattr(um, "thoughts_token_count", 0) or 0))
@@ -116,7 +119,8 @@ def _call_deepseek(prompt: str, api_key: str, model: str, max_tokens: int) -> tu
     system, user = _split(prompt)
     messages = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]
     resp = client.chat.completions.create(model=model, messages=messages, temperature=0,
-                                          max_tokens=max_tokens, response_format={"type": "json_object"})
+                                          max_tokens=min(max_tokens, DEEPSEEK_MAX_OUTPUT_TOKENS),
+                                          response_format={"type": "json_object"})
     u = getattr(resp, "usage", None)
     usage = Usage(int(getattr(u, "prompt_tokens", 0) or 0), int(getattr(u, "completion_tokens", 0) or 0))
     return resp.choices[0].message.content or "", usage

@@ -42,6 +42,12 @@ def clean_doi(value) -> str:
     return doi.lower()
 
 
+def doi_url(value) -> str:
+    """The https://doi.org/ link of a DOI given in any form, or "" when there is none."""
+    doi = clean_doi(value)
+    return f"https://doi.org/{doi}" if doi else ""
+
+
 def clean_year(value) -> str:
     m = _YEAR_RE.search(str(value or ""))
     return m.group(1) if m else ""

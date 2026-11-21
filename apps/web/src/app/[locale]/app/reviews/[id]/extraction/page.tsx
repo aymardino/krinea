@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bot, Check, FileText, Search } from "lucide-react";
+import { Bot, Check, ExternalLink, FileText, Search } from "lucide-react";
 import { api, ApiError, type Extraction, type Field, type ImportRow, type Job, type LabelCount, type RecordPage, type StudyRecord as Rec } from "@/lib/api";
 import { canReview, useReview } from "@/components/app/review-context";
 import { Button } from "@/components/ui/button";
@@ -19,25 +19,69 @@ import { useJob } from "@/lib/use-job";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-function FieldInput({ f, value, onChange, search }: { f: Field; value: string; onChange: (v: string) => void; search: string }) {
+// A value compared loosely with the options, as Krinea does (D-53): case, accents, spaces,
+// hyphens and underscores aside.
+const looseKey = (s: string) => s.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
+const asOption = (options: string[], v: string) => options.find((o) => looseKey(o) === looseKey(v)) ?? v;
+
+function DoiInput({ onSave, pending }: { onSave?: (doi: string) => void; pending: boolean }) {
+  const t = useTranslations("review.extraction");
+  const c = useTranslations("common");
+  const [doi, setDoi] = useState("");
+  if (!onSave) return <p className="rounded-md border border-dashed border-input px-3 py-2 text-sm text-muted-foreground">{t("noDoi")}</p>;
+  return (
+    <div className="flex gap-2">
+      <Input value={doi} onChange={(e) => setDoi(e.target.value)} placeholder={t("doiPlaceholder")} />
+      <Button variant="outline" onClick={() => onSave(doi)} disabled={!doi.trim() || pending}>{c("save")}</Button>
+    </div>
+  );
+}
+
+function FieldInput({ f, value, onChange, search, doi, onDoi, doiPending }: {
+  f: Field; value: string; onChange: (v: string) => void; search: string; doi: string; onDoi?: (doi: string) => void; doiPending: boolean;
+}) {
+  const t = useTranslations("review.extraction");
   // A "search" field fills itself with the study's search (D-49): nothing to type.
   if (f.kind === "search") return <p className="rounded-md border border-dashed border-input px-3 py-2 text-sm text-muted-foreground">{search || "—"}</p>;
+  // A "doi" field is the link of the DOI of the study's citation (D-52); without one, the
+  // reviewer can add it to the citation.
+  if (f.kind === "doi") {
+    if (!doi) return <DoiInput onSave={onDoi} pending={doiPending} />;
+    return (
+      <a className="flex items-center gap-1.5 break-all rounded-md border border-dashed border-input px-3 py-2 text-sm text-primary hover:underline" href={`https://doi.org/${doi}`} target="_blank" rel="noreferrer">
+        https://doi.org/{doi}<ExternalLink className="size-3 shrink-0" />
+      </a>
+    );
+  }
   if (f.kind === "enum" || f.kind === "yesno") {
     const opts = f.kind === "yesno" ? ["yes", "no"] : f.options;
+    // An answer that is no option stays visible, to be kept or replaced.
+    const chosen = value ? asOption(opts, value) : "";
+    const offList = chosen !== "" && !opts.includes(chosen);
     return (
-      <Select value={value || "__none"} onValueChange={(v) => onChange(v === "__none" ? "" : v)}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
-        <SelectContent><SelectItem value="__none">—</SelectItem>{opts.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+      <Select value={chosen || "__none"} onValueChange={(v) => onChange(v === "__none" ? "" : v)}>
+        <SelectTrigger className={offList ? "text-maybe" : undefined}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none">—</SelectItem>
+          {offList && <SelectItem value={chosen}>{t("offList", { value: chosen })}</SelectItem>}
+          {opts.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+        </SelectContent>
       </Select>
     );
   }
   if (f.kind === "multi") {
-    const chosen = value.split(/[,;]/).map((s) => s.trim()).filter(Boolean);
+    const chosen = [...new Set(value.split(/[,;]/).map((s) => s.trim()).filter(Boolean).map((x) => asOption(f.options, x)))];
+    const extra = chosen.filter((x) => !f.options.includes(x));
     return (
       <div className="flex flex-wrap gap-3 rounded-md border border-input p-2">
         {f.options.map((o) => (
           <label key={o} className="inline-flex items-center gap-1.5 text-sm">
             <Checkbox checked={chosen.includes(o)} onCheckedChange={(ck) => onChange((ck ? [...chosen, o] : chosen.filter((x) => x !== o)).join(", "))} />{o}
+          </label>
+        ))}
+        {extra.map((o) => (
+          <label key={o} className="inline-flex items-center gap-1.5 text-sm text-maybe">
+            <Checkbox checked onCheckedChange={() => onChange(chosen.filter((x) => x !== o).join(", "))} />{t("offList", { value: o })}
           </label>
         ))}
       </div>
@@ -74,6 +118,12 @@ export default function ExtractionPage() {
   const list = useQuery<Extraction[]>({ queryKey: ["extractions", rid], queryFn: () => api.get(`/reviews/${rid}/extraction`) });
   const one = useQuery<Extraction>({ queryKey: ["extraction", rid, open], queryFn: () => api.get(`/reviews/${rid}/extraction/${open}`), enabled: open !== null && !!list.data?.some((e) => e.record_id === open) });
   const byRecord = useMemo(() => new Map((list.data ?? []).map((e) => [e.record_id, e])), [list.data]);
+  // A DOI typed for a study without one goes into its citation, for every export (D-52).
+  const setDoi = useMutation({
+    mutationFn: (doi: string) => api.patch<Rec>(`/reviews/${rid}/records/${open}`, { doi }),
+    onSuccess: () => { toast.success(c("saved")); qc.invalidateQueries({ queryKey: ["records", rid] }); },
+    onError,
+  });
   const invalidate = () => { qc.invalidateQueries({ queryKey: ["extractions", rid] }); qc.invalidateQueries({ queryKey: ["extraction", rid] }); refresh(); };
 
   useEffect(() => { if (one.data) setValues(one.data.values); else if (open !== null && !byRecord.has(open)) setValues({}); }, [one.data, open, byRecord]);
@@ -135,7 +185,8 @@ export default function ExtractionPage() {
             {shownFields.map((f) => (
               <div key={f.name} className="space-y-1.5">
                 <Label className="flex items-center gap-2">{f.label}{f.required && <span className="text-exclude">*</span>}<span className="text-xs font-normal text-muted-foreground">{f.kind}</span></Label>
-                <FieldInput f={f} value={values[f.name] ?? ""} onChange={(v) => setValues({ ...values, [f.name]: v })} search={searchName} />
+                <FieldInput f={f} value={values[f.name] ?? ""} onChange={(v) => setValues({ ...values, [f.name]: v })} search={searchName}
+                  doi={current.doi} onDoi={editable ? (d) => setDoi.mutate(d) : undefined} doiPending={setDoi.isPending} />
                 {flags[f.name] && <p className={`text-xs ${flags[f.name][0] === "error" ? "text-exclude" : "text-maybe"}`}>{flags[f.name][1]}</p>}
                 {ex?.quotes?.[f.name] && <p className="text-xs italic text-muted-foreground">↳ {ex.quotes[f.name]}</p>}
               </div>

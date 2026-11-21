@@ -87,7 +87,7 @@ def test_gemini_call_uses_its_own_client_and_leaves_room_for_thinking(monkeypatc
     assert seen["key"] == "AQ.test-key" and seen["closed"]
     assert seen["model"] == llm.DEFAULT_MODELS["screening"]["gemini"] == "gemini-3.8-flash"
     config = seen["config"]
-    assert config.max_output_tokens == llm.GEMINI_MIN_OUTPUT_TOKENS    # 1024 would leave no room to answer
+    assert config.max_output_tokens == 1024 + llm.GEMINI_THINKING_TOKENS    # 1024 would leave no room to answer
     assert config.response_mime_type == "application/json" and config.temperature is None
 
 

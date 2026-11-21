@@ -143,8 +143,11 @@ The arrows set the order of the fields: the order of the form, of the AI's instr
 | multi | one or more of the options |
 | list | a comma-separated list |
 | search | nothing: Krinea fills it in |
+| doi | nothing: Krinea fills it in |
 
 A *search* field is filled in by Krinea with the study's search, the name of the file of its kept copy. It is never asked of the AI. Add it only if you want that column.
+
+A *doi* field is filled in by Krinea with the link of the DOI of the study's citation, such as `https://doi.org/10.1016/...`, which you can click in the extraction view and in the Excel export. The citation is more reliable than the PDF, which does not always print its DOI. A study whose citation has no DOI shows a box to type it in: it then goes into the citation, and into every export.
 
 **Fields of some searches.** Leave **Searches** on *All* for a field asked of every study, or tick one or more searches. A study then shows, gets extracted and is checked with the general fields and those of its own search only.
 
@@ -156,7 +159,7 @@ A *search* field is filled in by Krinea with the study's search, the name of the
 
 **Running the AI.** **Extract with AI** runs on the studies shown that have a PDF and no draft yet; filter the list to run it on fewer. In an open study, **Run AI again** redoes that one only.
 
-**Verifying.** Open a study to see the values next to the PDF and its extracted text. Errors and warnings point to what needs a look: a required field left empty, a value outside the options, a missing quote. Correct what needs it, then click **Save as verified**. The AI's values are kept next to the verified ones.
+**Verifying.** Open a study to see the values next to the PDF and its extracted text. Errors and warnings point to what needs a look: a required field left empty, a value outside the options, a missing quote. An answer of the AI that is not one of the options is shown in orange, marked "not in the list", to keep or replace. Options are matched regardless of case, accents, spaces, hyphens and underscores. If the AI's answer stops before the last fields, the study says so: run the AI again. Correct what needs it, then click **Save as verified**. The AI's values are kept next to the verified ones.
 
 ## 7. Exports (Exports tab)
 
@@ -172,6 +175,8 @@ A *search* field is filled in by Krinea with the study's search, the name of the
 
 - **Screening exports** give, for each record, its status and reason at both stages, its PDF, labels and notes, the file of its kept copy (`file`) and every file that found it (`files`).
 - **Extraction exports** hold the verified extractions, or every included study with the status of its extraction. The Excel file has three sheets: values, quotes and the form.
+
+In the Excel files, DOIs and web addresses are links you can click.
 
 **Other exports.** The decision log, the PRISMA counts, and all records with duplicates included.
 

@@ -201,6 +201,7 @@ def test_full_flow(client, client2, pdf_bytes, monkeypatch):
     assert r.json()["status"] == "done" and r.json()["result"]["ok"] == 1
     ex = client2.get(f"/reviews/{rid}/extraction/{kenya}").json()
     assert ex["status"] == "draft" and ex["values"]["key_result"] == "Mini-grids are least cost."
+    assert ex["error"].startswith("The AI did not answer 10 of the 12 fields (year, country, study_design")
     assert "mini-grids" in ex["text_extracted"]
     jobs = client.get(f"/reviews/{rid}/jobs").json()
     assert [j["kind"] for j in jobs][:3] == ["extract", "ai_screen", "dedup"]

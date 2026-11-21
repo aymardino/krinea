@@ -104,6 +104,8 @@ def test_clean_doi():
     assert biblio.clean_doi("https://doi.org/10.1016/J.ESD.2019.07.009.") == "10.1016/j.esd.2019.07.009"
     assert biblio.clean_doi("doi: 10.1016/S0140-6736(20)30183-5)") == "10.1016/s0140-6736(20)30183-5"
     assert biblio.clean_doi("no doi here") == ""
+    assert biblio.doi_url("doi:10.1016/J.ESD.2019.07.009") == "https://doi.org/10.1016/j.esd.2019.07.009"
+    assert biblio.doi_url("") == ""
     assert biblio.clean_year("2019///") == "2019"
     assert biblio.clean_year("Jul 15 2019") == "2019"
     assert biblio.clean_year("vol 52") == ""

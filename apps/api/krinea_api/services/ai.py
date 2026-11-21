@@ -145,10 +145,19 @@ def extract_record(db: Session, review: models.Review, user: models.User, record
         if len(text) < 500:
             raise ValueError("Extracted text too short — the PDF may be scanned (needs OCR)")
         prompt = extraction_schema.build_prompt(fields, text, context=review.question or "")
-        raw, usage = llm.call_json(prompt, provider, key, model, purpose="extraction", max_tokens=8192)
+        raw, usage = llm.call_json(prompt, provider, key, model, purpose="extraction",
+                                   max_tokens=extraction_schema.answer_tokens(fields))
         record_usage(db, user, review.id, provider, model, "extraction", usage, source)
         values, quotes = extraction_schema.clean_result(fields, raw)
         ex.values, ex.quotes, ex.ai_values, ex.text_extracted = values, quotes, dict(values), text
+        # An answer cut off by the output limit loses its last fields: say so rather than
+        # leave them empty as if the text said nothing.
+        asked = [f["name"] for f in fields if f["kind"] not in extraction_schema.AUTO_KINDS]
+        missing = [n for n in asked if n not in (raw if isinstance(raw, dict) else {})]
+        if missing:
+            ex.error = (f"The AI did not answer {len(missing)} of the {len(asked)} fields "
+                        f"({', '.join(missing[:5])}{', ...' if len(missing) > 5 else ''}); "
+                        "its answer may have been cut off: extract again")
     except Exception as e:              # noqa: BLE001 — the failure is recorded on the draft
         ex.status, ex.error = "failed", f"{type(e).__name__}: {e}"
     db.commit()

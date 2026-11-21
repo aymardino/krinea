@@ -149,8 +149,10 @@ def test_each_stage_exports_with_its_filters(client):
     assert [c.value for c in sheet[1]] == SCREENING_COLUMNS and sheet.max_row == 4
     assert "Check the tables again" in {c.value for c in sheet["M"]}      # Excel refuses control characters
 
-    # A "search" field, added to the form, holds the study's search (D-49).
-    schema = client.get(f"/reviews/{rid}").json()["extraction_schema"] + [{"name": "query", "label": "Query", "kind": "search"}]
+    # A "search" field, added to the form, holds the study's search (D-49), a "doi" field the
+    # link of the DOI of its citation (D-52).
+    schema = client.get(f"/reviews/{rid}").json()["extraction_schema"] + [{"name": "query", "label": "Query", "kind": "search"},
+                                                                         {"name": "link", "label": "Link", "kind": "doi"}]
     assert client.patch(f"/reviews/{rid}", json={"extraction_schema": schema}).status_code == 200
 
     # Extraction: the verified extractions by default, or every included study with its status.
@@ -159,6 +161,7 @@ def test_each_stage_exports_with_its_filters(client):
     verified = list(csv.DictReader(io.StringIO(client.get(f"/reviews/{rid}/export/extractions.csv").text)))
     assert [(int(r["record_id"]), r["country"]) for r in verified] == [(kenya, "Kenya")] and "status" not in verified[0]
     assert verified[0]["query"] == "scopus.ris"                     # the file of the kept copy
+    assert verified[0]["link"] == "https://doi.org/10.1016/j.esd.2019.07.009" and verified[0]["doi"] == "10.1016/j.esd.2019.07.009"
     every = list(csv.DictReader(io.StringIO(client.get(f"/reviews/{rid}/export/extractions.csv", params={"status": "all"}).text)))
     assert {int(r["record_id"]): r["status"] for r in every} == {kenya: "verified", nigeria: ""}
     assert client.get(f"/reviews/{rid}/export/extractions.csv", params={"status": "all", "label": "SQ1"}).text.count("\n") == 2
@@ -166,6 +169,10 @@ def test_each_stage_exports_with_its_filters(client):
                       params={"stage": "extract", "status": "all", "label": ["SQ1", "SQ10"]}).json()["n"] == 2
     book = load_workbook(io.BytesIO(client.get(f"/reviews/{rid}/export/extractions.xlsx", params={"status": "all"}).content))
     assert book.sheetnames == ["values", "quotes", "fields"] and book["values"].max_row == 3
+    head = [c.value for c in book["values"][1]]
+    doi, link = (book["values"].cell(row=2, column=head.index(n) + 1) for n in ("doi", "link"))
+    assert doi.value == "10.1016/j.esd.2019.07.009" and doi.hyperlink.target == "https://doi.org/10.1016/j.esd.2019.07.009"
+    assert link.value == link.hyperlink.target == "https://doi.org/10.1016/j.esd.2019.07.009"
     assert client.get(f"/reviews/{rid}/export/extractions.ris").text.count("TY  - ") == 1
 
     for path, params in (("screening.csv", {"stage": "extract"}), ("screening.pdf", {}), ("screening.csv", {"status": "x"}),
@@ -200,3 +207,28 @@ def test_a_blind_reviewer_exports_only_their_own_decisions(client, client2):
     assert reviewers == {"exports-blind-reviewer@example.org"}
     reviewers = {r["reviewer"] for r in csv.DictReader(io.StringIO(client.get(f"/reviews/{rid}/export/decisions.csv").text))}
     assert reviewers == {"exports-blind-owner@example.org", "exports-blind-reviewer@example.org", "consensus"}
+
+
+def test_choices_read_as_their_options_and_a_typed_doi_goes_into_the_citation(client):
+    register(client, "choices-owner@example.org", "Owner")
+    rid = client.post("/reviews", json={"title": "Choices"}).json()["id"]
+    _import(client, rid, "scopus.ris", SCOPUS, "Scopus")
+    rec = client.get(f"/reviews/{rid}/records", params={"stage": "ta", "view": "all"}).json()["items"][0]["id"]
+    form = [{"name": "problem", "label": "Problem", "kind": "multi", "options": ["capacity expansion", "other"]},
+            {"name": "guarantee", "label": "Guarantee", "kind": "enum", "options": ["always feasible", "not reported"]}]
+    assert client.patch(f"/reviews/{rid}", json={"extraction_schema": form}).status_code == 200
+    r = client.put(f"/reviews/{rid}/extraction/{rec}", json={"values": {"problem": "Capacity-Expansion", "guarantee": "not applicable"}})
+    assert r.json()["values"] == {"problem": "capacity expansion", "guarantee": "not applicable"}
+    flags = r.json()["flags"]
+    assert flags["guarantee"][0] == "error" and flags["problem"] == ["warning", "No source quote, check the text"]
+
+    # Values saved before D-53 in lower case read as the options are written now.
+    form[0]["options"] = ["Capacity expansion", "Other"]
+    assert client.patch(f"/reviews/{rid}", json={"extraction_schema": form}).status_code == 200
+    assert client.get(f"/reviews/{rid}/extraction/{rec}").json()["values"]["problem"] == "Capacity expansion"
+
+    # A DOI typed on a record is kept bare (D-52); text without a DOI is refused.
+    r = client.patch(f"/reviews/{rid}/records/{rec}", json={"doi": "https://doi.org/10.5555/ABC.1"})
+    assert r.status_code == 200 and r.json()["doi"] == "10.5555/abc.1"
+    assert client.patch(f"/reviews/{rid}/records/{rec}", json={"doi": "none"}).status_code == 400
+    assert client.patch(f"/reviews/{rid}/records/{rec}", json={"doi": ""}).json()["doi"] == ""

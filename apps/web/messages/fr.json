@@ -592,6 +592,9 @@
       "text": "Études incluses au texte intégral. L'IA remplit votre grille depuis chaque PDF avec une citation par champ ; vous vérifiez à côté de l'article.",
       "run": "Extraire avec l'IA",
       "runHint": "{n} études avec PDF et sans brouillon",
+      "offList": "{value} (hors liste)",
+      "noDoi": "Pas de DOI dans la notice",
+      "doiPlaceholder": "Pas de DOI dans la notice : saisissez-le pour l'ajouter (10.xxxx/…)",
       "status": {
         "none": "Non commencée",
         "draft": "Brouillon",
@@ -711,7 +714,7 @@
       "inviteRole": "Rôle",
       "pending": "Invitations en attente",
       "form": "Grille d'extraction",
-      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list, et search (la requête de l'étude, remplie par Krinea, jamais demandée à l'IA). Les flèches règlent l'ordre du formulaire et des colonnes des exports ; « Requêtes » réserve un champ aux études de certaines requêtes.",
+      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list, search (la requête de l'étude) et doi (le lien du DOI de la notice de l'étude), remplis par Krinea et jamais demandés à l'IA. Les flèches règlent l'ordre du formulaire et des colonnes des exports ; « Requêtes » réserve un champ aux études de certaines requêtes.",
       "addField": "Ajouter un champ",
       "templates": "Modèles",
       "templateDefault": "PICO (par défaut)",

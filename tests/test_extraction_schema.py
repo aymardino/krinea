@@ -36,6 +36,32 @@ def test_a_search_field_is_never_asked_of_the_ai():
     assert es.check_values(fields, {"country": "Kenya"}, {"country": "Kenya"}) == {}   # filled in by the app
 
 
+def test_choice_values_are_written_as_the_options_are():
+    fields = [es.normalise_field({"name": "problem", "kind": "multi", "options": "Capacity expansion | Neural network | Other"}),
+              es.normalise_field({"name": "family", "kind": "enum", "options": "Long_term planning | Modélisation", "required": True}),
+              es.normalise_field({"name": "guarantee", "kind": "enum", "options": "Always feasible | Not reported"}),
+              es.normalise_field({"name": "deep", "kind": "yesno"})]
+    raw = {"problem": {"value": ["capacity expansion", "Neural-Network", "capacity expansion", "GAN"], "quote": "q"},
+           "family": {"value": "long term planning", "quote": "q"}, "guarantee": {"value": "not applicable", "quote": "q"},
+           "deep": {"value": "True", "quote": "q"}}
+    values, _ = es.clean_result(fields, raw)
+    assert values == {"problem": "Capacity expansion, Neural network, GAN", "family": "Long_term planning",
+                      "guarantee": "not applicable", "deep": "yes"}
+    assert es.canonical(fields, {"family": "MODELISATION"})["family"] == "Modélisation"
+    flags = es.check_values(fields, values, {n: "q" for n in values})
+    assert flags == {"problem": ("error", "Not allowed: GAN"),
+                     "guarantee": ("error", "'not applicable' is not one of: Always feasible, Not reported")}
+    assert "copied exactly as written" in es.build_prompt(fields, "TEXT") and "lowercase" not in es.build_prompt(fields, "TEXT")
+
+
+def test_a_doi_field_and_the_answer_budget():
+    doi = es.normalise_field({"name": "link", "kind": "DOI"})
+    assert doi["kind"] == "doi" and "link" not in es.build_prompt([doi], "TEXT")
+    assert es.answer_tokens([doi]) == 8192                          # never under the former limit
+    fifty = [es.normalise_field({"name": f"f{i}"}) for i in range(51)]
+    assert es.answer_tokens(fifty) == 1024 + 200 * 51 and es.answer_tokens(fifty * 3) == 16384
+
+
 def test_a_form_reads_from_a_french_spreadsheet():
     warnings = []
     text = ("Clé;Libellé;Type;Options;Consigne pour l'IA;Obligatoire;Requêtes\n"

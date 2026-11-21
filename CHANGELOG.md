@@ -6,6 +6,16 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Fixed.** In data extraction, the AI's answers to choice fields whose options
+  have capitals (such as "Capacity expansion") now show: they were saved in
+  lower case and the boxes looked empty. Options are matched regardless of
+  case, accents, spaces, hyphens and underscores, existing extractions
+  included. An answer outside the options shows as "not in the list" instead
+  of an empty choice, and an AI answer cut off before the last fields says so.
+- **Extraction form.** A "doi" field holds the link of the DOI of the study's
+  citation, filled in by Krinea and never asked of the AI; a study without a
+  DOI lets you type it into its citation. In the Excel exports, DOIs and web
+  addresses are links you can click.
 - **Guide.** A user guide on the site (`/guide`, in English and French) walks
   through a review step by step; the "Documentation" link opens it.
 - **Extraction form.** It can be imported from a CSV or Excel file (column

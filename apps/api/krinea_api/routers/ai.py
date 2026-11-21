@@ -102,13 +102,15 @@ def suggestions(stage: str = "ta", access=Depends(ReviewAccess("viewer")), db: D
 # ── Extraction ───────────────────────────────────────────────────────────────────
 def _ex_out(ex: models.Extraction, fields: list[dict], files: list[str], with_text: bool = False) -> schemas.ExtractionOut:
     """An extraction, checked against the fields that apply to its study: those of every study
-    and those of the searches it belongs to (`files`, D-48)."""
-    return schemas.ExtractionOut(record_id=ex.record_id, status=ex.status, model=ex.model, values=ex.values or {},
+    and those of the searches it belongs to (`files`, D-48). Its choice values are written as
+    the options are, those saved in lower case before D-53 included."""
+    values = extraction_schema.canonical(fields, ex.values or {})
+    return schemas.ExtractionOut(record_id=ex.record_id, status=ex.status, model=ex.model, values=values,
                                  quotes=ex.quotes or {}, ai_values=ex.ai_values or {},
                                  text_extracted=(ex.text_extracted or "") if with_text else "", error=ex.error,
                                  created_at=ex.created_at, verified_at=ex.verified_at,
                                  flags={k: list(v) for k, v in extraction_schema.check_values(
-                                     extraction_schema.fields_for(fields, files), ex.values or {}, ex.quotes or {}).items()})
+                                     extraction_schema.fields_for(fields, files), values, ex.quotes or {}).items()})
 
 
 def _files(db: DBSession, review: models.Review, record_id: int) -> list[str]:
@@ -176,8 +178,9 @@ def verify_extraction(record_id: int, body: schemas.ExtractionVerifyIn, access=D
             raise HTTPException(404, "Record not found")
         ex = models.Extraction(review_id=review.id, record_id=record_id, model="manual")
         db.add(ex)
-    names = {f["name"] for f in fields if f["kind"] not in extraction_schema.AUTO_KINDS}   # a "search" field fills itself
-    ex.values = {k: ("" if v is None else str(v)) for k, v in body.values.items() if k in names}
+    names = {f["name"] for f in fields if f["kind"] not in extraction_schema.AUTO_KINDS}   # Krinea fills those in
+    ex.values = extraction_schema.canonical(fields, {k: ("" if v is None else str(v)) for k, v in body.values.items()
+                                                     if k in names})
     ex.quotes = {k: str(v or "") for k, v in body.quotes.items() if k in names} or (ex.quotes or {})
     ex.status, ex.error, ex.verified_at, ex.verified_by, ex.seconds = "verified", "", models.now(), user.id, body.seconds
     log_activity(db, review.id, user.id, "extraction_verified", record_id=record_id)

@@ -943,3 +943,38 @@ unknown kind, an unknown file, a key used twice) comes back as warnings.
 
 **Why.** A form of fifty fields drafted in a spreadsheet, as the protocol often is, had to be
 typed again field by field.
+
+## D-52 · 2026-11-21 · decided · The DOI from the citation, and links in Excel
+
+**Decision.** An extraction form can have a "doi" field (`extraction_schema.AUTO_KINDS`), as it
+can have a "search" one (D-49): Krinea fills it in with the link of the DOI of the study's
+citation (`https://doi.org/` followed by the bare DOI, `biblio.doi_url`), and it is never asked
+of the AI. The extraction view shows the link; a study whose citation has no DOI shows a box
+to type it, which sets the citation's DOI (`PATCH /records/{id}`, now kept bare whatever form
+it was typed in, and refused when it holds no DOI). In every Excel export, a `doi` cell keeps
+its bare DOI and links to https://doi.org/, and a cell holding one web address links to it
+(at most 65,000 links a sheet, Excel's limit being 65,530).
+
+**Why.** The AI could only take the DOI from the PDF, and some PDFs do not print it, while the
+imported citation nearly always has it. The bare DOI stays in the `doi` column, the form a
+reference manager reads; the field holds the link, which a reader clicks.
+
+## D-53 · 2026-11-21 · decided · Choice values written as the options are
+
+**Decision.** The values of enum and multi fields are matched with the options regardless of
+case, accents, spaces, hyphens and underscores, and written as the option is
+(`extraction_schema.canonical`): when the AI answers, when a reviewer saves, when an
+extraction is shown and when it is exported, so the values saved before this decision are
+shown right without a migration. Yes/no fields take yes, no and their usual synonyms. An
+answer that is no option is kept and flagged, and the extraction view shows it, marked "not
+in the list", instead of an empty choice. The prompt asks for options copied exactly as
+written. An extraction allows 200 output tokens a field (8,192 to 16,384), Gemini gets 8,192
+more for its thinking on top of the answer, DeepSeek stays at 8,192, and an answer that misses
+fields says so in the extraction's error instead of leaving them empty.
+
+**Why.** The engine wrote every choice in lower case while the screen compared it with the
+options as written: with options such as "Capacity expansion", every enum and multi field
+looked empty although the AI had answered, quote included, and the checks, which ignored case,
+raised nothing. An answer such as "not applicable" outside the options was invisible. And a
+cut-off answer lost its last fields without a word, the thinking of Gemini counting against
+the same 8,192 tokens as the answer.
