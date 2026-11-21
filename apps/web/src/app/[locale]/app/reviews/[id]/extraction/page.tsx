@@ -192,11 +192,13 @@ export default function ExtractionPage() {
               </div>
             ))}
           </div>
-          <div className="rounded-xl border border-border bg-card p-3">
+          {/* On wide screens the paper stays in view, under the app header, while the form
+              scrolls: 4.5rem from the top, 1rem from the bottom, less the card's tabs and padding. */}
+          <div className="rounded-xl border border-border bg-card p-3 lg:sticky lg:top-[4.5rem] lg:self-start">
             <Tabs defaultValue={current.has_pdf ? "pdf" : "text"}>
               <TabsList><TabsTrigger value="pdf">{t("pdf")}</TabsTrigger><TabsTrigger value="text">{t("textTab")}</TabsTrigger></TabsList>
-              <TabsContent value="pdf">{current.has_pdf ? <iframe title="pdf" src={api.url(`/reviews/${rid}/records/${current.id}/pdf`)} className="h-[75vh] w-full rounded-lg border border-border bg-white" /> : <p className="p-4 text-sm text-muted-foreground">{t("noPdf")}</p>}</TabsContent>
-              <TabsContent value="text"><pre className="h-[75vh] overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs leading-relaxed">{ex?.text_extracted || "—"}</pre></TabsContent>
+              <TabsContent value="pdf">{current.has_pdf ? <iframe title="pdf" src={api.url(`/reviews/${rid}/records/${current.id}/pdf`)} className="h-[75vh] w-full rounded-lg border border-border bg-white lg:h-[calc(100vh-10.25rem)]" /> : <p className="p-4 text-sm text-muted-foreground">{t("noPdf")}</p>}</TabsContent>
+              <TabsContent value="text"><pre className="h-[75vh] overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs leading-relaxed lg:h-[calc(100vh-10.25rem)]">{ex?.text_extracted || "—"}</pre></TabsContent>
             </Tabs>
           </div>
         </div>

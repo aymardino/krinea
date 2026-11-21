@@ -6,6 +6,8 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Extraction.** On a wide screen, the PDF stays in view while the form
+  scrolls, so the paper no longer has to be scrolled back to.
 - **Fixed.** In data extraction, the AI's answers to choice fields whose options
   have capitals (such as "Capacity expansion") now show: they were saved in
   lower case and the boxes looked empty. Options are matched regardless of
