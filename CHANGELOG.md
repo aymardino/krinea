@@ -6,6 +6,8 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Guide.** A user guide on the site (`/guide`, in English and French) walks
+  through a review step by step; the "Documentation" link opens it.
 - **AI.** The AI panel takes any number of records per run, from the record
   on screen (one by default at full text, 50 at title and abstract) up to the
   whole list, and can redo the suggestions already made. A run follows the

@@ -773,6 +773,10 @@
       "title": "À propos de Krinea",
       "description": "Pourquoi cet atelier existe, qui le construit et comment il reste ouvert."
     },
+    "guide": {
+      "title": "Guide d'utilisation",
+      "description": "Mener une revue systématique dans Krinea, étape par étape : import, doublons, tri, IA, textes intégraux, extraction, exports et PRISMA."
+    },
     "privacy": {
       "title": "Politique de confidentialité",
       "description": "Ce que nous stockons, où, pourquoi, et ce que vous pouvez en faire."

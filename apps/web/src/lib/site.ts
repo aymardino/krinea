@@ -9,5 +9,5 @@ export const SUPPORT_URL = "https://www.buymeacoffee.com/aymardinho";
 /** Public contact address; NEXT_PUBLIC_CONTACT_EMAIL overrides it at build time. */
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@krinea.org";
 /** Public marketing routes (path without locale prefix). */
-export const PUBLIC_ROUTES = ["", "/pricing", "/about", "/contact", "/security", "/privacy", "/terms", "/legal"] as const;
+export const PUBLIC_ROUTES = ["", "/pricing", "/about", "/guide", "/contact", "/security", "/privacy", "/terms", "/legal"] as const;
 export const localePath = (locale: string, path: string) => (locale === "en" ? path || "/" : `/${locale}${path}`);

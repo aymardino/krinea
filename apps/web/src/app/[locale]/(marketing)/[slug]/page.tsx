@@ -7,8 +7,9 @@ import { routing } from "@/i18n/routing";
 import { Markdown, ProseLayout } from "@/components/marketing/prose";
 
 /** Markdown pages, one file per language under apps/web/content/<locale>/<slug>.md,
- *  rendered at build time. Legal texts stay editable without touching the code. */
-const SLUGS = ["about", "privacy", "terms", "legal", "security"] as const;
+ *  rendered at build time. Legal texts and the user guide (D-50) stay editable without
+ *  touching the code. */
+const SLUGS = ["about", "guide", "privacy", "terms", "legal", "security"] as const;
 type Slug = (typeof SLUGS)[number];
 
 /* Alt text of the About photograph, from public/photos/CREDITS.md. */

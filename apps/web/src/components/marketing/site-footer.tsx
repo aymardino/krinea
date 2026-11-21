@@ -21,7 +21,7 @@ export function SiteFooter() {
       { label: t("footer.releases"), href: `${REPO_URL}/releases`, external: true },
     ] },
     { key: "resources", title: t("footer.resources"), links: [
-      { label: t("docs"), href: `${REPO_URL}#readme`, external: true },
+      { label: t("docs"), href: "/guide" },
       { label: t("footer.prisma"), href: "https://www.prisma-statement.org/", external: true },
       { label: t("footer.security"), href: "/security" },
     ] },

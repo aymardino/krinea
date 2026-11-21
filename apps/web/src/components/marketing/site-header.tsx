@@ -32,9 +32,10 @@ export function LanguageSwitch({ className, bare = false }: { className?: string
   );
 }
 
-const NAV: { key: "howItWorks" | "pricing" | "about"; href: string; path: string }[] = [
+const NAV: { key: "howItWorks" | "pricing" | "docs" | "about"; href: string; path: string }[] = [
   { key: "howItWorks", href: "/#how-it-works", path: "/#how-it-works" },
   { key: "pricing", href: "/pricing", path: "/pricing" },
+  { key: "docs", href: "/guide", path: "/guide" },
   { key: "about", href: "/about", path: "/about" },
 ];
 

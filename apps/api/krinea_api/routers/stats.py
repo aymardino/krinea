@@ -26,8 +26,8 @@ from krinea_api.urls import KEY_HEADER
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 INTERNAL_HEADER = "x-krinea-internal"
-PUBLIC_PATHS = frozenset({"/", "/pricing", "/about", "/contact", "/security", "/privacy", "/terms", "/legal",
-                          "/sign-in", "/sign-up"})
+PUBLIC_PATHS = frozenset({"/", "/pricing", "/about", "/guide", "/contact", "/security", "/privacy", "/terms",
+                          "/legal", "/sign-in", "/sign-up"})
 BOT_RE = re.compile(r"bot|crawl|spider|slurp|preview|fetch|curl|wget|python|httpx|java/|headless|lighthouse|"
                     r"monitor|uptime|scan", re.I)
 TOP = 12

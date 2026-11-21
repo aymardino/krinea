@@ -773,6 +773,10 @@
       "title": "About Krinea",
       "description": "Why this workbench exists, who builds it and how it stays open."
     },
+    "guide": {
+      "title": "User guide",
+      "description": "How to run a systematic review in Krinea, step by step: import, duplicates, screening, AI, full texts, extraction, exports and PRISMA."
+    },
     "privacy": {
       "title": "Privacy policy",
       "description": "What we store, where, why, and what you can do about it."

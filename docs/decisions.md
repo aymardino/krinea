@@ -911,3 +911,18 @@ columns as they were: no search column unless the form has one.
 
 **Why.** A review with one search per sub-question wants the search of each study next to
 its data; the reviewer chooses whether the table carries it, and where.
+
+## D-50 · 2026-11-21 · decided · A user guide on the site
+
+**Decision.** The site has a user guide at `/guide` (`/fr/guide` in French), a Markdown page
+like the legal ones (`apps/web/content/{en,fr}/guide.md`). It follows a review from the first
+import to the PRISMA diagram, tab by tab, with the interface's own words: settings and roles,
+imports, duplicates and the file order, screening, AI suggestions (what the AI receives, how a
+run picks its references, cost), full texts and reports not retrieved, the extraction form
+(keys, labels, kinds, fields of some searches) and verification, exports, PRISMA. The
+"Documentation" link of the header and footer opens it; it used to open the README, written
+for developers. A change in how a step works updates the guide in the same commit.
+
+**Why.** Nothing explained to users how the steps fit together, nor the rules added since
+release 0.1.0 (file order, criteria and fields per search, reports not retrieved, filtered
+exports); journals for research software ask for user documentation too.

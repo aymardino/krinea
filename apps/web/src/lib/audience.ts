@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { upstreamUrl } from "@/lib/upstream";
 
 /** Public pages whose visits are counted (the API keeps the same list). */
-const PUBLIC = new Set(["/", "/pricing", "/about", "/contact", "/security", "/privacy", "/terms", "/legal", "/sign-in", "/sign-up"]);
+const PUBLIC = new Set(["/", "/pricing", "/about", "/guide", "/contact", "/security", "/privacy", "/terms", "/legal", "/sign-in", "/sign-up"]);
 const LOCALES = new Set(["en", "fr"]);
 
 /** Reports one full page load of a public page to the API (POST /stats/view), which stores

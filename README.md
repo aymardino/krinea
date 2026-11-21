@@ -13,7 +13,8 @@ beside the PDF, and report with the official PRISMA 2020 flow diagram.
 English and French interface. AGPL-3.0 application, MIT core engine.
 
 Source code: <https://github.com/aymardino/krinea>. Hosted beta:
-<https://krinea.org>.
+<https://krinea.org>. User guide: <https://krinea.org/guide> (in French at
+<https://krinea.org/fr/guide>; source in `apps/web/content/{en,fr}/guide.md`).
 
 ```
 apps/web        Next.js 16 product: marketing site + application (en/fr)
