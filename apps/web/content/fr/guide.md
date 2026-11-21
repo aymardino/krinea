@@ -128,6 +128,8 @@ Chaque champ a :
 
 Les flèches règlent l'ordre des champs : l'ordre de la grille, des consignes données à l'IA et des colonnes des exports. Les **Modèles** proposent pour démarrer une grille PICO ou une grille de modélisation énergétique.
 
+**Depuis un tableur.** **Importer une grille (CSV, Excel)** remplit la grille à partir d'un fichier avec une ligne par champ et le nom des colonnes sur la première ligne : Clé, Libellé, Type, Options, Consigne pour l'IA, Obligatoire, Requêtes (les noms anglais marchent aussi). Les requêtes sont des noms de fichiers, séparés par `;` ou `|`. Rien n'est enregistré tant que vous ne cliquez pas sur **Enregistrer**, et Krinea indique ce qu'il n'a pas pu lire. **Télécharger la grille (Excel)** donne un modèle à remplir.
+
 **Les types.**
 
 | Type | Ce que renvoie l'IA |

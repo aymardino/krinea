@@ -193,6 +193,32 @@ def test_extraction_fields_of_one_search_apply_to_its_studies_only(client, monke
     assert "tariff" in flags and "storage" not in flags          # required, but for query 1 only
 
 
+def test_an_extraction_form_comes_from_a_spreadsheet(client):
+    """A form read from CSV or Excel (D-51): searches by file name, nothing saved until the
+    reviewer saves; the form downloaded comes back the same."""
+    register(client, "form-import@example.org", "Owner")
+    rid = client.post("/reviews", json={"title": "Form from a file"}).json()["id"]
+    file_a = _import(client, rid, "query1.ris", SCOPUS, "Scopus")
+    csv_text = ("Clé;Libellé;Type;Requêtes\n"
+                "main_strand;Main strand;texte;QUERY1.ris\n"
+                "tariff;Tariff;nombre;query9.ris\n")
+    r = client.post(f"/reviews/{rid}/extraction-schema/import", files={"file": ("form.csv", csv_text.encode("cp1252"), "text/csv")})
+    assert r.status_code == 200, r.text
+    fields = r.json()["fields"]
+    assert [(f["name"], f["kind"], f.get("searches")) for f in fields] == [("main_strand", "text", [file_a]), ("tariff", "number", None)]
+    assert r.json()["warnings"] == ["Field 'tariff': no imported file is named 'query9.ris'"]
+    assert client.get(f"/reviews/{rid}").json()["extraction_schema"][0]["name"] != "main_strand"     # not saved
+
+    assert client.patch(f"/reviews/{rid}", json={"extraction_schema": fields}).status_code == 200
+    xlsx = client.get(f"/reviews/{rid}/extraction-schema.xlsx")
+    assert xlsx.status_code == 200
+    again = client.post(f"/reviews/{rid}/extraction-schema/import", files={"file": ("form.xlsx", xlsx.content, "application/octet-stream")})
+    assert again.json() == {"fields": fields, "warnings": []}
+    assert "query1.ris" in client.get(f"/reviews/{rid}/extraction-schema.csv").text
+    bad = client.post(f"/reviews/{rid}/extraction-schema/import", files={"file": ("empty.csv", b"nothing here\n", "text/csv")})
+    assert bad.status_code == 400
+
+
 def test_ai_runs_ignore_records_of_other_reviews(client, monkeypatch):
     register(client, "dedup-scope@example.org", "Scope")
     mine = client.post("/reviews", json={"title": "Mine"}).json()["id"]

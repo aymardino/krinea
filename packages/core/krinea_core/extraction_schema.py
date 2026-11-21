@@ -133,25 +133,74 @@ def from_json(text) -> list[dict]:
     return [normalise_field(f) for f in data if isinstance(f, dict)]
 
 
-def to_csv(fields) -> str:
+def to_csv(fields, search_names: dict | None = None) -> str:
+    """The form as CSV; with `search_names` (import id -> file name), a "searches" column too,
+    which `from_csv` reads back."""
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(["name", "label", "kind", "options", "hint", "required"])
+    w.writerow(["name", "label", "kind", "options", "hint", "required"] + (["searches"] if search_names is not None else []))
     for f in fields:
-        w.writerow([f["name"], f["label"], f["kind"], " | ".join(f["options"]),
-                    f["hint"], "yes" if f["required"] else "no"])
+        row = [f["name"], f["label"], f["kind"], " | ".join(f["options"]), f["hint"], "yes" if f["required"] else "no"]
+        if search_names is not None:
+            row.append("; ".join(search_names.get(s, s) for s in f.get("searches", [])))
+        w.writerow(row)
     return buf.getvalue()
 
 
-def from_csv(text: str) -> list[dict]:
-    rows = list(csv.DictReader(io.StringIO(text.lstrip("﻿"))))
+# Column names a form read from a spreadsheet may use, in English or French (D-51), and the
+# French names of the kinds.
+HEADERS = {
+    "name": "name", "key": "name", "clé": "name", "cle": "name", "nom": "name",
+    "label": "label", "libellé": "label", "libelle": "label",
+    "kind": "kind", "type": "kind",
+    "options": "options", "options (a | b | c)": "options",
+    "hint": "hint", "instruction": "hint", "instruction for the ai": "hint", "consigne": "hint",
+    "consigne pour l'ia": "hint",
+    "required": "required", "obligatoire": "required",
+    "searches": "searches", "search": "searches", "requêtes": "searches", "requetes": "searches",
+    "requête": "searches", "requete": "searches",
+}
+KIND_ALIASES = {"texte": "text", "phrases": "sentences", "nombre": "number", "année": "year", "annee": "year",
+                "oui/non": "yesno", "ouinon": "yesno", "liste": "list", "choix": "enum", "choix multiple": "multi",
+                "requête": "search", "requete": "search"}
+
+
+def from_rows(rows, warnings: list[str] | None = None) -> list[dict]:
+    """Fields from spreadsheet rows (dicts by column name, English or French names). Rows
+    without a key or label are skipped; `searches` holds what the cells say (file names,
+    separated by ";" or "|"); an unknown kind is read as text and noted in `warnings`."""
     out = []
     for r in rows:
-        r = {str(k).strip().lower(): (v or "") for k, v in r.items() if k}
+        r = {HEADERS.get(str(k).strip().lower(), str(k).strip().lower()): ("" if v is None else str(v)).strip()
+             for k, v in r.items() if k is not None and str(k).strip()}
         if not (r.get("name") or r.get("label")):
             continue
+        kind = KIND_ALIASES.get(r.get("kind", "").lower(), r.get("kind", "").lower())
+        if kind and kind not in FIELD_KINDS and kind not in AUTO_KINDS and warnings is not None:
+            warnings.append(f"Field '{r.get('name') or r.get('label')}': kind '{r['kind']}' is unknown, read as text")
+        r["kind"] = kind or "text"
+        r["searches"] = [s.strip() for s in re.split(r"[;|\n]", r.get("searches", "")) if s.strip()]
         out.append(normalise_field(r))
     return out
+
+
+def from_csv(text: str, warnings: list[str] | None = None) -> list[dict]:
+    """A form from CSV text: comma, semicolon (as French spreadsheets write it) or tab."""
+    text = text.lstrip("﻿")
+    header = text.split("\n", 1)[0]                     # the separator is the one of the column names
+    delimiter = max(",;\t", key=header.count)
+    return from_rows(csv.DictReader(io.StringIO(text), delimiter=delimiter), warnings)
+
+
+def from_excel(data: bytes, warnings: list[str] | None = None) -> list[dict]:
+    """A form from an Excel workbook: its "fields" sheet when it has one (as in the extraction
+    exports), else its first sheet."""
+    import pandas as pd
+    sheets = pd.read_excel(io.BytesIO(data), sheet_name=None, dtype=str)
+    if not sheets:
+        return []
+    frame = next((df for name, df in sheets.items() if str(name).strip().lower() == "fields"), next(iter(sheets.values())))
+    return from_rows(frame.fillna("").to_dict(orient="records"), warnings)
 
 
 def energy_template() -> list[dict]:

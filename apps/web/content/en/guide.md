@@ -128,6 +128,8 @@ Each field has:
 
 The arrows set the order of the fields: the order of the form, of the AI's instructions and of the export columns. **Templates** start you with a PICO form or an energy-modelling form.
 
+**From a spreadsheet.** **Import a form (CSV, Excel)** fills the form from a file with one row per field and the column names in the first row: Key, Label, Kind, Options, Instruction for the AI, Required, Searches (the French names work too). Searches are file names, separated by `;` or `|`. Nothing is saved until you click **Save**, and Krinea lists what it could not read. **Download the form (Excel)** gives a model to fill in.
+
 **Kinds.**
 
 | Kind | What the AI returns |

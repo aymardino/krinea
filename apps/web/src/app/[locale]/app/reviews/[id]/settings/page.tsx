@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2, UserPlus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Download, Plus, Trash2, Upload, UserPlus, X } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { api, ApiError, type Criteria, type Field, type ImportRow, type Invitation, type Member, type Review, type Settings } from "@/lib/api";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -89,6 +89,17 @@ export default function SettingsPage() {
   const destroy = useMutation({ mutationFn: () => api.delete(`/reviews/${rid}`), onSuccess: () => { qc.invalidateQueries({ queryKey: ["reviews"] }); router.push("/app"); }, onError });
 
   const updateField = (i: number, k: keyof Field, v: string | boolean | string[]) => setFields(fields.map((f, j) => (j === i ? { ...f, [k]: v } : f)));
+  // A form read from a CSV or Excel file fills the editor; nothing is saved before "Save" (D-51).
+  const formFile = useRef<HTMLInputElement>(null);
+  const importForm = useMutation({
+    mutationFn: async (file: File) => { const f = new FormData(); f.append("file", file); return api.upload<{ fields: Field[]; warnings: string[] }>(`/reviews/${rid}/extraction-schema/import`, f); },
+    onSuccess: (r) => {
+      if (fields.length && !window.confirm(t("importReplace", { n: r.fields.length }))) return;
+      setFields(r.fields);
+      toast.success(t("imported", { n: r.fields.length }), r.warnings.length ? { description: r.warnings.join(" · "), duration: 15000 } : undefined);
+    },
+    onError,
+  });
   // The order of the fields is that of the form, of the AI's instructions and of the export columns.
   const moveField = (i: number, to: number) => {
     if (to < 0 || to >= fields.length) return;
@@ -194,10 +205,15 @@ export default function SettingsPage() {
             <div className="flex flex-wrap gap-2 pt-2">
               <Button variant="outline" onClick={() => setFields([...fields, { name: "", label: "", kind: "text", options: [], hint: "", required: false }])}><Plus />{t("addField")}</Button>
               <Button onClick={() => patch.mutate({ extraction_schema: fields })} disabled={patch.isPending}>{c("save")}</Button>
+              <input ref={formFile} type="file" accept=".csv,.xlsx,.xls,text/csv" className="hidden"
+                     onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) importForm.mutate(f); }} />
+              <Button variant="outline" onClick={() => formFile.current?.click()} disabled={importForm.isPending}><Upload />{t("importForm")}</Button>
+              <Button variant="ghost" asChild><a href={api.url(`/reviews/${rid}/extraction-schema.xlsx`)}><Download />{t("exportForm")}</a></Button>
               <span className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">{t("templates")}:
                 <Button size="xs" variant="ghost" onClick={() => templates.data && setFields(templates.data.default)}>{t("templateDefault")}</Button>
                 {templates.data?.energy && <Button size="xs" variant="ghost" onClick={() => setFields(templates.data!.energy!)}>{t("templateEnergy")}</Button>}
               </span>
+              <p className="w-full text-xs text-muted-foreground">{t("importHint")}</p>
             </div>
           )}
         </CardContent>

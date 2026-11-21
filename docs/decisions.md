@@ -926,3 +926,20 @@ for developers. A change in how a step works updates the guide in the same commi
 **Why.** Nothing explained to users how the steps fit together, nor the rules added since
 release 0.1.0 (file order, criteria and fields per search, reports not retrieved, filtered
 exports); journals for research software ask for user documentation too.
+
+## D-51 · 2026-11-21 · decided · The extraction form from a spreadsheet
+
+**Decision.** The extraction form of the settings can be imported from a CSV or Excel file
+(`POST /reviews/{id}/extraction-schema/import`, administrators) and downloaded
+(`GET /reviews/{id}/extraction-schema.{csv,xlsx}`). A file holds one row per field, with the
+column names in the first row, in English or French (Key or Clé, Label or Libellé, Kind or
+Type, Options, Instruction for the AI or Consigne pour l'IA, Required or Obligatoire, Searches
+or Requêtes; `extraction_schema.HEADERS`); kinds may be written in French (texte, nombre,
+liste...). A CSV may use commas, semicolons (French spreadsheets) or tabs; in an Excel file the
+"fields" sheet is read when there is one, so an extraction export can serve as a model, else
+the first sheet. Searches are file names of the review. The import fills the form on the
+page and saves nothing: the reviewer checks it, then saves. What could not be read (an
+unknown kind, an unknown file, a key used twice) comes back as warnings.
+
+**Why.** A form of fifty fields drafted in a spreadsheet, as the protocol often is, had to be
+typed again field by field.

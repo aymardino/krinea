@@ -8,6 +8,9 @@ Zenodo with its own DOI.
 
 - **Guide.** A user guide on the site (`/guide`, in English and French) walks
   through a review step by step; the "Documentation" link opens it.
+- **Extraction form.** It can be imported from a CSV or Excel file (column
+  names in English or French) and downloaded as a model; the import fills the
+  form, which is saved only when you save it.
 - **AI.** The AI panel takes any number of records per run, from the record
   on screen (one by default at full text, 50 at title and abstract) up to the
   whole list, and can redo the suggestions already made. A run follows the

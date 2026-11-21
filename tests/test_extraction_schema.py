@@ -36,6 +36,23 @@ def test_a_search_field_is_never_asked_of_the_ai():
     assert es.check_values(fields, {"country": "Kenya"}, {"country": "Kenya"}) == {}   # filled in by the app
 
 
+def test_a_form_reads_from_a_french_spreadsheet():
+    warnings = []
+    text = ("Clé;Libellé;Type;Options;Consigne pour l'IA;Obligatoire;Requêtes\n"
+            "main_strand;Main strand;choix;modelling | data;Point of the chain;oui;requete 1.ris\n"
+            'secondary;Secondary strands;liste;;Other than main_strand;non;"requete 1.ris; requete 3.ris"\n'
+            "odd;Odd one;bizarre;;;;\n"
+            ";;;;;;\n")
+    fields = es.from_csv(text, warnings)
+    assert [f["name"] for f in fields] == ["main_strand", "secondary", "odd"]
+    assert (fields[0]["kind"], fields[0]["options"], fields[0]["required"]) == ("enum", ["modelling", "data"], True)
+    assert fields[0]["hint"] == "Point of the chain" and fields[0]["searches"] == ["requete 1.ris"]
+    assert fields[1]["kind"] == "list" and fields[1]["searches"] == ["requete 1.ris", "requete 3.ris"]
+    assert fields[2]["kind"] == "text" and warnings == ["Field 'odd': kind 'bizarre' is unknown, read as text"]
+    back = es.from_csv(es.to_csv(fields, {}))                 # written with a searches column, read again
+    assert [(f["name"], f.get("searches")) for f in back] == [(f["name"], f.get("searches")) for f in fields]
+
+
 def test_json_csv_roundtrip():
     fields = es.from_json("")
     assert fields == [es.normalise_field(f) for f in es.DEFAULT_SCHEMA]

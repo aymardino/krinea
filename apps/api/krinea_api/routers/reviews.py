@@ -1,7 +1,10 @@
 """Reviews, members, invitations, settings, summaries."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+import io
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as DBSession
 
@@ -106,6 +109,79 @@ def extraction_templates():
     except Exception:            # noqa: BLE001 — the legacy module is optional
         pass
     return out
+
+
+def _search_names(db: DBSession, review_id: str) -> dict[str, str]:
+    return dict(db.execute(select(models.Import.id, models.Import.filename).where(models.Import.review_id == review_id)).all())
+
+
+@router.post("/{review_id}/extraction-schema/import")
+async def import_extraction_schema(file: UploadFile = File(...), access=Depends(ReviewAccess("admin")),
+                                   db: DBSession = Depends(get_db)):
+    """Read an extraction form from a CSV or Excel file (D-51): one row per field, columns Key,
+    Label, Kind, Options, Instruction for the AI, Required, Searches (English or French names; the
+    "fields" sheet of an extraction export works too). Nothing is saved: the page shows the form
+    read, and the reviewer saves it. Searches are file names of the review."""
+    review, _ = access
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(413, "The file is larger than 5 MB")
+    warnings: list[str] = []
+    try:
+        if (file.filename or "").lower().endswith((".xlsx", ".xls")):
+            fields = extraction_schema.from_excel(data, warnings)
+        else:
+            text = next((data.decode(enc) for enc in ("utf-8-sig", "cp1252") if _decodes(data, enc)), data.decode("latin-1"))
+            fields = extraction_schema.from_csv(text, warnings)
+    except Exception as e:       # noqa: BLE001 — a file that cannot be read is the user's to fix
+        raise HTTPException(400, f"This file cannot be read as CSV or Excel: {e}")
+    if not fields:
+        raise HTTPException(400, "No field found: the first row must hold the column names (Key, Label, Kind...)")
+    by_name = {name.lower(): iid for iid, name in _search_names(db, review.id).items()}
+    ids = set(by_name.values())
+    for f in fields:
+        known = []
+        for s in f.pop("searches", []):
+            iid = s if s in ids else by_name.get(s.lower())
+            if iid:
+                known.append(iid)
+            else:
+                warnings.append(f"Field '{f['name']}': no imported file is named '{s}'")
+        if known:
+            f["searches"] = list(dict.fromkeys(known))
+    warnings += extraction_schema.validate_schema(fields)
+    return {"fields": fields, "warnings": warnings}
+
+
+def _decodes(data: bytes, encoding: str) -> bool:
+    try:
+        data.decode(encoding)
+        return True
+    except UnicodeDecodeError:
+        return False
+
+
+@router.get("/{review_id}/extraction-schema.{fmt}")
+def export_extraction_schema(fmt: str, access=Depends(ReviewAccess("viewer")), db: DBSession = Depends(get_db)):
+    """The review's extraction form as CSV or Excel, searches by file name: a copy to keep, or a
+    model to fill in and import again (D-51)."""
+    review, _ = access
+    fields = extraction_schema.from_json(review.extraction_schema or [])
+    names = _search_names(db, review.id)
+    text = extraction_schema.to_csv(fields, names)
+    if fmt == "csv":
+        return Response(text, media_type="text/csv",
+                        headers={"Content-Disposition": 'attachment; filename="extraction-form.csv"'})
+    if fmt != "xlsx":
+        raise HTTPException(400, "fmt must be csv or xlsx")
+    import pandas as pd
+    import csv as _csv
+    rows = list(_csv.reader(io.StringIO(text)))
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as xl:
+        pd.DataFrame(rows[1:], columns=rows[0]).to_excel(xl, sheet_name="fields", index=False)
+    return Response(buf.getvalue(), media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    headers={"Content-Disposition": 'attachment; filename="extraction-form.xlsx"'})
 
 
 @router.get("/{review_id}", response_model=schemas.ReviewOut)
