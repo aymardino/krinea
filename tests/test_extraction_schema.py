@@ -26,6 +26,16 @@ def test_fields_of_one_search_apply_to_its_studies_only():
     assert [f["name"] for f in es.fields_for(fields, [])] == ["country"]
 
 
+def test_a_search_field_is_never_asked_of_the_ai():
+    query = es.normalise_field({"name": "query", "kind": "SEARCH", "required": True})
+    fields = [es.normalise_field({"name": "country"}), query]
+    assert query["kind"] == "search"
+    prompt = es.build_prompt(fields, "TEXT")
+    assert "- country:" in prompt and "query" not in prompt
+    assert es.clean_result(fields, {"country": "Kenya", "query": "x"})[0] == {"country": "Kenya"}
+    assert es.check_values(fields, {"country": "Kenya"}, {"country": "Kenya"}) == {}   # filled in by the app
+
+
 def test_json_csv_roundtrip():
     fields = es.from_json("")
     assert fields == [es.normalise_field(f) for f in es.DEFAULT_SCHEMA]

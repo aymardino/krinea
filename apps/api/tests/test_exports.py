@@ -149,11 +149,16 @@ def test_each_stage_exports_with_its_filters(client):
     assert [c.value for c in sheet[1]] == SCREENING_COLUMNS and sheet.max_row == 4
     assert "Check the tables again" in {c.value for c in sheet["M"]}      # Excel refuses control characters
 
+    # A "search" field, added to the form, holds the study's search (D-49).
+    schema = client.get(f"/reviews/{rid}").json()["extraction_schema"] + [{"name": "query", "label": "Query", "kind": "search"}]
+    assert client.patch(f"/reviews/{rid}", json={"extraction_schema": schema}).status_code == 200
+
     # Extraction: the verified extractions by default, or every included study with its status.
     assert client.get(f"/reviews/{rid}/export/count", params={"stage": "extract"}).json()["n"] == 1
     assert client.get(f"/reviews/{rid}/export/count", params={"stage": "extract", "status": "all"}).json()["n"] == 2
     verified = list(csv.DictReader(io.StringIO(client.get(f"/reviews/{rid}/export/extractions.csv").text)))
     assert [(int(r["record_id"]), r["country"]) for r in verified] == [(kenya, "Kenya")] and "status" not in verified[0]
+    assert verified[0]["query"] == "scopus.ris"                     # the file of the kept copy
     every = list(csv.DictReader(io.StringIO(client.get(f"/reviews/{rid}/export/extractions.csv", params={"status": "all"}).text)))
     assert {int(r["record_id"]): r["status"] for r in every} == {kenya: "verified", nigeria: ""}
     assert client.get(f"/reviews/{rid}/export/extractions.csv", params={"status": "all", "label": "SQ1"}).text.count("\n") == 2

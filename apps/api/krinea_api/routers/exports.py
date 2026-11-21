@@ -300,12 +300,18 @@ def export_extractions(fmt: str, status: str = "verified", import_id: list[str] 
     fields = extraction_schema.from_json(review.extraction_schema or [])
     names = [f["name"] for f in fields]
     with_status = status == "all"
+    files = dict(db.execute(select(models.Import.id, models.Import.filename)
+                            .where(models.Import.review_id == review.id)).all())
     meta = ["record_id", "title", "authors", "year", "journal", "doi"] + (["status"] if with_status else [])
+    auto = {f["name"] for f in fields if f["kind"] in extraction_schema.AUTO_KINDS}
 
     def line(r: models.Record, e: models.Extraction | None, attr: str) -> list:
         head = [r.id, r.title, r.authors, r.year, r.journal, r.doi] + ([e.status if e else ""] if with_status else [])
-        found = (getattr(e, attr) or {}) if e else {}
-        return head + [found.get(n, "") for n in names]
+        cells = (getattr(e, attr) or {}) if e else {}
+        # A "search" field, when the form has one, holds the study's search: the file of its
+        # kept copy (D-49); it has no quote.
+        return head + [(files.get(r.import_id or "", "") if attr == "values" else "") if n in auto else cells.get(n, "")
+                       for n in names]
 
     values = [line(r, e, "values") for r, e in pairs]
     if fmt == "csv":
@@ -313,8 +319,6 @@ def export_extractions(fmt: str, status: str = "verified", import_id: list[str] 
     quotes = [line(r, e, "quotes") for r, e in pairs]
     # The form, one row per field; "searches" names the files a field belongs to (D-48), the
     # cells of the studies of other searches being empty.
-    files = dict(db.execute(select(models.Import.id, models.Import.filename)
-                            .where(models.Import.review_id == review.id)).all())
     form = [[f["name"], f["label"], f["kind"], " | ".join(f["options"]), f["hint"], "yes" if f["required"] else "no",
              "; ".join(files.get(s, s) for s in f.get("searches", [])) or "all"] for f in fields]
     content = _xlsx({"values": (meta + names, values), "quotes": (meta + names, quotes),

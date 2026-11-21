@@ -25,6 +25,9 @@ import json
 import re
 
 FIELD_KINDS = ["text", "sentences", "number", "year", "yesno", "enum", "multi", "list"]
+# Kinds the application fills in itself, never asked of the AI: "search", the search (imported
+# file) a study belongs to, which a review adds to its form if it wants that column.
+AUTO_KINDS = ["search"]
 KIND_LABELS = {
     "text": "Short text", "sentences": "Sentences (summary)", "number": "Number",
     "year": "Year", "yesno": "Yes / no", "enum": "Single choice", "multi": "Multiple choice",
@@ -71,7 +74,7 @@ def slugify(label: str) -> str:
 
 def normalise_field(f: dict) -> dict:
     kind = str(f.get("kind", "text")).strip().lower()
-    if kind not in FIELD_KINDS:
+    if kind not in FIELD_KINDS and kind not in AUTO_KINDS:
         kind = "text"
     opts = f.get("options", [])
     if isinstance(opts, str):
@@ -201,7 +204,7 @@ def spec_line(f: dict) -> str:
 
 
 def build_prompt(fields, text: str, context: str = "") -> str:
-    specs = "\n".join(spec_line(f) for f in fields)
+    specs = "\n".join(spec_line(f) for f in fields if f["kind"] not in AUTO_KINDS)
     ctx = f"\nContext of the review: {context.strip()}\n" if context and context.strip() else ""
     return f"""You are extracting structured data from a document for a systematic review.{ctx}
 Extract ONLY what the text supports. If a field cannot be determined, use "" (empty string).
@@ -224,6 +227,8 @@ def clean_result(fields, raw: dict) -> tuple[dict, dict]:
     values, quotes = {}, {}
     raw = raw if isinstance(raw, dict) else {}
     for f in fields:
+        if f["kind"] in AUTO_KINDS:                # filled in by the application, not the AI
+            continue
         item = raw.get(f["name"], "")
         if isinstance(item, dict):
             v, q = item.get("value", ""), item.get("quote", "")
@@ -247,6 +252,8 @@ def check_values(fields, values: dict, quotes: dict | None = None) -> dict:
     this_year = _dt.date.today().year
     for f in fields:
         name, kind = f["name"], f["kind"]
+        if kind in AUTO_KINDS:
+            continue
         val = str(values.get(name, "") or "").strip()
         if not val:
             if f.get("required"):

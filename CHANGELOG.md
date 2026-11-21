@@ -29,7 +29,9 @@ Zenodo with its own DOI.
   given to the AI with the review's own criteria.
 - **Extraction.** The fields of the form can be reordered, and a field can be
   limited to the studies of some searches: a study shows, gets extracted and
-  is checked with the general fields and those of its search.
+  is checked with the general fields and those of its search. A field of kind
+  "search", added to the form if wanted, holds the study's search (its file
+  name), filled in by Krinea.
 - **Files.** When duplicates are kept by the order of the imported files, each
   study belongs only to the file of the record kept: file filters, AI runs,
   keywords of each search and exports follow it. Screening exports gain a

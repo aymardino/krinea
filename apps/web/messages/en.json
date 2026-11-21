@@ -711,7 +711,7 @@
       "inviteRole": "Role",
       "pending": "Pending invitations",
       "form": "Extraction form",
-      "formHint": "The fields the AI extracts and you verify. Kinds: text, sentences, number, year, yesno, enum, multi, list. The arrows set the order of the form and of the export columns; \"Searches\" limits a field to the studies of some searches.",
+      "formHint": "The fields the AI extracts and you verify. Kinds: text, sentences, number, year, yesno, enum, multi, list, and search (the study's search, filled in by Krinea, never asked of the AI). The arrows set the order of the form and of the export columns; \"Searches\" limits a field to the studies of some searches.",
       "addField": "Add field",
       "templates": "Templates",
       "templateDefault": "PICO (default)",

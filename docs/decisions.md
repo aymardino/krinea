@@ -899,3 +899,15 @@ not apply; the "fields" sheet of the Excel export names the searches of each fie
 **Why.** A review with one search per sub-question extracts some data from every study and
 some only from the studies of one sub-question; with one form for all, the AI was asked for
 fields that did not apply, and their absence was reported as an error.
+
+## D-49 · 2026-11-21 · decided · A "search" field kind, filled in by Krinea
+
+**Decision.** The extraction form has a field kind `search` (`extraction_schema.AUTO_KINDS`).
+A review adds such a field if it wants it, where it wants it in the form. Its value is the
+study's search: the name of the file of the copy kept (D-42). Krinea fills it in, in the
+extraction view (read-only) and in the exports; the AI is never asked for it, nothing typed
+is stored for it, and it is never reported missing. Extraction exports otherwise keep their
+columns as they were: no search column unless the form has one.
+
+**Why.** A review with one search per sub-question wants the search of each study next to
+its data; the reviewer chooses whether the table carries it, and where.

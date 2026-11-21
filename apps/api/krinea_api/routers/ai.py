@@ -176,7 +176,7 @@ def verify_extraction(record_id: int, body: schemas.ExtractionVerifyIn, access=D
             raise HTTPException(404, "Record not found")
         ex = models.Extraction(review_id=review.id, record_id=record_id, model="manual")
         db.add(ex)
-    names = {f["name"] for f in fields}
+    names = {f["name"] for f in fields if f["kind"] not in extraction_schema.AUTO_KINDS}   # a "search" field fills itself
     ex.values = {k: ("" if v is None else str(v)) for k, v in body.values.items() if k in names}
     ex.quotes = {k: str(v or "") for k, v in body.quotes.items() if k in names} or (ex.quotes or {})
     ex.status, ex.error, ex.verified_at, ex.verified_by, ex.seconds = "verified", "", models.now(), user.id, body.seconds

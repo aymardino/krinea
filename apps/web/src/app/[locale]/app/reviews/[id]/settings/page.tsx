@@ -19,7 +19,8 @@ import { Switch, Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, PageHeader } from "@/components/ui/misc";
 
-const KINDS = ["text", "sentences", "number", "year", "yesno", "enum", "multi", "list"];
+// "search" is filled in by Krinea with the study's search (imported file), never by the AI (D-49).
+const KINDS = ["text", "sentences", "number", "year", "yesno", "enum", "multi", "list", "search"];
 const PROVIDERS = ["claude", "gemini", "deepseek"];
 
 /** The searches (imported files) an extraction field belongs to (D-48): none ticked, the field

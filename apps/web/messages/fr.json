@@ -711,7 +711,7 @@
       "inviteRole": "Rôle",
       "pending": "Invitations en attente",
       "form": "Grille d'extraction",
-      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list. Les flèches règlent l'ordre du formulaire et des colonnes des exports ; « Requêtes » réserve un champ aux études de certaines requêtes.",
+      "formHint": "Les champs que l'IA extrait et que vous vérifiez. Types : text, sentences, number, year, yesno, enum, multi, list, et search (la requête de l'étude, remplie par Krinea, jamais demandée à l'IA). Les flèches règlent l'ordre du formulaire et des colonnes des exports ; « Requêtes » réserve un champ aux études de certaines requêtes.",
       "addField": "Ajouter un champ",
       "templates": "Modèles",
       "templateDefault": "PICO (par défaut)",

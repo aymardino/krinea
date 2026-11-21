@@ -19,7 +19,9 @@ import { useJob } from "@/lib/use-job";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-function FieldInput({ f, value, onChange }: { f: Field; value: string; onChange: (v: string) => void }) {
+function FieldInput({ f, value, onChange, search }: { f: Field; value: string; onChange: (v: string) => void; search: string }) {
+  // A "search" field fills itself with the study's search (D-49): nothing to type.
+  if (f.kind === "search") return <p className="rounded-md border border-dashed border-input px-3 py-2 text-sm text-muted-foreground">{search || "—"}</p>;
   if (f.kind === "enum" || f.kind === "yesno") {
     const opts = f.kind === "yesno" ? ["yes", "no"] : f.options;
     return (
@@ -107,6 +109,8 @@ export default function ExtractionPage() {
   const ex = one.data;
   // The fields of every study, and those of the search the study belongs to (D-48).
   const shownFields = fields.filter((f) => !f.searches?.length || f.searches.some((id) => (current?.found_in ?? []).includes(id)));
+  // The search the study belongs to (the file of its kept copy under the file order), for a "search" field.
+  const searchName = (current?.found_in ?? []).map((id) => imports.data?.find((i) => i.id === id)?.filename).filter(Boolean).join(", ");
 
   if (open !== null && current) {
     const flags = ex?.flags ?? {};
@@ -131,7 +135,7 @@ export default function ExtractionPage() {
             {shownFields.map((f) => (
               <div key={f.name} className="space-y-1.5">
                 <Label className="flex items-center gap-2">{f.label}{f.required && <span className="text-exclude">*</span>}<span className="text-xs font-normal text-muted-foreground">{f.kind}</span></Label>
-                <FieldInput f={f} value={values[f.name] ?? ""} onChange={(v) => setValues({ ...values, [f.name]: v })} />
+                <FieldInput f={f} value={values[f.name] ?? ""} onChange={(v) => setValues({ ...values, [f.name]: v })} search={searchName} />
                 {flags[f.name] && <p className={`text-xs ${flags[f.name][0] === "error" ? "text-exclude" : "text-maybe"}`}>{flags[f.name][1]}</p>}
                 {ex?.quotes?.[f.name] && <p className="text-xs italic text-muted-foreground">↳ {ex.quotes[f.name]}</p>}
               </div>
