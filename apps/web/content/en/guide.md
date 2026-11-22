@@ -52,8 +52,8 @@ The page has three columns: the list on the left, the reference in the middle, p
 
 **The list.**
 
-- **Views**: To screen, Included by me, Maybe, Excluded by me, Conflicts, Included, Excluded, All.
-- **Filters**: imported file, label, and a search box.
+- **Views**: To screen, Included by me, Maybe, Excluded by me, Conflicts, Included, Excluded, All. Tick several to see the references of any of them, for example *Included by me* and *Maybe*.
+- **Filters**: imported file, label, and a search box. Files and labels can be ticked several at once too. A reference shows when it matches one of the views, one of the files and one of the labels ticked, and the search.
 - **List order**: import order, title, year, first author, journal, *AI: include first* or *AI: exclude first*, and *Your suggestions: include first* or *exclude first* (below).
 - The list loads 200 references at a time. The links at both ends, and **Next** and **Previous**, go on to the following ones.
 
@@ -165,7 +165,7 @@ A *doi* field is filled in by Krinea with the link of the DOI of the study's cit
 
 **How the AI extracts.** The AI reads each study's PDF once, with all of its fields together, and returns each value with a short verbatim quote. An instruction can therefore refer to another field by its key, for example "Strands touched other than main_strand"; place the field referred to first.
 
-**Running the AI.** **Extract with AI** runs on the studies shown that have a PDF and no draft yet; filter the list to run it on fewer. In an open study, **Run AI again** redoes that one only.
+**Running the AI.** **Extract with AI** runs on the studies shown that have a PDF and no draft yet; filter the list to run it on fewer. The file, label and status filters take several values, as in screening. In an open study, **Run AI again** redoes that one only.
 
 **Verifying.** Open a study to see the values next to the PDF and its extracted text. Errors and warnings point to what needs a look: a required field left empty, a value outside the options, a missing quote. An answer of the AI that is not one of the options is shown in orange, marked "not in the list", to keep or replace. Options are matched regardless of case, accents, spaces, hyphens and underscores. If the AI's answer stops before the last fields, the study says so: run the AI again. Correct what needs it, then click **Save as verified**. The AI's values are kept next to the verified ones.
 

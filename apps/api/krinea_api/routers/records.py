@@ -262,14 +262,26 @@ def _sorted(db: DBSession, review_id: str, stage: str, rows: list[models.Record]
     return [r for _, r in known] + [r for k, r in keyed if k in (None, "")]
 
 
-def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str = "ta", view: str = "all",
-                  search: str = "", source: str = "", label: str = "", import_id: str = "", year_from: str = "",
-                  year_to: str = "", kw: list[str] | None = None, kw_mode: str = "all",
+def _listed(value: str | list[str] | None) -> list[str]:
+    """A filter given once or several times (?label=a&label=b), blanks left out."""
+    values = [value] if isinstance(value, str) else list(value or [])
+    return [v.strip() for v in values if v and v.strip()]
+
+
+def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str = "ta",
+                  view: str | list[str] = "all", search: str = "", source: str = "", label: str | list[str] = "",
+                  import_id: str | list[str] = "", year_from: str = "", year_to: str = "",
+                  kw: list[str] | None = None, kw_mode: str = "all",
                   sort: str = "import") -> tuple[list[models.Record], dict, str]:
-    """Every record of a list as a screening page shows it (view, filters, keywords, order),
-    with the screening state of the review and the stage whose decisions count. The record
-    list and the AI runs that follow it (D-40) both read it from here."""
-    if stage not in ("ta", "ft", "extract", "all") or view not in VIEWS:
+    """Every record of a list as a screening page shows it (views, filters, keywords, order),
+    with the screening state of the review and the stage whose decisions count. Views, files
+    and labels can be picked several at once: a record shows when it matches any of the views,
+    any of the files and any of the labels. The record list and the AI runs that follow it
+    (D-40) both read it from here."""
+    views = _listed(view) or ["all"]
+    labels = _listed(label)
+    files = _listed(import_id)
+    if stage not in ("ta", "ft", "extract", "all") or any(v not in VIEWS for v in views):
         raise HTTPException(400, "Unknown stage or view")
     if sort not in SORTS:
         raise HTTPException(400, f"Unknown sort; use one of {', '.join(SORTS)}")
@@ -281,30 +293,24 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
     status = c["ft_status"] if st_stage == "ft" else c["ta_status"]
     decs = c["decisions"][st_stage]
 
-    def keep(rid: int) -> bool:
-        mine = decs.get(rid, {}).get(user_id)
-        s = status.get(rid, "pending")
-        if view == "todo":
-            return mine is None
-        if view.startswith("mine_"):
-            return mine is not None and mine.decision == view[5:]
-        if view in ("include", "maybe", "exclude", "conflict", "pending"):
-            return s == view
-        return True
+    def shown(rec: models.Record) -> bool:
+        """Whether the record is in any of the views. A report flagged not retrievable cannot be
+        assessed: at full text it leaves the records to screen, and "no PDF" means a PDF still
+        to find (D-46)."""
+        mine = decs.get(rec.id, {}).get(user_id)
+        s = status.get(rec.id, "pending")
+        retrievable = rec.pdf_status != "not_retrieved"
+        return any(v == "all"
+                   or (v == "todo" and mine is None and (retrievable or st_stage != "ft"))
+                   or (v.startswith("mine_") and mine is not None and mine.decision == v[5:])
+                   or (v in ("include", "maybe", "exclude", "conflict", "pending") and s == v)
+                   or (v == "no_pdf" and not rec.pdf_key and retrievable)
+                   or (v == "not_retrieved" and not retrievable)
+                   for v in views)
 
-    ids = [rid for rid in pool if keep(rid)]
     q = select(models.Record).where(models.Record.review_id == review.id)
     if stage != "all":
         q = q.where(models.Record.is_duplicate.is_(False))
-    # A report flagged not retrievable cannot be assessed: at full text it leaves the records
-    # to screen, and "no PDF" means a PDF still to find (D-46).
-    retrievable = or_(models.Record.pdf_status.is_(None), models.Record.pdf_status != "not_retrieved")
-    if view == "todo" and st_stage == "ft":
-        q = q.where(retrievable)
-    if view == "no_pdf":
-        q = q.where(models.Record.pdf_key == "", retrievable)
-    if view == "not_retrieved":
-        q = q.where(models.Record.pdf_status == "not_retrieved")
     if search.strip():
         like = f"%{search.strip()}%"
         q = q.where(or_(models.Record.title.ilike(like), models.Record.abstract.ilike(like),
@@ -312,22 +318,22 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
                         models.Record.keywords.ilike(like)))
     if source.strip():
         q = q.where(models.Record.source_db.ilike(f"%{source.strip()}%"))
-    if label.strip():
-        q = q.where(models.Record.labels.ilike(f"%{label.strip()}%"))
-    if import_id:
-        # A record found in this file may have been merged into a record from another file: the
+    if labels:
+        q = q.where(or_(*[models.Record.labels.ilike(f"%{x}%") for x in labels]))
+    if files:
+        # A record found in a file may have been merged into a record from another file: the
         # kept record counts for every file it was found in, or only for its own file when the
         # review keeps duplicates by file order (D-42).
-        q = q.where(scr.in_file(review, import_id))
+        q = q.where(or_(*[scr.in_file(review, f) for f in files]))
     if year_from.strip():
         q = q.where(models.Record.year >= year_from.strip()[:4])
     if year_to.strip():
         q = q.where(models.Record.year <= year_to.strip()[:4])
-    rows = db.scalars(q.order_by(models.Record.id)).all()
-    idset = set(ids)
-    rows = [r for r in rows if r.id in idset]
-    if label.strip():                         # exact label: "SQ1" must not match "SQ10"
-        rows = [r for r in rows if label.strip().lower() in _labels_of(r.labels)]
+    in_pool = set(pool)
+    rows = [r for r in db.scalars(q.order_by(models.Record.id)).all() if r.id in in_pool and shown(r)]
+    if labels:                                # exact labels: "SQ1" must not match "SQ10"
+        wanted = {x.lower() for x in labels}
+        rows = [r for r in rows if wanted & _labels_of(r.labels)]
     if any(k.strip() for k in kw):            # highlight keywords picked in the screening rail
         match = scr.keyword_filter(kw, kw_mode)
         rows = [r for r in rows if match(r)]
@@ -335,13 +341,14 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
 
 
 @router.get("/records", response_model=schemas.RecordPage)
-def list_records(stage: str = "ta", view: str = "all", search: str = "", source: str = "", label: str = "",
-                 import_id: str = "", year_from: str = "", year_to: str = "", cursor: int = 0,
+def list_records(stage: str = "ta", view: list[str] = Query(default=["all"]), search: str = "", source: str = "",
+                 label: list[str] = Query(default=[]), import_id: list[str] = Query(default=[]),
+                 year_from: str = "", year_to: str = "", cursor: int = 0,
                  offset: int = Query(0, ge=0), kw: list[str] = Query(default=[]), kw_mode: str = "all",
                  sort: str = "import", limit: int = Query(50, ge=1, le=500), access=Depends(ReviewAccess("viewer")),
                  user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
     """One page of a list: from `offset` (the screening page reads its list 200 records at a
-    time), else after `cursor`."""
+    time), else after `cursor`. `view`, `label` and `import_id` can be given several times."""
     review, m = access
     rows, c, st_stage = queue_records(db, review, user.id, stage, view, search, source, label, import_id,
                                       year_from, year_to, kw, kw_mode, sort)

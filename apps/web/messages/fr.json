@@ -520,6 +520,7 @@
       "aiCredits": "Crédits inclus : {n} jetons restants ce mois-ci.",
       "aiKeyMore": "Comment les clés sont protégées",
       "allFiles": "Tous les fichiers",
+      "viewFilter": "Références affichées",
       "fileFilter": "Fichier importé",
       "kwReview": "Toute la revue",
       "kwSearch": "Cette recherche : {file}",
@@ -705,7 +706,6 @@
       "allFiles": "Tous les fichiers",
       "label": "Étiquette",
       "allLabels": "Toutes les étiquettes",
-      "chosen": "{n} choix",
       "countRecords": "{n, plural, =0 {Aucune notice ne correspond à ces filtres.} one {# notice} other {# notices}}",
       "countStudies": "{n, plural, =0 {Aucune étude ne correspond à ces filtres.} one {# étude} other {# études}}",
       "formats": {

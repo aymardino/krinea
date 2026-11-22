@@ -18,6 +18,7 @@ import { JobProgress } from "@/components/app/job-progress";
 import { useJob } from "@/lib/use-job";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 // A value compared loosely with the options, as Krinea does (D-53): case, accents, spaces,
 // hyphens and underscores aside.
@@ -102,17 +103,18 @@ export default function ExtractionPage() {
   const [open, setOpen] = useState<number | null>(null);
   const [values, setValues] = useState<{ [k: string]: string }>({});
   const [search, setSearch] = useState("");
-  const [fileId, setFileId] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [labelFilter, setLabelFilter] = useState("all");
+  // Files, labels and statuses can be picked several at once (none: no filter); a study shows
+  // when it matches any file, any label and any status picked.
+  const [fileIds, setFileIds] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<string[]>([]);
+  const [labelFilter, setLabelFilter] = useState<string[]>([]);
   const onError = (e: unknown) => toast.error(e instanceof ApiError ? e.message : c("error"));
 
-  const qs = new URLSearchParams({
-    stage: "extract", view: "all", limit: "500", search,
-    ...(fileId !== "all" ? { import_id: fileId } : {}),
-    ...(labelFilter !== "all" ? { label: labelFilter } : {}),
-  }).toString();
-  const pool = useQuery<RecordPage>({ queryKey: ["records", rid, "extract", search, fileId, labelFilter], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
+  const params = new URLSearchParams({ stage: "extract", view: "all", limit: "500", search });
+  fileIds.forEach((f) => params.append("import_id", f));
+  labelFilter.forEach((l) => params.append("label", l));
+  const qs = params.toString();
+  const pool = useQuery<RecordPage>({ queryKey: ["records", rid, "extract", search, fileIds, labelFilter], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`) });
   const labelList = useQuery<LabelCount[]>({ queryKey: ["labels", rid], queryFn: () => api.get(`/reviews/${rid}/labels`) });
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const list = useQuery<Extraction[]>({ queryKey: ["extractions", rid], queryFn: () => api.get(`/reviews/${rid}/extraction`) });
@@ -151,9 +153,9 @@ export default function ExtractionPage() {
   const all = pool.data?.items ?? [];
   const items = all.filter((r) => {
     const st = byRecord.get(r.id)?.status ?? "none";
-    return status === "all" || (status === "nopdf" ? !r.has_pdf : st === status);
+    return !statuses.length || statuses.some((s) => (s === "nopdf" ? !r.has_pdf : st === s));
   });
-  const filtered = search.trim() !== "" || fileId !== "all" || status !== "all" || labelFilter !== "all";
+  const filtered = search.trim() !== "" || fileIds.length > 0 || statuses.length > 0 || labelFilter.length > 0;
   const todo = items.filter((r) => r.has_pdf && !byRecord.has(r.id)).map((r) => r.id);
   const current: Rec | undefined = all.find((r) => r.id === open);
   const ex = one.data;
@@ -215,31 +217,15 @@ export default function ExtractionPage() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-full sm:w-72"><Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder={t("search")} value={search} onChange={(e) => setSearch(e.target.value)} /></div>
           {(imports.data?.length ?? 0) > 1 && (
-            <Select value={fileId} onValueChange={setFileId}>
-              <SelectTrigger className="w-full sm:w-64" aria-label={t("fileFilter")}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allFiles")}</SelectItem>
-                {imports.data!.map((i) => <SelectItem key={i.id} value={i.id}>{i.filename}{i.source_db ? ` · ${i.source_db}` : ""}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <MultiSelect className="w-full sm:w-64" ariaLabel={t("fileFilter")} allLabel={t("allFiles")} value={fileIds} onChange={setFileIds}
+                         options={imports.data!.map((i) => ({ value: i.id, label: `${i.filename}${i.source_db ? ` · ${i.source_db}` : ""}` }))} />
           )}
           {!!labelList.data?.length && (
-            <Select value={labelFilter} onValueChange={setLabelFilter}>
-              <SelectTrigger className="w-full sm:w-48" aria-label={t("labelFilter")}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allLabels")}</SelectItem>
-                {labelList.data.map((l) => <SelectItem key={l.label} value={l.label}>{l.label} ({l.n})</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <MultiSelect className="w-full sm:w-48" ariaLabel={t("labelFilter")} allLabel={t("allLabels")} value={labelFilter} onChange={setLabelFilter}
+                         options={labelList.data.map((l) => ({ value: l.label, label: `${l.label} (${l.n})` }))} />
           )}
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-full sm:w-52" aria-label={t("statusFilter")}><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("allStatuses")}</SelectItem>
-              {(["none", "draft", "verified", "failed"] as const).map((s) => <SelectItem key={s} value={s}>{t(`status.${s}`)}</SelectItem>)}
-              <SelectItem value="nopdf">{t("noPdfFilter")}</SelectItem>
-            </SelectContent>
-          </Select>
+          <MultiSelect className="w-full sm:w-52" ariaLabel={t("statusFilter")} allLabel={t("allStatuses")} value={statuses} onChange={setStatuses}
+                       options={[...(["none", "draft", "verified", "failed"] as const).map((s) => ({ value: s, label: t(`status.${s}`) })), { value: "nopdf", label: t("noPdfFilter") }]} />
           {filtered && <span className="text-sm text-muted-foreground">{t("shown", { n: items.length, total: all.length })}</span>}
         </div>
       ) : null}

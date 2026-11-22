@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { EmptyState, Kbd, Progress } from "@/components/ui/misc";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -51,10 +52,12 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const { data: me } = useMe();
   const qc = useQueryClient();
   const rid = review.id;
-  const [view, setView] = useState("todo");
+  // Views, files and labels can be picked several at once (none: no filter); a record shows
+  // when it matches any view, any file and any label picked.
+  const [views, setViews] = useState<string[]>(["todo"]);
   const [search, setSearch] = useState("");
-  const [fileId, setFileId] = useState("all");
-  const [labelFilter, setLabelFilter] = useState("all");
+  const [fileIds, setFileIds] = useState<string[]>([]);
+  const [labelFilter, setLabelFilter] = useState<string[]>([]);
   const [sort, setSort] = useState("import");
   // Keywords clicked in the rail: the queue shows the records that mention all of them (or any).
   const [kwFilter, setKwFilter] = useState<string[]>([]);
@@ -67,7 +70,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const [aiRedo, setAiRedo] = useState(false);
   // The queue is read PAGE records at a time, from the first page again whenever the list
   // changes; `last` lands on the last record of the page reached (going back with Previous).
-  const listKey = JSON.stringify([view, search, fileId, labelFilter, sort, kwFilter, kwMode]);
+  const listKey = JSON.stringify([views, search, fileIds, labelFilter, sort, kwFilter, kwMode]);
   const [paging, setPaging] = useState({ key: "", offset: 0, last: false });
   const offset = paging.key === listKey ? paging.offset : 0;
   const landOnLast = paging.key === listKey && paging.last;
@@ -75,28 +78,35 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const onError = (e: unknown) => toast.error(e instanceof ApiError && e.status === 402 ? t("aiNeedKey") : e instanceof ApiError ? e.message : c("error"));
 
   const params = new URLSearchParams({
-    stage, view, search, limit: String(PAGE),
+    stage, search, limit: String(PAGE),
     ...(offset ? { offset: String(offset) } : {}),
-    ...(fileId !== "all" ? { import_id: fileId } : {}),
-    ...(labelFilter !== "all" ? { label: labelFilter } : {}),
     ...(sort !== "import" ? { sort } : {}),
   });
+  const viewList = views.length ? views : ["all"];
+  viewList.forEach((v) => params.append("view", v));
+  fileIds.forEach((f) => params.append("import_id", f));
+  labelFilter.forEach((l) => params.append("label", l));
   kwFilter.forEach((k) => params.append("kw", k));
   if (kwFilter.length > 1) params.set("kw_mode", kwMode);
   const qs = params.toString();
   // The list on screen stays (dimmed) while the next one loads.
-  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, view, search, fileId, labelFilter, kwFilter, kwMode, sort, offset], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`), placeholderData: keepPreviousData });
+  const page = useQuery<RecordPage>({ queryKey: ["records", rid, stage, views, search, fileIds, labelFilter, kwFilter, kwMode, sort, offset], queryFn: () => api.get(`/reviews/${rid}/records?${qs}`), placeholderData: keepPreviousData });
   const samekw = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
   const togglePick = (k: string) => {
     setKwFilter((f) => (f.some((x) => samekw(x, k)) ? f.filter((x) => !samekw(x, k)) : [...f, k]));
     setCurrent(null);
   };
   const showAll = () => { setKwFilter([]); setSearch(""); setCurrent(null); };
+  // A search's own keywords and criteria are edited with its file alone in the list.
+  const oneFile = fileIds.length === 1 ? fileIds[0] : "";
+  const onlyTodo = views.length === 1 && views[0] === "todo";
+  // Whether a record decided or flagged here leaves the list: every view picked drops it.
+  const leavesList = (dropping: string[]) => views.length > 0 && views.every((v) => dropping.includes(v));
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const labelList = useQuery<LabelCount[]>({ queryKey: ["labels", rid], queryFn: () => api.get(`/reviews/${rid}/labels`) });
   const kw = useQuery<KeywordCounts>({
-    queryKey: ["keywords", rid, fileId],
-    queryFn: () => api.get(`/reviews/${rid}/keywords${fileId !== "all" ? `?import_id=${fileId}` : ""}`),
+    queryKey: ["keywords", rid, oneFile],
+    queryFn: () => api.get(`/reviews/${rid}/keywords${oneFile ? `?import_id=${oneFile}` : ""}`),
   });
   const items = useMemo(() => page.data?.items ?? [], [page.data]);
   const total = page.data?.total ?? 0;
@@ -151,7 +161,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     onSuccess: (_r, vars) => {
       if (labels !== (rec?.labels ?? "")) api.patch(`/reviews/${rid}/records/${vars.id}`, { labels }).then(() => qc.invalidateQueries({ queryKey: ["labels", rid] })).catch(() => undefined);
       const next = items[index + 1]?.id ?? items[index - 1]?.id ?? null;
-      if (view === "todo" || view === "conflict") setCurrent(next);
+      if (leavesList(["todo", "conflict"])) setCurrent(next);
       qc.invalidateQueries({ queryKey: ["records", rid] });
       refresh();
     },
@@ -171,14 +181,14 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     else toast.error(t("aiNone"), { description: t("aiSeePanel") });
     qc.invalidateQueries({ queryKey: ["records", rid] });
   });
-  // The AI follows the list as shown (view, file, label, keywords, search and order), from the
+  // The AI follows the list as shown (views, files, labels, keywords, search and order), from the
   // record on screen round to the top, and takes the records without your decision and (unless
   // redone) without a suggestion, as many as typed (1 = the record on screen, if it has neither).
   // The server reads them from the whole list, not only from the page loaded here (D-40).
   const aiLimit = Math.min(AI_ALL, Math.max(1, Math.floor(Number(aiCount)) || 1));
   const aiList = {
     stage, redo: aiRedo,
-    queue: { view, search, sort, label: labelFilter !== "all" ? labelFilter : "", import_id: fileId !== "all" ? fileId : "", kw: kwFilter, kw_mode: kwMode },
+    queue: { view: viewList, search, sort, label: labelFilter, import_id: fileIds, kw: kwFilter, kw_mode: kwMode },
   };
   const aiRun = useMutation({
     mutationFn: () => api.post<Job>(`/reviews/${rid}/ai/screen`, { ...aiList, limit: aiLimit, start_id: rec?.id ?? null }),
@@ -229,7 +239,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const notRetrieved = useMutation({
     mutationFn: (id: number) => api.post<StudyRecord>(`/reviews/${rid}/records/${id}/pdf/not-retrieved`),
     onSuccess: (r) => {
-      if (r.pdf_status === "not_retrieved" && (view === "todo" || view === "no_pdf")) setCurrent(items[index + 1]?.id ?? items[index - 1]?.id ?? null);
+      if (r.pdf_status === "not_retrieved" && leavesList(["todo", "no_pdf"])) setCurrent(items[index + 1]?.id ?? items[index - 1]?.id ?? null);
       qc.invalidateQueries({ queryKey: ["records", rid] });
       refresh();
     },
@@ -259,7 +269,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const ownSets = (rec?.found_in ?? []).map((i) => review.criteria.search_keywords?.[i]).filter((x) => !!x);
   const inc = Array.from(new Set([...review.criteria.highlight_include, ...ownSets.flatMap((x) => x.include)]));
   const exc = Array.from(new Set([...review.criteria.highlight_exclude, ...ownSets.flatMap((x) => x.exclude)]));
-  const fileLabel = imports.data?.find((i) => i.id === fileId)?.filename;
+  const fileLabel = imports.data?.find((i) => i.id === oneFile)?.filename;
   const fileInput = useRef<HTMLInputElement>(null);
 
   return (
@@ -267,27 +277,18 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
       {/* Queue */}
       <aside className="flex max-h-[calc(100vh-14rem)] flex-col rounded-xl border border-border bg-card">
         <div className="space-y-2 border-b border-border p-3">
-          <Select value={view} onValueChange={(v: string) => { setView(v); setCurrent(null); }}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{VIEWS[stage].map((v) => <SelectItem key={v} value={v}>{t(`views.${v}`)}</SelectItem>)}</SelectContent>
-          </Select>
+          <MultiSelect ariaLabel={t("viewFilter")} allLabel={t("views.all")} value={views}
+                       options={VIEWS[stage].filter((v) => v !== "all").map((v) => ({ value: v, label: t(`views.${v}`) }))}
+                       onChange={(v) => { setViews(v); setCurrent(null); }} />
           {(imports.data?.length ?? 0) > 1 && (
-            <Select value={fileId} onValueChange={(v: string) => { setFileId(v); setCurrent(null); }}>
-              <SelectTrigger aria-label={t("fileFilter")}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allFiles")}</SelectItem>
-                {imports.data!.map((i) => <SelectItem key={i.id} value={i.id}>{i.filename}{i.source_db ? ` · ${i.source_db}` : ""}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <MultiSelect ariaLabel={t("fileFilter")} allLabel={t("allFiles")} value={fileIds}
+                         options={imports.data!.map((i) => ({ value: i.id, label: `${i.filename}${i.source_db ? ` · ${i.source_db}` : ""}` }))}
+                         onChange={(v) => { setFileIds(v); setCurrent(null); }} />
           )}
           {!!labelList.data?.length && (
-            <Select value={labelFilter} onValueChange={(v: string) => { setLabelFilter(v); setCurrent(null); }}>
-              <SelectTrigger aria-label={t("labelFilter")}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allLabels")}</SelectItem>
-                {labelList.data.map((l) => <SelectItem key={l.label} value={l.label}>{l.label} ({l.n})</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <MultiSelect ariaLabel={t("labelFilter")} allLabel={t("allLabels")} value={labelFilter}
+                         options={labelList.data.map((l) => ({ value: l.label, label: `${l.label} (${l.n})` }))}
+                         onChange={(v) => { setLabelFilter(v); setCurrent(null); }} />
           )}
           <Select value={sort} onValueChange={(v: string) => { setSort(v); setCurrent(null); }}>
             <SelectTrigger aria-label={t("sortLabel")} title={t("sortLabel")} className="justify-start gap-2">
@@ -369,7 +370,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
             <li><button type="button" onClick={() => pageTo(offset + PAGE)} className="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] font-medium text-primary hover:bg-muted">{t("pageNext", { n: Math.min(PAGE, total - offset - items.length) })}</button></li>
           )}
           {page.isLoading && <li className="p-3 text-xs text-muted-foreground">{c("loading")}</li>}
-          {!page.isLoading && !items.length && <li className="p-3 text-xs text-muted-foreground">{view === "todo" ? t("allDone") : t("empty")}</li>}
+          {!page.isLoading && !items.length && <li className="p-3 text-xs text-muted-foreground">{onlyTodo ? t("allDone") : t("empty")}</li>}
         </ol>
         <div className="flex items-center justify-between border-t border-border p-2 text-xs text-muted-foreground">
           <Button size="xs" variant="ghost" onClick={() => goto(-1)} disabled={offset + index <= 0}><ChevronLeft />{c("previous")}</Button>
@@ -381,7 +382,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
       {/* Reading pane */}
       <section className="min-w-0">
         {!rec ? (
-          <EmptyState icon={<Sparkles />} title={view === "todo" ? t("allDone") : t("empty")} />
+          <EmptyState icon={<Sparkles />} title={onlyTodo ? t("allDone") : t("empty")} />
         ) : (
           <article className="rounded-xl border border-border bg-card shadow-card">
             <div className="p-6">
@@ -490,7 +491,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
         </div>
         {/* The criteria of the search the list is filtered on, else of the searches the record
             on screen belongs to (one under the file order, D-42). */}
-        <SearchCriteriaCard review={review} importIds={fileId !== "all" ? [fileId] : (rec?.found_in ?? [])}
+        <SearchCriteriaCard review={review} importIds={fileIds.length ? fileIds : (rec?.found_in ?? [])}
                             imports={imports.data ?? []} editable={admin} onChanged={refresh} />
         {editable && (
           <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")} hint={aiRunning ? undefined : aiHint}
@@ -520,7 +521,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
         )}
         {editable && stage === "ta" && <LearnedCard reviewId={rid} onReady={() => { setSort("learned"); setCurrent(null); }} />}
         <KeywordsCard review={review} counts={kw.data} editable={admin} picked={kwFilter} onPick={togglePick} onChanged={refresh}
-                      search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
+                      search={oneFile && fileLabel ? { importId: oneFile, label: fileLabel } : undefined} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">
           <p className="font-semibold uppercase tracking-wide text-muted-foreground">{c("decision.conflict")}</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-conflict">{stageStats.conflict}</p>

@@ -520,6 +520,7 @@
       "aiCredits": "Included credits: {n} tokens left this month.",
       "aiKeyMore": "How keys are protected",
       "allFiles": "All files",
+      "viewFilter": "Records shown",
       "fileFilter": "Imported file",
       "kwReview": "This review",
       "kwSearch": "This search: {file}",
@@ -705,7 +706,6 @@
       "allFiles": "All files",
       "label": "Label",
       "allLabels": "All labels",
-      "chosen": "{n} selected",
       "countRecords": "{n, plural, =0 {No record matches these filters.} one {# record} other {# records}}",
       "countStudies": "{n, plural, =0 {No study matches these filters.} one {# study} other {# studies}}",
       "formats": {

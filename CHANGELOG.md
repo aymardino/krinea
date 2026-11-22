@@ -6,6 +6,11 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Screening and extraction.** The views, files and labels of the lists (and
+  the statuses in extraction) can be ticked several at once, for example the
+  records you included and those you marked maybe, or two searches together.
+  A record shows when it matches any value ticked in a filter, and every
+  filter used; AI runs follow the same list.
 - **Screening.** Suggestions learned from your own decisions, with no AI
   service: after 50 inclusions or exclusions at title and abstract (at least 5
   of each), Krinea scores how likely you are to include each reference, orders

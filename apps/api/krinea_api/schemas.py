@@ -294,14 +294,20 @@ class JobOut(BaseModel):
 
 
 class QueueIn(BaseModel):
-    """A list as a screening page shows it: view, filters, picked keywords and order."""
-    view: str = "todo"
+    """A list as a screening page shows it: views, filters, picked keywords and order. Views,
+    labels and files can be several; a single string reads as one."""
+    view: list[str] = ["todo"]
     search: str = ""
-    label: str = ""
-    import_id: str = ""
+    label: list[str] = []
+    import_id: list[str] = []
     kw: list[str] = []
     kw_mode: str = "all"
     sort: str = "import"
+
+    @field_validator("view", "label", "import_id", mode="before")
+    @classmethod
+    def _one_or_several(cls, v):
+        return [v] if isinstance(v, str) else v
 
 
 class AIScreenIn(BaseModel):

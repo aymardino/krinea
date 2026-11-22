@@ -52,8 +52,8 @@ La page a trois colonnes : la liste à gauche, la référence au centre, les pa
 
 **La liste.**
 
-- **Vues** : À trier, Incluses par moi, Peut-être, Exclues par moi, Conflits, Incluses, Exclues, Toutes.
-- **Filtres** : fichier importé, étiquette, et une zone de recherche.
+- **Vues** : À trier, Incluses par moi, Peut-être, Exclues par moi, Conflits, Incluses, Exclues, Toutes. Cochez-en plusieurs pour voir les références de l'une ou l'autre, par exemple *Incluses par moi* et *Peut-être*.
+- **Filtres** : fichier importé, étiquette, et une zone de recherche. Fichiers et étiquettes se cochent aussi à plusieurs. Une référence s'affiche si elle correspond à l'une des vues, à l'un des fichiers et à l'une des étiquettes cochés, ainsi qu'à la recherche.
 - **Ordre de la liste** : ordre d'import, titre, année, premier auteur, revue, *IA : à inclure d'abord* ou *IA : à exclure d'abord*, et *Vos suggestions : à inclure d'abord* ou *à exclure d'abord* (plus bas).
 - La liste charge 200 références à la fois. Les liens aux deux bouts de la liste, ainsi que **Suivant** et **Précédent**, passent aux suivantes.
 
@@ -165,7 +165,7 @@ Un champ *doi* est rempli par Krinea avec le lien du DOI de la notice de l'étud
 
 **Comment l'IA extrait.** L'IA lit le PDF de chaque étude une seule fois, avec tous ses champs ensemble, et renvoie chaque valeur avec une courte citation exacte du texte. Une consigne peut donc faire référence à un autre champ par sa clé, par exemple « Volets touchés autres que main_strand » ; placez le champ cité en premier.
 
-**Lancer l'IA.** **Extraire avec l'IA** traite les études affichées qui ont un PDF et pas encore de brouillon ; filtrez la liste pour en traiter moins. Dans une étude ouverte, **Relancer l'IA** ne refait que celle-ci.
+**Lancer l'IA.** **Extraire avec l'IA** traite les études affichées qui ont un PDF et pas encore de brouillon ; filtrez la liste pour en traiter moins. Les filtres par fichier, étiquette et statut acceptent plusieurs valeurs, comme au tri. Dans une étude ouverte, **Relancer l'IA** ne refait que celle-ci.
 
 **Vérifier.** Ouvrez une étude pour voir les valeurs à côté du PDF et de son texte extrait. Les erreurs et avertissements signalent ce qu'il faut regarder : un champ obligatoire vide, une valeur hors des options, une citation manquante. Une réponse de l'IA qui n'est pas une des options s'affiche en orange, marquée « hors liste », à garder ou à remplacer. Les options sont reconnues sans tenir compte des majuscules, des accents, des espaces, des tirets et des tirets bas. Si la réponse de l'IA s'arrête avant les derniers champs, l'étude l'indique : relancez l'IA. Corrigez ce qui doit l'être, puis cliquez sur **Enregistrer comme vérifiée**. Les valeurs de l'IA sont gardées à côté des valeurs vérifiées.
 
