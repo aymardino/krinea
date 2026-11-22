@@ -54,7 +54,7 @@ The page has three columns: the list on the left, the reference in the middle, p
 
 - **Views**: To screen, Included by me, Maybe, Excluded by me, Conflicts, Included, Excluded, All.
 - **Filters**: imported file, label, and a search box.
-- **List order**: import order, title, year, first author, journal, *AI: include first* or *AI: exclude first*.
+- **List order**: import order, title, year, first author, journal, *AI: include first* or *AI: exclude first*, and *Your suggestions: include first* or *exclude first* (below).
 - The list loads 200 references at a time. The links at both ends, and **Next** and **Previous**, go on to the following ones.
 
 **Deciding.**
@@ -70,6 +70,14 @@ The page has three columns: the list on the left, the reference in the middle, p
 **Criteria of the search.** When a search has its own sub-question and inclusion or exclusion criteria, the right column shows them for the reference on screen (or for the file the list is filtered on). Admins enter them there. They add to the review's criteria, for you and for the AI.
 
 **Working as a team.** With two reviewers or more per record (**Settings**, **Team**), a record is decided when the required decisions agree; otherwise it goes to **Conflicts**, where an admin settles it with **Resolve as consensus**. In blind mode, reviewers do not see each other's decisions; admins do.
+
+**Suggestions from your decisions.** Once you have made 50 inclusions or exclusions, at least 5 of each (*Maybe* does not count), the **From your decisions** panel can suggest a decision for every reference, learned from your own decisions in this review. It uses no AI service and costs nothing: a small statistical model (TF-IDF and logistic regression, as some other screening tools offer) reads the titles, keywords and abstracts on the server.
+
+- Click **Compute the suggestions**. When they are ready, the list shows first the references you are most likely to include (*Your suggestions: include first*); *Your suggestions: exclude first* shows the others first.
+- Each reference shows the suggestion and its score out of 100, next to the AI's suggestion if it has one. A likely exclusion comes with the exclusion reason of the references it resembles, filled in for you.
+- An exclusion is suggested only for a reference that scores below what 19 in 20 of your inclusions scored, in a test on decisions the model did not learn from.
+- The panel shows how reliable the suggestions are (the AUC: the chance that a reference you included scores above one you excluded) and the words that weigh most. The more you decide, the better they get: compute them again from time to time; the panel counts the decisions made since.
+- They are yours alone: each reviewer's suggestions learn from their own decisions only, so blind mode hides as much as before. They exist at title and abstract only, and never count as a decision.
 
 ## 4. AI suggestions (Screening and Full text tabs)
 

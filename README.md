@@ -124,7 +124,8 @@ e-mail invitations, imports (RIS, BibTeX, PubMed, Web of Science, CSV,
 Excel), duplicate detection with reviewable candidates, title/abstract and
 full-text screening with blind mode and consensus, PDF upload and
 open-access lookup, AI screening suggestions and extraction drafts through a
-job queue (bring your own key, or included credits), author-defined
+job queue (bring your own key, or included credits), screening suggestions
+learned from each reviewer's own decisions (no AI service), author-defined
 extraction forms with verification, PRISMA 2020 diagram and exports.
 
 Next: billing (Stripe) and plan limits, ORCID sign-in, Rayyan and

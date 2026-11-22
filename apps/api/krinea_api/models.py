@@ -215,6 +215,36 @@ class AISuggestion(Base):
     __table_args__ = (UniqueConstraint("record_id", "stage"),)
 
 
+class LearnedScore(Base):
+    """How likely a reviewer is to include a record, learned from their own title/abstract
+    decisions with no AI service (D-54). One row per record, all replaced at each run."""
+    __tablename__ = "learned_scores"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    review_id: Mapped[str] = mapped_column(ForeignKey("reviews.id", ondelete="CASCADE"))
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    record_id: Mapped[int] = mapped_column(ForeignKey("records.id", ondelete="CASCADE"), index=True)
+    score: Mapped[float] = mapped_column(Float)
+    reason: Mapped[str] = mapped_column(String(200), default="")
+    __table_args__ = (UniqueConstraint("user_id", "record_id"), Index("ix_learned_scores_review_user", "review_id", "user_id"))
+
+
+class LearnedRun(Base):
+    """The last run of a reviewer's learned suggestions: what it learned from and how well it ranks."""
+    __tablename__ = "learned_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    review_id: Mapped[str] = mapped_column(ForeignKey("reviews.id", ondelete="CASCADE"))
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    n_include: Mapped[int] = mapped_column(Integer, default=0)
+    n_exclude: Mapped[int] = mapped_column(Integer, default=0)
+    auc: Mapped[float | None] = mapped_column(Float, nullable=True)
+    include_at: Mapped[float] = mapped_column(Float, default=0.5)      # suggestion boundaries
+    exclude_at: Mapped[float] = mapped_column(Float, default=0.5)
+    include_terms: Mapped[list] = mapped_column(JSON, default=list)
+    exclude_terms: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=now)
+    __table_args__ = (UniqueConstraint("review_id", "user_id"),)
+
+
 class Extraction(Base):
     __tablename__ = "extractions"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

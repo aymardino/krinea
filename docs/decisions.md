@@ -978,3 +978,34 @@ looked empty although the AI had answered, quote included, and the checks, which
 raised nothing. An answer such as "not applicable" outside the options was invisible. And a
 cut-off answer lost its last fields without a word, the thinking of Gemini counting against
 the same 8,192 tokens as the answer.
+
+## D-54 · 2026-11-22 · decided · Screening suggestions learned from each reviewer's decisions
+
+**Decision.** At title and abstract, a reviewer who has made 50 inclusions or exclusions, at
+least 5 of each ("maybe" teaches nothing), can compute suggestions learned from their own
+decisions, with no AI service (`krinea_core.learn`). Each record is a TF-IDF vector of the
+words and pairs of consecutive words of its title, keywords and abstract (accents, case and
+stop words dropped, terms found in at least two records, sublinear counts, rows of unit
+length), and an L2 logistic regression with both classes weighted alike learns from the
+decisions. It is written in numpy, already installed through pandas, and gives the same
+scores as scikit-learn's `LogisticRegression(C=1, class_weight="balanced")` (to 1e-4). A run
+is a job of the worker: it scores every record of the review (duplicates aside) into
+`learned_scores`, replacing the reviewer's previous scores, and keeps in `learned_runs` what
+it learned from. Five-fold cross-validation on at most 1,000 decisions gives the AUC shown as
+the reliability, and the boundaries of the suggestions: exclude below the 5th percentile of
+the held-out scores of the reviewer's inclusions, include above the 95th percentile of those
+of their exclusions, maybe between (one boundary halfway when the two part cleanly). A likely
+exclusion gets the reason, among those with at least 3 excluded records, whose records it
+resembles most (cosine to their centre). The list can be ordered by the scores, each record
+shows its suggestion beside the AI's and fills in the suggested reason, and the panel shows the
+words that weigh most and how many decisions were made since the run.
+
+**Why.** Suggestions from the reviewer's first decisions, as Rayyan offers, without paying
+for an AI service or sending the records anywhere. A fixed number of decisions rather than a
+share of the review: the model learns from examples of each kind whatever the size of the
+review (10% of 10,000 records is 1,000 decisions, of 200 records only 20). Boundaries from the
+reviewer's own decisions rather than fixed probabilities: with this regularisation and a few
+dozen decisions the probabilities stay near 0.5, and in a systematic review a suggested
+exclusion must rarely be a study the reviewer would include. One model per reviewer, so blind
+screening stays blind. In the worker, as a run reads the whole review: about 1 second for 600
+decisions and 8 seconds for 5,000 on a laptop, more on a small server.

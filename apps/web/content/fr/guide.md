@@ -54,7 +54,7 @@ La page a trois colonnes : la liste à gauche, la référence au centre, les pa
 
 - **Vues** : À trier, Incluses par moi, Peut-être, Exclues par moi, Conflits, Incluses, Exclues, Toutes.
 - **Filtres** : fichier importé, étiquette, et une zone de recherche.
-- **Ordre de la liste** : ordre d'import, titre, année, premier auteur, revue, *IA : à inclure d'abord* ou *IA : à exclure d'abord*.
+- **Ordre de la liste** : ordre d'import, titre, année, premier auteur, revue, *IA : à inclure d'abord* ou *IA : à exclure d'abord*, et *Vos suggestions : à inclure d'abord* ou *à exclure d'abord* (plus bas).
 - La liste charge 200 références à la fois. Les liens aux deux bouts de la liste, ainsi que **Suivant** et **Précédent**, passent aux suivantes.
 
 **Décider.**
@@ -70,6 +70,14 @@ La page a trois colonnes : la liste à gauche, la référence au centre, les pa
 **Critères de la requête.** Quand une requête a sa propre sous-question et ses propres critères d'inclusion ou d'exclusion, la colonne de droite les affiche pour la référence à l'écran (ou pour le fichier sur lequel la liste est filtrée). Les admins les saisissent à cet endroit. Ils s'ajoutent aux critères de la revue, pour vous et pour l'IA.
 
 **Travailler en équipe.** Avec deux relecteurs ou plus par notice (**Paramètres**, **Équipe**), une notice est décidée quand les décisions requises concordent ; sinon elle passe dans **Conflits**, où un admin la règle avec **Résoudre en consensus**. En mode aveugle, les relecteurs ne voient pas les décisions des autres ; les admins, si.
+
+**Suggestions d'après vos décisions.** Dès que vous avez fait 50 inclusions ou exclusions, dont au moins 5 de chaque (*Peut-être* ne compte pas), le panneau **D'après vos décisions** peut suggérer une décision pour chaque référence, apprise de vos propres décisions dans cette revue. Il n'utilise aucun service d'IA et ne coûte rien : un petit modèle statistique (TF-IDF et régression logistique, comme en proposent d'autres outils de tri) lit les titres, mots-clés et résumés sur le serveur.
+
+- Cliquez sur **Calculer les suggestions**. Quand elles sont prêtes, la liste montre d'abord les références que vous inclurez le plus probablement (*Vos suggestions : à inclure d'abord*) ; *Vos suggestions : à exclure d'abord* montre d'abord les autres.
+- Chaque référence affiche la suggestion et son score sur 100, à côté de la suggestion de l'IA s'il y en a une. Une exclusion probable vient avec le motif d'exclusion des références qui lui ressemblent, déjà choisi pour vous.
+- Une exclusion n'est suggérée que pour une référence dont le score est inférieur à celui de 19 de vos inclusions sur 20, dans un test sur des décisions que le modèle n'a pas apprises.
+- Le panneau indique la fiabilité des suggestions (l'AUC : la probabilité qu'une référence incluse ait un meilleur score qu'une référence exclue) et les mots qui pèsent le plus. Plus vous décidez, meilleures elles sont : recalculez-les de temps en temps ; le panneau compte les décisions prises depuis.
+- Elles ne sont qu'à vous : les suggestions de chaque relecteur n'apprennent que de ses propres décisions, si bien que le mode aveugle cache autant qu'avant. Elles n'existent qu'au tri sur titre et résumé et ne comptent jamais comme une décision.
 
 ## 4. Suggestions de l'IA (onglets Tri et Texte intégral)
 

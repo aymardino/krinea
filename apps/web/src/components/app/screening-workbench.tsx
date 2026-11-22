@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowUpDown, Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Search, Sparkles, Tag, Upload, X, XCircle } from "lucide-react";
+import { ArrowUpDown, Bot, ChevronLeft, ChevronRight, ExternalLink, FileText, Lightbulb, Search, Sparkles, Tag, Upload, X, XCircle } from "lucide-react";
 import { api, ApiError, type ImportRow, type Job, type KeywordCounts, type LabelCount, type StudyRecord, type RecordPage } from "@/lib/api";
 import { useMe } from "@/lib/auth";
 import { cn, formatDuration } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { AiCard, AiRunSummary, aiErrorKind, DEFAULT_PROVIDER, type AiRunResult }
 import { JobProgress } from "@/components/app/job-progress";
 import { isLive, useJob } from "@/lib/use-job";
 import { KeywordsCard } from "@/components/app/keywords-card";
+import { LearnedCard } from "@/components/app/learned-card";
 import { SearchCriteriaCard } from "@/components/app/search-criteria-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -28,7 +29,9 @@ const VIEWS: { [k in Stage]: string[] } = {
   ft: ["todo", "mine_include", "mine_maybe", "mine_exclude", "conflict", "include", "exclude", "no_pdf", "not_retrieved", "all"],
 };
 // Orders of the queue (GET /records?sort=...); "import" is the order of the imported files.
-const SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude"];
+// Title/abstract screening also follows your suggestions learned from your decisions (D-54).
+const BASE_SORTS = ["import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude"];
+const SORTS: { [k in Stage]: string[] } = { ta: [...BASE_SORTS, "learned", "learned_exclude"], ft: BASE_SORTS };
 // The "No reason" choice of the exclusion reason (a select item cannot have an empty value).
 const NO_REASON = "__none__";
 // The queue is read this many records at a time (GET /records?offset=...).
@@ -117,11 +120,13 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
     setNote(rec?.my_decision?.note ?? "");
     setLabels(rec?.labels ?? "");
   }, [rec?.id, rec?.my_decision, rec?.labels]);
-  // The exclusion reason starts from your decision, else from the AI's suggestion, also when
-  // the suggestion arrives while the record is open (without touching the note or the timer).
+  // The exclusion reason starts from your decision, else from the AI's suggestion, else from
+  // the one learned from your decisions, also when a suggestion arrives while the record is
+  // open (without touching the note or the timer).
   useEffect(() => {
-    setReason(rec?.my_decision?.reason ?? rec?.ai?.reason ?? "");
-  }, [rec?.id, rec?.my_decision, rec?.ai]);
+    const learnedReason = rec?.learned && rec.learned.decision === "exclude" ? rec.learned.reason : "";
+    setReason(rec?.my_decision?.reason ?? (rec?.ai?.reason || learnedReason || ""));
+  }, [rec?.id, rec?.my_decision, rec?.ai, rec?.learned]);
 
   const stageStats = review.counts.stages[stage];
   const required = review.counts.required_reviewers;
@@ -288,7 +293,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
             <SelectTrigger aria-label={t("sortLabel")} title={t("sortLabel")} className="justify-start gap-2">
               <ArrowUpDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden /><SelectValue className="flex-1 text-left" />
             </SelectTrigger>
-            <SelectContent>{SORTS.map((s) => <SelectItem key={s} value={s}>{t(`sort.${s}`)}</SelectItem>)}</SelectContent>
+            <SelectContent>{SORTS[stage].map((s) => <SelectItem key={s} value={s}>{t(`sort.${s}`)}</SelectItem>)}</SelectContent>
           </Select>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
@@ -348,6 +353,12 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
                       <Bot className="size-3" aria-hidden /><span className="sr-only">{t("aiListMark", { decision: c(`decision.${r.ai.decision}` as "decision.include") })}</span>
                     </span>
                   )}
+                  {r.learned && !r.my_decision && (
+                    <span title={t("learnedListMark", { decision: c(`decision.${r.learned.decision}` as "decision.include") })}
+                          className={cn("inline-flex", r.learned.decision === "include" && "text-include", r.learned.decision === "maybe" && "text-maybe", r.learned.decision === "exclude" && "text-exclude")}>
+                      <Lightbulb className="size-3" aria-hidden /><span className="sr-only">{t("learnedListMark", { decision: c(`decision.${r.learned.decision}` as "decision.include") })}</span>
+                    </span>
+                  )}
                   {r.my_decision && <span className={cn("ml-auto size-2 rounded-full", r.my_decision.decision === "include" && "bg-include", r.my_decision.decision === "maybe" && "bg-maybe", r.my_decision.decision === "exclude" && "bg-exclude")} />}
                   {r.has_pdf && <FileText className="size-3" />}
                 </p>
@@ -395,6 +406,13 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
                     <p className="mt-0.5 text-muted-foreground">{rec.ai.rationale}</p>
                   </div>
                   {editable && !rec.my_decision && <Button size="xs" variant="outline" className="ml-auto shrink-0" onClick={() => { setReason(rec.ai?.reason ?? ""); decide.mutate({ id: rec.id, decision: rec.ai!.decision }); }}>{t("acceptAi")}</Button>}
+                </div>
+              )}
+              {/* Your suggestion learned from your own decisions (D-54), beside the AI's. */}
+              {rec.learned && (
+                <div className={cn("flex items-start gap-3 rounded-lg border border-brand-200 bg-brand-50/60 p-3 text-sm dark:border-brand-900 dark:bg-brand-950/40", rec.ai ? "mt-2" : "mt-5")}>
+                  <Lightbulb className="mt-0.5 size-4 shrink-0 text-brand-600" />
+                  <p className="min-w-0"><span className="font-medium text-brand-700 dark:text-brand-300">{t("learnedSuggests")}</span> <b>{c(`decision.${rec.learned.decision}` as "decision.include")}</b> <span className="text-muted-foreground">({t("learnedScore", { n: Math.round(rec.learned.score * 100) })})</span>{rec.learned.reason && <span className="text-muted-foreground"> · {rec.learned.reason}</span>}</p>
                 </div>
               )}
               {(rec.decisions.length > 0 || (required > 1 && review.settings.blind && !admin)) && (
@@ -500,6 +518,7 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
                     ? <JobProgress job={aiJob.job} label={aiProgress.total ? t("aiRunningCount", { ok: aiSaved, total: aiProgress.total }) : t("aiRunning")} />
                     : lastAiRun && <AiRunSummary job={lastAiRun} provider={review.settings.ai_provider || DEFAULT_PROVIDER} />} />
         )}
+        {editable && stage === "ta" && <LearnedCard reviewId={rid} onReady={() => { setSort("learned"); setCurrent(null); }} />}
         <KeywordsCard review={review} counts={kw.data} editable={admin} picked={kwFilter} onPick={togglePick} onChanged={refresh}
                       search={fileId !== "all" && fileLabel ? { importId: fileId, label: fileLabel } : undefined} />
         <div className="rounded-xl border border-border bg-card p-4 text-xs">

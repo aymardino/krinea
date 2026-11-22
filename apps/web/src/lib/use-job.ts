@@ -11,8 +11,9 @@ export const isLive = (job?: Job | null) => job?.status === "queued" || job?.sta
  *  which is then asked for every 1.5 seconds until it ends; `onEnd` is called once, whether it
  *  is done or failed. A job of one of `kinds` already under way when the page opens (after a
  *  reload, or started by a teammate) is followed too. Where jobs run inline (development),
- *  the job comes back finished and `onEnd` is called at once. */
-export function useJob(reviewId: string, kinds: string[], onEnd: (job: Job) => void) {
+ *  the job comes back finished and `onEnd` is called at once. With `userId`, only that
+ *  person's jobs are followed ("" while not known: none). */
+export function useJob(reviewId: string, kinds: string[], onEnd: (job: Job) => void, userId?: string) {
   const qc = useQueryClient();
   const [started, setStarted] = useState<string | null>(null);
   const [ended, setEnded] = useState<string[]>([]);
@@ -26,7 +27,8 @@ export function useJob(reviewId: string, kinds: string[], onEnd: (job: Job) => v
     refetchOnMount: "always",
   });
   const underWay = recent.isFetchedAfterMount
-    ? recent.data?.find((j) => kinds.includes(j.kind) && isLive(j) && !ended.includes(j.id))?.id
+    ? recent.data?.find((j) => kinds.includes(j.kind) && isLive(j) && !ended.includes(j.id)
+        && (userId === undefined || (!!userId && j.user_id === userId)))?.id
     : undefined;
   const id = started ?? underWay ?? null;
   const active = !!id && !ended.includes(id);

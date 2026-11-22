@@ -19,6 +19,7 @@ from krinea_api.deps import ROLE_RANK, ReviewAccess, current_user, log_activity
 from krinea_api.services import dedup as dedup_service
 from krinea_api.services import imports as import_service
 from krinea_api.services import jobs as job_service
+from krinea_api.services import learned as learned_service
 from krinea_api.services import screening as scr
 from krinea_api.services import storage
 from krinea_core import biblio
@@ -27,8 +28,10 @@ router = APIRouter(prefix="/reviews/{review_id}", tags=["records"])
 
 VIEWS = ("todo", "mine_include", "mine_maybe", "mine_exclude", "include", "maybe", "exclude",
          "conflict", "pending", "all", "no_pdf", "not_retrieved")
-# Orders of the record lists (`sort`): "import" is the order of the imported files.
-SORTS = ("import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude")
+# Orders of the record lists (`sort`): "import" is the order of the imported files; "learned"
+# and "learned_exclude" follow your suggestions learned from your decisions (D-54).
+SORTS = ("import", "title", "title_desc", "year_desc", "year", "author", "journal", "ai", "ai_exclude",
+         "learned", "learned_exclude")
 
 
 # ── Imports ──────────────────────────────────────────────────────────────────────
@@ -153,7 +156,8 @@ def _decision_dict(d: models.Decision, names: dict[str, str]) -> dict:
 
 
 def record_out(rec: models.Record, computed: dict, user_id: str, blind: bool, names: dict[str, str],
-               ai: dict | None, stage: str = "ta", merged_from: list[str] | None = None) -> schemas.RecordOut:
+               ai: dict | None, stage: str = "ta", merged_from: list[str] | None = None,
+               learned: dict | None = None) -> schemas.RecordOut:
     decs = computed["decisions"]
     ta = computed["ta_status"].get(rec.id, "pending")
     ft = computed["ft_status"].get(rec.id, "pending")
@@ -170,6 +174,7 @@ def record_out(rec: models.Record, computed: dict, user_id: str, blind: bool, na
         dup_score=rec.dup_score, dup_reason=rec.dup_reason, pdf_status=rec.pdf_status,
         has_pdf=bool(rec.pdf_key), labels=rec.labels, notes=rec.notes, ta_status=ta, ft_status=ft,
         my_decision=_decision_dict(mine, names) if mine else None, decisions=visible, ai=ai,
+        learned=learned if stage == "ta" else None,
         found_in=list(dict.fromkeys([i for i in [rec.import_id, *(merged_from or [])] if i])))
 
 
@@ -232,12 +237,17 @@ def _ai_rank(db: DBSession, review_id: str, stage: str, exclude_first: bool = Fa
     return out
 
 
-def _sorted(db: DBSession, review_id: str, stage: str, rows: list[models.Record], sort: str) -> list[models.Record]:
+def _sorted(db: DBSession, review_id: str, stage: str, rows: list[models.Record], sort: str,
+            user_id: str = "") -> list[models.Record]:
     """`rows`, given in import order, in the order asked for. Records without the value sorted
-    on (no year, no author...) or without an AI suggestion come last, and equal values keep the
+    on (no year, no author...) or without a suggestion come last, and equal values keep the
     import order, in both directions (Python's sort is stable, reversed too)."""
     if sort == "import":
         return rows
+    if sort in ("learned", "learned_exclude"):
+        sign = 1 if sort == "learned_exclude" else -1
+        learned = learned_service.scores(db, review_id, user_id) if stage == "ta" else {}
+        return sorted(rows, key=lambda r: (0, sign * learned[r.id]["score"]) if r.id in learned else (1, 0.0))
     if sort in ("ai", "ai_exclude"):
         ranks = _ai_rank(db, review_id, stage, exclude_first=sort == "ai_exclude")
         return sorted(rows, key=lambda r: ranks.get(r.id, (3, 0.0)))
@@ -321,7 +331,7 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
     if any(k.strip() for k in kw):            # highlight keywords picked in the screening rail
         match = scr.keyword_filter(kw, kw_mode)
         rows = [r for r in rows if match(r)]
-    return _sorted(db, review.id, st_stage, rows, sort), c, st_stage
+    return _sorted(db, review.id, st_stage, rows, sort, user_id), c, st_stage
 
 
 @router.get("/records", response_model=schemas.RecordPage)
@@ -347,7 +357,9 @@ def list_records(stage: str = "ta", view: str = "all", search: str = "", source:
     names = _names(db, review.id)
     ai = _ai_map(db, review.id, st_stage, [r.id for r in page])
     merged = _merged_from(db, review, [r.id for r in page])
-    items = [record_out(r, c, user.id, blind, names, ai.get(r.id), st_stage, merged.get(r.id)) for r in page]
+    learned = learned_service.scores(db, review.id, user.id, [r.id for r in page]) if st_stage == "ta" else {}
+    items = [record_out(r, c, user.id, blind, names, ai.get(r.id), st_stage, merged.get(r.id), learned.get(r.id))
+             for r in page]
     next_cursor = page[-1].id if len(page) == limit and page[-1].id != rows[-1].id else None
     return schemas.RecordPage(items=items, total=total, next_cursor=next_cursor)
 
@@ -367,7 +379,8 @@ def get_record(record_id: int, stage: str = "ta", access=Depends(ReviewAccess("v
     c = scr.compute(db, review)
     st = "ft" if stage == "ft" else "ta"
     return record_out(rec, c, user.id, _blind(review, m.role), _names(db, review.id),
-                      _ai_map(db, review.id, st, [rec.id]).get(rec.id), st, _merged_from(db, review, [rec.id]).get(rec.id))
+                      _ai_map(db, review.id, st, [rec.id]).get(rec.id), st, _merged_from(db, review, [rec.id]).get(rec.id),
+                      learned_service.scores(db, review.id, user.id, [rec.id]).get(rec.id))
 
 
 @router.patch("/records/{record_id}", response_model=schemas.RecordOut)
@@ -441,7 +454,8 @@ def decide(record_id: int, body: schemas.DecisionIn, access=Depends(ReviewAccess
     db.commit()
     c = scr.compute(db, review)
     return record_out(rec, c, user.id, _blind(review, m.role), _names(db, review.id),
-                      _ai_map(db, review.id, body.stage, [rec.id]).get(rec.id), body.stage)
+                      _ai_map(db, review.id, body.stage, [rec.id]).get(rec.id), body.stage,
+                      learned=learned_service.scores(db, review.id, user.id, [rec.id]).get(rec.id))
 
 
 @router.delete("/records/{record_id}/decision", response_model=schemas.RecordOut)
@@ -580,6 +594,26 @@ def fetch_pdf(record_id: int, access=Depends(ReviewAccess("reviewer")), user: mo
     rec.pdf_status = "available"
     db.commit()
     return record_out(rec, scr.compute(db, review), user.id, _blind(review, m.role), _names(db, review.id), None, "ft")
+
+
+# ── Suggestions learned from your decisions (D-54) ───────────────────────────────
+@router.get("/learned", response_model=schemas.LearnedStatus)
+def learned_status(access=Depends(ReviewAccess("viewer")), user: models.User = Depends(current_user),
+                   db: DBSession = Depends(get_db)):
+    review, _ = access
+    return learned_service.status(db, review.id, user.id)
+
+
+@router.post("/learned", response_model=schemas.JobOut)
+def learned_run(access=Depends(ReviewAccess("reviewer")), user: models.User = Depends(current_user),
+                db: DBSession = Depends(get_db)):
+    """Learns from your title/abstract decisions and scores every record, in the worker."""
+    review, _ = access
+    st = learned_service.status(db, review.id, user.id)
+    if not st["ready"]:
+        raise HTTPException(400, f"Suggestions need {st['min_decisions']} inclusions or exclusions, at least "
+                                 f"{st['min_each']} of each (you have {st['n_include']} and {st['n_exclude']})")
+    return job_service.enqueue(db, "learn", {}, review.id, user.id)
 
 
 # ── Duplicates ───────────────────────────────────────────────────────────────────

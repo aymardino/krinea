@@ -6,6 +6,12 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Screening.** Suggestions learned from your own decisions, with no AI
+  service: after 50 inclusions or exclusions at title and abstract (at least 5
+  of each), Krinea scores how likely you are to include each reference, orders
+  the list by it, shows the suggestion beside the AI's, fills in the exclusion
+  reason of lookalike references, and says how reliable it is. Each reviewer's
+  suggestions learn from their own decisions only.
 - **Extraction.** On a wide screen, the PDF stays in view while the form
   scrolls, so the paper no longer has to be scrolled back to.
 - **Fixed.** In data extraction, the AI's answers to choice fields whose options

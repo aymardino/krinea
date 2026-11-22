@@ -180,7 +180,12 @@ def _run_extract(db: Session, job: models.Job) -> dict:
     return {"ok": ok, "failed": failed, "total": len(ids)}
 
 
-RUNNERS = {"dedup": _run_dedup, "ai_screen": _run_ai_screen, "extract": _run_extract}
+def _run_learn(db: Session, job: models.Job) -> dict:
+    from krinea_api.services import learned
+    return learned.run(db, job.review_id, job.user_id)
+
+
+RUNNERS = {"dedup": _run_dedup, "ai_screen": _run_ai_screen, "extract": _run_extract, "learn": _run_learn}
 
 
 def run_job(job_id: str) -> None:

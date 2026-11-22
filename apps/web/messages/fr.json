@@ -565,6 +565,26 @@
       "aiSeePanel": "Le panneau IA explique pourquoi.",
       "aiErrorDetail": "Message du fournisseur",
       "aiListMark": "L'IA suggère : {decision}",
+      "learnedTitle": "D'après vos décisions",
+      "learnedIntro": "Apprend de vos inclusions et exclusions dans cette revue pour suggérer une décision sur les autres références. Aucun service d'IA : un petit modèle statistique, calculé sur le serveur.",
+      "learnedProgress": "{n} décisions sur {min} : {inc} incluses, {exc} exclues.",
+      "learnedNeed": "S'ouvre à {min} inclusions ou exclusions, dont au moins {each} de chaque (« peut-être » ne compte pas).",
+      "learnedRun": "Calculer les suggestions",
+      "learnedRerun": "Les recalculer",
+      "learnedRunning": "Suggestions d'après vos décisions",
+      "learnedDone": "Suggestions prêtes : la liste montre d'abord les références que vous inclurez le plus probablement.",
+      "learnedFailed": "Les suggestions n'ont pas pu être calculées.",
+      "learnedLast": "Appris de {inc} inclusions et {exc} exclusions, le {date}.",
+      "learnedQuality": "Fiabilité estimée : {level} (AUC {auc}).",
+      "learnedLevel": { "low": "faible", "fair": "moyenne", "good": "bonne", "high": "très bonne" },
+      "learnedNew": "{n, plural, one {# décision} other {# décisions}} depuis : recalculez pour en tenir compte.",
+      "learnedTerms": "Mots qui pèsent le plus",
+      "learnedTermsInclude": "Vers l'inclusion :",
+      "learnedTermsExclude": "Vers l'exclusion :",
+      "learnedHow": "L'AUC est la probabilité qu'une référence que vous avez incluse ait un meilleur score qu'une référence exclue, mesurée sur des décisions que le modèle n'a pas apprises. Une exclusion n'est suggérée qu'en dessous du score de 19 de vos inclusions sur 20.",
+      "learnedSuggests": "D'après vos décisions :",
+      "learnedScore": "score {n}/100",
+      "learnedListMark": "D'après vos décisions : {decision}",
       "aiError": {
         "nokey": "Aucune clé {provider} utilisable : ajoutez la vôtre dans ce panneau.",
         "key": "{provider} refuse la clé enregistrée. Vérifiez qu'elle a été copiée en entier et que son projet est actif, ou remplacez-la : « retirer », puis collez la nouvelle.",
@@ -584,7 +604,9 @@
         "author": "Premier auteur, de A à Z",
         "journal": "Revue, de A à Z",
         "ai": "IA : à inclure d'abord",
-        "ai_exclude": "IA : à exclure d'abord"
+        "ai_exclude": "IA : à exclure d'abord",
+        "learned": "Vos suggestions : à inclure d'abord",
+        "learned_exclude": "Vos suggestions : à exclure d'abord"
       }
     },
     "extraction": {

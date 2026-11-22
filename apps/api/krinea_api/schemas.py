@@ -180,6 +180,7 @@ class RecordOut(BaseModel):
     my_decision: dict[str, Any] | None = None
     decisions: list[dict[str, Any]] = []
     ai: dict[str, Any] | None = None
+    learned: dict[str, Any] | None = None   # your suggestion learned from your decisions (D-54)
 
     class Config:
         from_attributes = True
@@ -256,6 +257,25 @@ class CandidateOut(BaseModel):
     a: RecordOut
     b: RecordOut
     suggested_keep: int | None = None
+
+
+class LearnedRunOut(BaseModel):
+    n_include: int
+    n_exclude: int
+    auc: float | None
+    include_terms: list[str]
+    exclude_terms: list[str]
+    created_at: dt.datetime
+
+
+class LearnedStatus(BaseModel):
+    n_include: int
+    n_exclude: int
+    min_decisions: int
+    min_each: int
+    ready: bool
+    new_since: int
+    run: LearnedRunOut | None = None
 
 
 class JobOut(BaseModel):

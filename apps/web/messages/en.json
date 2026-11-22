@@ -565,6 +565,26 @@
       "aiSeePanel": "The AI panel says why.",
       "aiErrorDetail": "Message from the provider",
       "aiListMark": "AI suggests: {decision}",
+      "learnedTitle": "From your decisions",
+      "learnedIntro": "Learns from your inclusions and exclusions in this review to suggest a decision for the other records. No AI service: a small statistical model, computed on the server.",
+      "learnedProgress": "{n} of {min} decisions: {inc} included, {exc} excluded.",
+      "learnedNeed": "Opens at {min} inclusions or exclusions, at least {each} of each (maybe does not count).",
+      "learnedRun": "Compute the suggestions",
+      "learnedRerun": "Compute them again",
+      "learnedRunning": "Suggestions from your decisions",
+      "learnedDone": "Suggestions ready: the list now shows the records you are most likely to include first.",
+      "learnedFailed": "The suggestions could not be computed.",
+      "learnedLast": "Learned from {inc} inclusions and {exc} exclusions, {date}.",
+      "learnedQuality": "Estimated reliability: {level} (AUC {auc}).",
+      "learnedLevel": { "low": "low", "fair": "fair", "good": "good", "high": "very good" },
+      "learnedNew": "{n, plural, one {# decision} other {# decisions}} since then: compute again to learn from {n, plural, one {it} other {them}}.",
+      "learnedTerms": "Words that weigh most",
+      "learnedTermsInclude": "Toward inclusion:",
+      "learnedTermsExclude": "Toward exclusion:",
+      "learnedHow": "The AUC is the chance that a record you included scores above one you excluded, measured on decisions the model did not learn from. An exclusion is suggested only below what 19 in 20 of your inclusions scored.",
+      "learnedSuggests": "From your decisions:",
+      "learnedScore": "score {n}/100",
+      "learnedListMark": "From your decisions: {decision}",
       "aiError": {
         "nokey": "No usable {provider} key: add yours in this panel.",
         "key": "{provider} refuses the saved key. Check that it was copied in full and that its project is active, or replace it: “remove”, then paste the new one.",
@@ -584,7 +604,9 @@
         "author": "First author, A to Z",
         "journal": "Journal, A to Z",
         "ai": "AI: include first",
-        "ai_exclude": "AI: exclude first"
+        "ai_exclude": "AI: exclude first",
+        "learned": "Your suggestions: include first",
+        "learned_exclude": "Your suggestions: exclude first"
       }
     },
     "extraction": {
