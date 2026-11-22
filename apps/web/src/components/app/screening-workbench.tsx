@@ -15,6 +15,7 @@ import { JobProgress } from "@/components/app/job-progress";
 import { isLive, useJob } from "@/lib/use-job";
 import { KeywordsCard } from "@/components/app/keywords-card";
 import { LearnedCard } from "@/components/app/learned-card";
+import { BulkPdfDialog } from "@/components/app/bulk-pdf-dialog";
 import { SearchCriteriaCard } from "@/components/app/search-criteria-card";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -48,6 +49,7 @@ const AI_CONFIRM = 500;
 export function ScreeningWorkbench({ stage }: { stage: Stage }) {
   const t = useTranslations("review.screening");
   const c = useTranslations("common");
+  const tb = useTranslations("review.bulkPdf");
   const { review, refresh } = useReview();
   const { data: me } = useMe();
   const qc = useQueryClient();
@@ -493,6 +495,14 @@ export function ScreeningWorkbench({ stage }: { stage: Stage }) {
             on screen belongs to (one under the file order, D-42). */}
         <SearchCriteriaCard review={review} importIds={fileIds.length ? fileIds : (rec?.found_in ?? [])}
                             imports={imports.data ?? []} editable={admin} onChanged={refresh} />
+        {/* The PDFs of many studies at once, each sent to the study it belongs to (D-55). */}
+        {editable && stage === "ft" && (
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><FileText className="size-3.5" />{tb("cardTitle")}</p>
+            <p className="mt-2 text-[11px] leading-snug text-muted-foreground">{tb("cardText")}</p>
+            <BulkPdfDialog reviewId={rid} className="mt-3 w-full" onDone={() => { pdfChanged(); refresh(); }} />
+          </div>
+        )}
         {editable && (
           <AiCard review={review} onRun={runAi} running={aiRunning} label={t("runAi")} hint={aiRunning ? undefined : aiHint}
                   options={(

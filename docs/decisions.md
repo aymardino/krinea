@@ -1009,3 +1009,24 @@ dozen decisions the probabilities stay near 0.5, and in a systematic review a su
 exclusion must rarely be a study the reviewer would include. One model per reviewer, so blind
 screening stays blind. In the worker, as a run reads the whole review: about 1 second for 600
 decisions and 8 seconds for 5,000 on a laptop, more on a small server.
+
+## D-55 · 2026-11-22 · decided · Many PDFs at once, each matched to its study
+
+**Decision.** In full-text screening and in extraction, **Add several PDFs** takes many files.
+The page sends each one to `POST /reviews/{id}/pdfs/match`, which reads it without storing it
+and finds its study among those included at title and abstract (`krinea_core.pdfmatch`): by
+DOI, from the document's metadata, its first page or its file name; else by title, a record's
+title found at the top of the first two pages (rapidfuzz partial ratio of 90 or more, leading
+the next record by 5, titles of 20 characters or more) or equal to the metadata title; else by
+file name, the first author and the year set aside. A match needs one clear winner; otherwise
+none is picked and the closest studies are offered first. The reviewer checks the list, changes
+a study or leaves a file out, and the page then sends each PDF to its study through the
+endpoint that takes one PDF. By default a study that already has a PDF keeps it, and a study
+goes to one file only.
+
+**Why.** Adding PDFs one study at a time was the slow part of full-text screening. The
+reference list is never searched for DOIs, as those of other papers, often other records of
+the same review, would match the wrong study. A wrong PDF means wrong extracted data, so
+nothing is attached before the reviewer has seen the list. Matching without storing keeps the
+server free of files nobody kept, at the cost of sending each PDF twice; a review adds a few
+dozen at a time.

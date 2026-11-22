@@ -6,6 +6,10 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Full text and extraction.** Many PDFs can be added at once: Krinea finds
+  the study of each one by its DOI (metadata, first page or file name), its
+  title or its file name, and lists them for you to check, change or leave out
+  before they are added.
 - **Screening and extraction.** The views, files and labels of the lists (and
   the statuses in extraction) can be ticked several at once, for example the
   records you included and those you marked maybe, or two searches together.

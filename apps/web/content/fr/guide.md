@@ -112,6 +112,14 @@ Cet onglet contient les références incluses au tri sur titre et résumé.
 - **Chercher un PDF en accès libre** (il faut un DOI) ;
 - une fois le PDF en place, **Remplacer le PDF** ou **Retirer le PDF**.
 
+**Plusieurs PDF d'un coup.** Dans le panneau **PDF** à droite, **Ajouter plusieurs PDF** prend autant de fichiers que vous en choisissez, ou en déposez. Krinea lit chacun et retrouve son étude parmi celles incluses au tri sur titre et résumé :
+
+- par son DOI, dans les métadonnées du fichier, sur sa première page ou dans son nom (la bibliographie n'est jamais lue : ses DOI sont ceux d'autres articles) ;
+- sinon par son titre, trouvé en haut de ses premières pages ;
+- sinon par le nom du fichier, tel que l'écrivent Zotero ou Mendeley (*Auteur - Année - Titre.pdf*).
+
+Rien n'est encore ajouté : une liste montre chaque fichier avec l'étude trouvée et comment. Changez une étude ou laissez un fichier de côté, puis cliquez sur **Ajouter**. Quand deux études conviennent autant, aucune n'est choisie et les deux sont proposées en premier. Une étude déjà choisie pour un fichier ne peut pas l'être pour un autre, et une étude qui a déjà un PDF le garde, sauf si vous la choisissez vous-même. Le même bouton se trouve dans l'onglet Extraction.
+
 Les vues **Sans PDF** et **Introuvables** listent ce qui manque.
 
 **Les rapports introuvables.** Cliquez sur **Introuvable**. La référence sort de *À trier* et du compte de ce qu'il vous reste, et PRISMA la compte parmi les *rapports non récupérés* : elle n'a besoin ni de décision ni de motif. Cliquez de nouveau pour annuler.

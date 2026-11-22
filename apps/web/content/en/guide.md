@@ -112,6 +112,14 @@ This tab holds the references included at title and abstract.
 - **Find open-access PDF** (needs a DOI);
 - once a PDF is there, **Replace PDF** or **Remove PDF**.
 
+**Many PDFs at once.** In the **PDFs** panel on the right, **Add several PDFs** takes as many files as you choose, or drop. Krinea reads each one and finds its study among those included at title and abstract:
+
+- by its DOI, in the file's metadata, on its first page or in its name (the reference list is never read: the DOIs there belong to other papers);
+- otherwise by its title, found at the top of its first pages;
+- otherwise by its file name, as Zotero or Mendeley write it (*Author - Year - Title.pdf*).
+
+Nothing is added yet: a list shows each file with the study found and how. Change a study or leave a file out, then click **Add**. When two studies fit as well, none is picked and both are offered first. A study already chosen for one file cannot be chosen for another, and a study that already has a PDF keeps it unless you choose it by hand. The same button is in the Extraction tab.
+
 The views **No PDF yet** and **Not retrievable** list what is missing.
 
 **Reports you cannot obtain.** Click **Not retrievable**. The reference leaves *To screen* and the count of what is left, and PRISMA counts it among the *reports not retrieved*: it needs neither a decision nor a reason. Click again to undo.

@@ -451,6 +451,32 @@
       "dedupFailed": "La détection des doublons ne s'est pas terminée. Relancez-la.",
       "removedShown": "Les {n} premiers sur {total} sont affichés."
     },
+    "bulkPdf": {
+      "open": "Ajouter plusieurs PDF",
+      "title": "Ajouter plusieurs PDF",
+      "intro": "Choisissez les PDF d'études incluses au tri sur titre et résumé. Krinea retrouve l'étude de chacun par son DOI (dans le fichier, sur sa première page ou dans son nom), son titre ou le nom du fichier. Vérifiez la liste, puis ajoutez-les.",
+      "pick": "Choisir des PDF",
+      "drop": "ou déposez-les ici",
+      "reading": "Lecture du PDF…",
+      "readingCount": "Lecture : {done} sur {total}…",
+      "how": {
+        "doi": "Trouvée par son DOI",
+        "title": "Trouvée par son titre",
+        "filename": "Trouvée par le nom du fichier",
+        "none": "Étude non trouvée : choisissez-la, ou laissez le fichier de côté"
+      },
+      "replaces": "Cette étude a déjà un PDF : il sera remplacé.",
+      "study": "Étude",
+      "skip": "Laisser ce fichier de côté",
+      "hasPdf": "a un PDF",
+      "adding": "Ajout…",
+      "addedOne": "Ajouté",
+      "add": "{n, plural, =0 {Ajouter} one {Ajouter # PDF} other {Ajouter # PDF}}",
+      "added": "{n, plural, one {# PDF ajouté} other {# PDF ajoutés}}",
+      "summary": "{n, plural, =0 {Aucun PDF à ajouter pour l'instant.} one {# PDF à ajouter.} other {# PDF à ajouter.}}",
+      "cardTitle": "PDF",
+      "cardText": "Ajoutez les PDF de plusieurs études d'un coup : Krinea retrouve l'étude de chacun, et vous vérifiez avant l'ajout."
+    },
     "screening": {
       "views": {
         "todo": "À trier",

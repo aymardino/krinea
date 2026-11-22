@@ -451,6 +451,32 @@
       "dedupFailed": "Duplicate detection did not finish. Run it again.",
       "removedShown": "Showing the first {n} of {total}."
     },
+    "bulkPdf": {
+      "open": "Add several PDFs",
+      "title": "Add several PDFs",
+      "intro": "Choose the PDFs of studies included at title and abstract. Krinea finds the study of each one by its DOI (in the file, on its first page or in its name), its title or its file name. Check the list, then add them.",
+      "pick": "Choose PDFs",
+      "drop": "or drop them here",
+      "reading": "Reading the PDF…",
+      "readingCount": "Reading {done} of {total}…",
+      "how": {
+        "doi": "Found by its DOI",
+        "title": "Found by its title",
+        "filename": "Found by its file name",
+        "none": "Study not found: choose it, or leave the file out"
+      },
+      "replaces": "This study already has a PDF: it will be replaced.",
+      "study": "Study",
+      "skip": "Leave this file out",
+      "hasPdf": "has a PDF",
+      "adding": "Adding…",
+      "addedOne": "Added",
+      "add": "{n, plural, =0 {Add} one {Add # PDF} other {Add # PDFs}}",
+      "added": "{n, plural, one {# PDF added} other {# PDFs added}}",
+      "summary": "{n, plural, =0 {No PDF to add yet.} one {# PDF to add.} other {# PDFs to add.}}",
+      "cardTitle": "PDFs",
+      "cardText": "Add the PDFs of many studies at once: Krinea finds the study of each one, and you check before they are added."
+    },
     "screening": {
       "views": {
         "todo": "To screen",

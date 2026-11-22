@@ -22,7 +22,7 @@ from krinea_api.services import jobs as job_service
 from krinea_api.services import learned as learned_service
 from krinea_api.services import screening as scr
 from krinea_api.services import storage
-from krinea_core import biblio
+from krinea_core import biblio, pdfmatch
 
 router = APIRouter(prefix="/reviews/{review_id}", tags=["records"])
 
@@ -509,6 +509,34 @@ async def upload_pdf(record_id: int, file: UploadFile = File(...), access=Depend
     rec.pdf_status = "available"
     db.commit()
     return record_out(rec, scr.compute(db, review), user.id, _blind(review, m.role), _names(db, review.id), None, "ft")
+
+
+@router.post("/pdfs/match")
+def match_pdf(file: UploadFile = File(...), access=Depends(ReviewAccess("reviewer")), db: DBSession = Depends(get_db)):
+    """The study of the full-text pool (those included at title and abstract) a PDF belongs to,
+    when many PDFs are added at once (D-55): by its DOI, its title or its file name, with the
+    studies to choose from when none is clear. Nothing is stored: the page then sends each PDF
+    to the study the reviewer settled on, as it sends one."""
+    review, _ = access
+    limit = get_settings().max_upload_mb * 1024 * 1024
+    data = file.file.read(limit + 1)
+    if len(data) > limit:
+        raise HTTPException(413, f"File larger than {get_settings().max_upload_mb} MB")
+    if not data.startswith(b"%PDF"):
+        raise HTTPException(400, "This file is not a PDF")
+    try:
+        clues = pdfmatch.read_clues(data, file.filename or "")
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    pool = scr.compute(db, review)["ft_pool"]
+    recs = db.scalars(select(models.Record).where(models.Record.review_id == review.id,
+                                                  models.Record.id.in_(pool))).all() if pool else []
+    m = pdfmatch.match(clues, [{"id": r.id, "title": r.title, "doi": r.doi, "authors": r.authors, "year": r.year}
+                               for r in recs])
+    by_id = {r.id: r for r in recs}
+    return {"filename": file.filename or "", "record_id": m.record_id, "how": m.how,
+            "candidates": [{"id": k, "title": by_id[k].title, "year": by_id[k].year, "authors": by_id[k].authors,
+                            "has_pdf": bool(by_id[k].pdf_key), "score": s} for k, s in m.candidates]}
 
 
 @router.get("/records/{record_id}/pdf")

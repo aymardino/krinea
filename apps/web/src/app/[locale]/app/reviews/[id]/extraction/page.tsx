@@ -15,6 +15,7 @@ import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState, PageHeader } from "@/components/ui/misc";
 import { JobProgress } from "@/components/app/job-progress";
+import { BulkPdfDialog } from "@/components/app/bulk-pdf-dialog";
 import { useJob } from "@/lib/use-job";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -211,7 +212,12 @@ export default function ExtractionPage() {
   return (
     <div className="space-y-6">
       {/* With a filter on, the AI runs on the studies shown only. */}
-      <PageHeader title={t("title")} description={t("text")} actions={editable && <Button onClick={() => run.mutate(filtered ? todo : undefined)} disabled={running || !todo.length}><Bot />{t("run")} <span className="opacity-70">({t("runHint", { n: todo.length })})</span></Button>} />
+      <PageHeader title={t("title")} description={t("text")} actions={editable && (
+        <div className="flex flex-wrap items-center gap-2">
+          <BulkPdfDialog reviewId={rid} size="default" onDone={() => { qc.invalidateQueries({ queryKey: ["records", rid] }); refresh(); }} />
+          <Button onClick={() => run.mutate(filtered ? todo : undefined)} disabled={running || !todo.length}><Bot />{t("run")} <span className="opacity-70">({t("runHint", { n: todo.length })})</span></Button>
+        </div>
+      )} />
       {progress}
       {!!all.length || filtered ? (
         <div className="flex flex-wrap items-center gap-3">

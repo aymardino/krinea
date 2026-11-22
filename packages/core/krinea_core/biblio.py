@@ -42,6 +42,16 @@ def clean_doi(value) -> str:
     return doi.lower()
 
 
+def find_dois(text) -> list[str]:
+    """Every DOI of a text, bare and lower-case, in order of appearance, each once."""
+    out: list[str] = []
+    for m in _DOI_RE.finditer(str(text or "")):
+        doi = clean_doi(m.group(0))
+        if doi and doi not in out:
+            out.append(doi)
+    return out
+
+
 def doi_url(value) -> str:
     """The https://doi.org/ link of a DOI given in any form, or "" when there is none."""
     doi = clean_doi(value)
