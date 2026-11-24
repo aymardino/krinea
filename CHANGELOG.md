@@ -6,6 +6,10 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Large reviews.** Reviews of 20,000 references and more stay within the
+  memory of a small server: imports, record lists, exports and the suggestions
+  learned from your decisions read and write in batches instead of holding
+  everything at once, and an import no longer holds up the other users.
 - **Full text and extraction.** Many PDFs can be added at once: Krinea finds
   the study of each one by its DOI (metadata, first page or file name), its
   title or its file name, and lists them for you to check, change or leave out

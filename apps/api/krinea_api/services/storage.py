@@ -177,11 +177,17 @@ _OMITTED = "\n\n[... middle of paper omitted to fit context ...]\n\n"
 
 
 def pdf_text(data: bytes, max_chars: int = 800_000) -> str:
-    """Plain text of a PDF (PyMuPDF); keeps the head and the tail of very long papers."""
+    """Plain text of a PDF (PyMuPDF); keeps the head and the tail of very long papers. One PDF
+    at a time, MuPDF's cache emptied after (D-56)."""
     import pymupdf
-    doc = pymupdf.open(stream=data, filetype="pdf")
-    raw = "".join(page.get_text() for page in doc)
-    doc.close()
+
+    from krinea_core.pdftext import reading
+    with reading():
+        doc = pymupdf.open(stream=data, filetype="pdf")
+        try:
+            raw = "".join(page.get_text() for page in doc)
+        finally:
+            doc.close()
     text = "".join(c for c in raw if c >= " " or c in "\t\n\r")
     if len(text) <= max_chars:
         return text

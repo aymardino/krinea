@@ -2,7 +2,9 @@
 
 A classic text classifier, as some screening tools offer. Each record becomes a TF-IDF
 vector of the words of its title, keywords and abstract (single words and pairs of
-consecutive words). A logistic regression with L2 regularisation, both classes weighted
+consecutive words), hashed into a fixed number of columns so that no vocabulary is kept in
+memory (as scikit-learn's HashingVectorizer): a review of 20,000 records fits in the 512 MB
+of a small server (D-56). A logistic regression with L2 regularisation, both classes weighted
 alike, learns from the records the reviewer included or excluded which words go with each.
 It then scores every record between 0 and 1: how likely the reviewer is to include it.
 Everything runs here in numpy; no text leaves the server.
@@ -14,11 +16,12 @@ likeness to the records excluded for each reason.
 """
 from __future__ import annotations
 
-import math
 import re
 import unicodedata
-from collections import Counter
-from dataclasses import dataclass, field
+import zlib
+from collections import Counter, defaultdict
+from collections.abc import Iterable
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -39,6 +42,9 @@ N_TERMS = 10
 # The quality is measured by cross-validation in FOLDS groups, on MAX_CV decisions at most.
 FOLDS = 5
 MAX_CV = 1000
+# Terms are hashed into N_BUCKETS columns; a column found in fewer than MIN_DF records is dropped.
+N_BUCKETS = 1 << 20
+MIN_DF = 2
 
 _WORD = re.compile(r"[a-z][a-z0-9]+")
 STOPWORDS = frozenset("""
@@ -64,27 +70,46 @@ def tokens(text: str) -> list[str]:
     return words + [f"{a} {b}" for a, b in zip(words, words[1:])]
 
 
+# Rows taken at a time in a product, and records read at a time to build the features: the
+# temporary arrays stay small whatever the size of the review (D-56).
+CHUNK = 4096
+
+
 @dataclass
 class Matrix:
-    """A sparse matrix of records (rows) by terms (columns), in compressed rows."""
+    """A sparse matrix of records (rows) by terms (columns), in compressed rows: 32-bit column
+    numbers and values."""
     indptr: np.ndarray
     indices: np.ndarray
     data: np.ndarray
     n_features: int
-    rowid: np.ndarray = field(init=False)
-
-    def __post_init__(self):
-        self.rowid = np.repeat(np.arange(self.n, dtype=np.int64), np.diff(self.indptr))
 
     @property
     def n(self) -> int:
         return len(self.indptr) - 1
 
+    @property
+    def rowid(self) -> np.ndarray:
+        """The row of each stored value."""
+        return np.repeat(np.arange(self.n, dtype=np.int32), np.diff(self.indptr))
+
+    def _spans(self):
+        for a in range(0, self.n, CHUNK):
+            b = min(self.n, a + CHUNK)
+            lo, hi = int(self.indptr[a]), int(self.indptr[b])
+            yield a, b, lo, hi, np.repeat(np.arange(b - a, dtype=np.int32), np.diff(self.indptr[a:b + 1]))
+
     def dot(self, w: np.ndarray) -> np.ndarray:
-        return np.bincount(self.rowid, weights=self.data * w[self.indices], minlength=self.n)
+        out = np.zeros(self.n)
+        for a, b, lo, hi, rows in self._spans():
+            out[a:b] = np.bincount(rows, weights=self.data[lo:hi] * w[self.indices[lo:hi]], minlength=b - a)
+        return out
 
     def tdot(self, r: np.ndarray) -> np.ndarray:
-        return np.bincount(self.indices, weights=self.data * r[self.rowid], minlength=self.n_features)
+        out = np.zeros(self.n_features)
+        for a, b, lo, hi, rows in self._spans():
+            out += np.bincount(self.indices[lo:hi], weights=self.data[lo:hi] * r[a:b][rows], minlength=self.n_features)
+        return out
 
     def rows(self, idx) -> "Matrix":
         idx = np.asarray(idx, dtype=np.int64)
@@ -96,27 +121,69 @@ class Matrix:
         return Matrix(indptr, self.indices[take], self.data[take], self.n_features)
 
 
-def features(texts: list[str], min_df: int = 2) -> tuple[Matrix, list[str]]:
-    """TF-IDF rows of unit length (sublinear term counts, smoothed IDF), over the terms found in
-    at least `min_df` records; and the terms, in column order."""
-    docs = [Counter(tokens(t)) for t in texts]
-    df = Counter(term for d in docs for term in d)
-    terms = sorted(t for t, k in df.items() if k >= min_df)
-    col = {t: i for i, t in enumerate(terms)}
-    idf = np.log((1 + len(texts)) / (1 + np.array([df[t] for t in terms], dtype=float))) + 1
-    indptr, indices, data = [0], [], []
-    for d in docs:
-        row = sorted((col[t], 1 + math.log(k)) for t, k in d.items() if t in col)
-        indices.extend(i for i, _ in row)
-        data.extend(v for _, v in row)
-        indptr.append(len(indices))
-    indices = np.array(indices, dtype=np.int64)
-    data = np.array(data, dtype=float) * (idf[indices] if len(indices) else 1.0)
-    indptr = np.array(indptr, dtype=np.int64)
-    m = Matrix(indptr, indices, data, len(terms))
-    norms = np.sqrt(np.bincount(m.rowid, weights=data ** 2, minlength=m.n))
-    m.data = data / np.where(norms > 0, norms, 1.0)[m.rowid]
-    return m, terms
+def _bucket(term: str) -> int:
+    return zlib.crc32(term.encode("utf-8")) & (N_BUCKETS - 1)
+
+
+def features(texts: Iterable[str], min_df: int = MIN_DF) -> tuple[Matrix, np.ndarray]:
+    """TF-IDF rows of unit length (sublinear term counts, smoothed IDF) over hashed terms, the
+    columns found in fewer than `min_df` records left out; and the bucket of each column, for
+    `term_names`. The records are read once, CHUNK at a time, each block kept as two flat arrays
+    (bucket, count) until the document frequencies are known."""
+    blocks: list[tuple[np.ndarray, np.ndarray, np.ndarray]] = []
+    df = np.zeros(N_BUCKETS, dtype=np.int64)
+    lengths: list[int] = []
+    buckets: list[np.ndarray] = []
+    counts: list[np.ndarray] = []
+
+    def close() -> None:
+        if lengths:
+            b = np.concatenate(buckets)
+            blocks.append((np.array(lengths, dtype=np.int32), b, np.concatenate(counts)))
+            df[:] += np.bincount(b, minlength=N_BUCKETS)
+            lengths.clear(), buckets.clear(), counts.clear()
+
+    for text in texts:
+        toks = tokens(text)
+        b, k = np.unique(np.fromiter((_bucket(t) for t in toks), dtype=np.int32, count=len(toks)), return_counts=True)
+        lengths.append(len(b))
+        buckets.append(b)
+        counts.append(np.minimum(k, 65535).astype(np.uint16))
+        if len(lengths) == CHUNK:
+            close()
+    close()
+    n = sum(len(block[0]) for block in blocks)
+    kept = df >= min_df
+    columns = np.flatnonzero(kept)
+    column = (np.cumsum(kept) - 1).astype(np.int32)
+    idf = (np.log((1 + n) / (1 + df[columns].astype(float))) + 1).astype(np.float32)
+    out_indices, out_data, out_lengths = [], [], []
+    while blocks:                          # each block let go once turned into rows
+        lens, b, k = blocks.pop(0)
+        keep = kept[b]
+        rows = np.repeat(np.arange(len(lens), dtype=np.int32), lens)[keep]
+        cols = column[b[keep]]
+        vals = (1 + np.log(k[keep].astype(np.float32))) * idf[cols]
+        norms = np.sqrt(np.bincount(rows, weights=vals.astype(float) ** 2, minlength=len(lens)))
+        out_data.append((vals / np.where(norms > 0, norms, 1.0)[rows]).astype(np.float32))
+        out_indices.append(cols)
+        out_lengths.append(np.bincount(rows, minlength=len(lens)))
+    indices = np.concatenate(out_indices) if out_indices else np.zeros(0, np.int32)
+    data = np.concatenate(out_data) if out_data else np.zeros(0, np.float32)
+    indptr = np.concatenate([[0], np.cumsum(np.concatenate(out_lengths))] if out_lengths else [[0]]).astype(np.int64)
+    return Matrix(indptr, indices, data, len(columns)), columns
+
+
+def term_names(texts: Iterable[str], wanted: set[int]) -> dict[int, str]:
+    """The term of each bucket of `wanted`: the one met most often in `texts` (a bucket seldom
+    holds two)."""
+    seen: dict[int, Counter] = defaultdict(Counter)
+    for text in texts:
+        for t in tokens(text):
+            b = _bucket(t)
+            if b in wanted:
+                seen[b][t] += 1
+    return {b: c.most_common(1)[0][0] for b, c in seen.items()}
 
 
 def _sigmoid(z: np.ndarray) -> np.ndarray:
@@ -228,7 +295,7 @@ def learn(texts: list[str], labels: dict[int, bool], reasons: dict[int, str] | N
     reviewer included it, False when excluded). `reasons` gives the reason of excluded records;
     records likely excluded get the reason whose records they resemble most."""
     n = len(texts)
-    x, terms = features(texts)
+    x, buckets = features(texts)
     idx = np.array(sorted(labels), dtype=np.int64)
     y = np.array([1.0 if labels[i] else 0.0 for i in idx])
     if not x.n_features or not len(idx) or y.min() == y.max():
@@ -237,8 +304,11 @@ def learn(texts: list[str], labels: dict[int, bool], reasons: dict[int, str] | N
     w, b = fit(train, y)
     scores = _sigmoid(x.dot(w) + b)
     order = np.argsort(-w, kind="stable")
-    include_terms = [terms[i] for i in order[:N_TERMS] if w[i] > 0]
-    exclude_terms = [terms[i] for i in order[::-1][:N_TERMS] if w[i] < 0]
+    top_in = [int(i) for i in order[:N_TERMS] if w[i] > 0]
+    top_out = [int(i) for i in order[::-1][:N_TERMS] if w[i] < 0]
+    names = term_names(texts, {int(buckets[i]) for i in top_in + top_out})
+    include_terms = [names[int(buckets[i])] for i in top_in if int(buckets[i]) in names]
+    exclude_terms = [names[int(buckets[i])] for i in top_out if int(buckets[i]) in names]
     cv = held_out(train, y)
     quality = auc(*cv) if cv else None
     include_at, exclude_at = thresholds(*cv) if cv else (0.5, 0.5)

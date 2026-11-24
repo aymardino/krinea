@@ -54,10 +54,17 @@ def run(db: Session, review_id: str, user_id: str) -> dict:
     aside), replacing their previous scores. The run is dated from its start: decisions made
     while it goes on count as new."""
     started = models.now()
-    rows = db.execute(select(models.Record.id, models.Record.title, models.Record.keywords, models.Record.abstract)
-                      .where(models.Record.review_id == review_id, models.Record.is_duplicate.is_(False))
-                      .order_by(models.Record.id)).all()
-    index = {rid: i for i, (rid, *_rest) in enumerate(rows)}
+    # The text of each record, read in batches and kept as one string: a large review is
+    # never held twice (D-56).
+    ids: list[int] = []
+    texts: list[str] = []
+    q = (select(models.Record.id, models.Record.title, models.Record.keywords, models.Record.abstract)
+         .where(models.Record.review_id == review_id, models.Record.is_duplicate.is_(False))
+         .order_by(models.Record.id).execution_options(yield_per=2000))
+    for rid, t, k, a in db.execute(q):
+        ids.append(rid)
+        texts.append(learn.record_text(t or "", k or "", a or ""))
+    index = {rid: i for i, rid in enumerate(ids)}
     labels: dict[int, bool] = {}
     reasons: dict[int, str] = {}
     for rid, decision, reason, _at in _my_decisions(db, review_id, user_id):
@@ -70,13 +77,18 @@ def run(db: Session, review_id: str, user_id: str) -> dict:
     if not _ready(n_inc, n_exc):
         raise ValueError(f"Suggestions need {learn.MIN_DECISIONS} inclusions or exclusions, at least "
                          f"{learn.MIN_EACH} of each (you have {n_inc} and {n_exc})")
-    res = learn.learn([learn.record_text(t or "", k or "", a or "") for _, t, k, a in rows], labels, reasons)
+    res = learn.learn(texts, labels, reasons)
+    del texts
     db.execute(delete(models.LearnedScore).where(models.LearnedScore.review_id == review_id,
                                                  models.LearnedScore.user_id == user_id))
-    if rows:
-        db.execute(insert(models.LearnedScore), [
-            {"review_id": review_id, "user_id": user_id, "record_id": rid, "score": round(s, 4), "reason": r[:200]}
-            for (rid, *_rest), s, r in zip(rows, res.scores, res.reasons)])
+    batch = []
+    for rid, s, r in zip(ids, res.scores, res.reasons):
+        batch.append({"review_id": review_id, "user_id": user_id, "record_id": rid, "score": round(s, 4), "reason": r[:200]})
+        if len(batch) == 2000:
+            db.execute(insert(models.LearnedScore), batch)
+            batch = []
+    if batch:
+        db.execute(insert(models.LearnedScore), batch)
     last = db.scalar(select(models.LearnedRun).where(models.LearnedRun.review_id == review_id,
                                                      models.LearnedRun.user_id == user_id))
     if not last:
@@ -87,7 +99,7 @@ def run(db: Session, review_id: str, user_id: str) -> dict:
     last.include_terms, last.exclude_terms = res.include_terms, res.exclude_terms
     last.created_at = started
     db.commit()
-    return {"n_include": n_inc, "n_exclude": n_exc, "auc": res.auc, "scored": len(rows)}
+    return {"n_include": n_inc, "n_exclude": n_exc, "auc": res.auc, "scored": len(ids)}
 
 
 def scores(db: Session, review_id: str, user_id: str, ids: list[int] | None = None) -> dict[int, dict]:

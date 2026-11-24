@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import re
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -34,9 +35,13 @@ def required_reviewers(review: models.Review) -> int:
 
 
 def decisions_by_record(db: Session, review_id: str) -> dict[str, dict[int, dict[str, models.Decision]]]:
-    """{stage: {record_id: {reviewer: Decision}}} for the whole review."""
+    """{stage: {record_id: {reviewer: decision}}} for the whole review. Each decision is a row
+    with the columns read from it (stage, reviewer, decision, reason, note, seconds, date), much
+    lighter than a mapped object: the whole review is read at nearly every request (D-56)."""
     out: dict[str, dict[int, dict[str, models.Decision]]] = {s: defaultdict(dict) for s in STAGES}
-    for d in db.scalars(select(models.Decision).where(models.Decision.review_id == review_id)):
+    D = models.Decision
+    for d in db.execute(select(D.record_id, D.stage, D.reviewer, D.user_id, D.decision, D.reason, D.note,
+                               D.seconds, D.decided_at).where(D.review_id == review_id)):
         out[d.stage][d.record_id][d.reviewer] = d
     return out
 
@@ -222,12 +227,21 @@ def keyword_filter(kws: list[str], mode: str = "all"):
     return match
 
 
-def _counts(texts: list[str], kws: list[str]) -> list[dict]:
-    out = []
-    for kw in kws:
-        rx = _kw_regex(kw)
-        out.append({"keyword": kw, "n": sum(1 for t in texts if rx.search(t))})
-    return out
+def _counts(texts: Iterable[str], kws: list[str]) -> list[dict]:
+    """How many of `texts` mention each keyword, in one pass over them."""
+    rxs = [_kw_regex(kw) for kw in kws]
+    n = [0] * len(kws)
+    for t in texts:
+        for i, rx in enumerate(rxs):
+            if rx.search(t):
+                n[i] += 1
+    return [{"keyword": kw, "n": k} for kw, k in zip(kws, n)]
+
+
+def _texts(db: Session, q) -> Iterator[str]:
+    """The title, abstract and keywords of each record of `q`, read in batches."""
+    for t, a, k in db.execute(q.execution_options(yield_per=2000)):
+        yield f"{t}\n{a}\n{k}"
 
 
 def keyword_counts(db: Session, review: models.Review, import_id: str = "") -> dict:
@@ -242,12 +256,11 @@ def keyword_counts(db: Session, review: models.Review, import_id: str = "") -> d
     base = select(models.Record.title, models.Record.abstract, models.Record.keywords).where(
         models.Record.review_id == review.id, models.Record.is_duplicate.is_(False))
     if inc or exc:
-        texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base).all()]
-        out = {"include": _counts(texts, inc), "exclude": _counts(texts, exc)}
+        counts = _counts(_texts(db, base), inc + exc)
+        out = {"include": counts[:len(inc)], "exclude": counts[len(inc):]}
     if import_id:
-        texts = [f"{t}\n{a}\n{k}" for t, a, k in db.execute(base.where(in_file(review, import_id))).all()] \
-            if (s_inc or s_exc) else []
-        out["search"] = {"include": _counts(texts, s_inc), "exclude": _counts(texts, s_exc)}
+        counts = _counts(_texts(db, base.where(in_file(review, import_id))), s_inc + s_exc) if (s_inc or s_exc) else []
+        out["search"] = {"include": counts[:len(s_inc)], "exclude": counts[len(s_inc):]}
     return out
 
 

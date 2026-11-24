@@ -1030,3 +1030,27 @@ the same review, would match the wrong study. A wrong PDF means wrong extracted 
 nothing is attached before the reviewer has seen the list. Matching without storing keeps the
 server free of files nobody kept, at the cost of sending each PDF twice; a review adds a few
 dozen at a time.
+
+## D-56 · 2026-11-24 · decided · Large reviews within 512 MB
+
+**Decision.** No request or job holds a whole review, or a whole import file, in memory.
+Imports read the file as it streams from the disk copy the upload left (RIS, PubMed and Web of
+Science line by line, CSV 2,000 rows at a time keeping only the columns read; BibTeX and Excel
+at once) and write the records 1,000 at a time in one transaction, in a worker thread so that
+the API keeps answering. Record lists read only the columns their views, filters and orders
+need (abstracts only when keywords are picked) and read whole only the records of the page;
+the decisions of a review are read as rows rather than mapped objects, and keyword counts as a
+stream. Exports are written to a temporary file 1,000 records at a time (Excel in write-only
+mode) and sent from disk. The learned suggestions (D-54) hash terms into 2^20 columns, as
+scikit-learn's HashingVectorizer, so that no vocabulary is kept, build their features 4,096
+records at a time in 32-bit arrays and multiply by blocks of rows. PDFs are read one at a time,
+MuPDF's cache emptied after each, and the image sets `MALLOC_ARENA_MAX=2`.
+
+Measured on 20,000 synthetic references on a laptop: importing an export that carries the
+cited references (124 MB) went from +434 MB to +6 MB, opening the screening page from +124 MB
+to +24 MB, the Excel export from +452 MB to +25 MB, the learned suggestions from +1,183 MB to
++170 MB.
+
+**Why.** On 2026-11-23 a new account imported 19,846 references and the API, on Render's
+Starter plan (512 MB), ran out of memory and restarted. A larger plan costs more every month;
+reading and writing in batches keeps reviews of this size, and larger, on the same plan.

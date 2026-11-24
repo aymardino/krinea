@@ -1,6 +1,9 @@
 # Krinea API (also used for the worker: override the command)
 FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 KRINEA_ENV=production DATA_DIR=/data
+# Two malloc arenas instead of one per thread: memory freed by a request goes back to the
+# common pool instead of staying with the thread that used it (D-56).
+ENV MALLOC_ARENA_MAX=2
 WORKDIR /app
 COPY packages/core /app/packages/core
 COPY apps/api /app/apps/api

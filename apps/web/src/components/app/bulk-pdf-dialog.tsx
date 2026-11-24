@@ -20,8 +20,8 @@ type Row = {
 
 // The choice of a file left out (a select item cannot have an empty value).
 const SKIP = "skip";
-// How many PDFs are read, then sent, at the same time.
-const AT_ONCE = 3;
+// How many PDFs are sent at the same time (the server reads them one at a time, D-56).
+const AT_ONCE = 2;
 
 /** Runs `work` on each item, `n` at a time. */
 async function inTurn<T>(items: T[], n: number, work: (item: T) => Promise<void>): Promise<void> {

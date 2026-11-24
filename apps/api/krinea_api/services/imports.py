@@ -9,30 +9,43 @@ from krinea_api.services import storage
 from krinea_core import biblio
 
 RECORD_FIELDS = biblio.RECORD_FIELDS
+# Records written to the database at a time.
+BATCH = 1000
 
 
 def import_file(db: Session, review: models.Review, user: models.User | None, filename: str,
-                data: bytes, source_db: str = "") -> models.Import:
-    records = biblio.parse_file(filename, data)
-    fmt = records[0]["_format"] if records else biblio.detect_format(filename, biblio.decode_bytes(data[:5000]))
-    imp = models.Import(review_id=review.id, filename=filename[:300], format=fmt, source_db=source_db[:120],
+                data, source_db: str = "") -> models.Import:
+    """Imports an export, given as its bytes or as a binary file open on it. The records are
+    read as the file streams and written BATCH at a time, all in one transaction: an export of
+    20,000 records with their cited references never sits whole in memory (D-56)."""
+    imp = models.Import(review_id=review.id, filename=filename[:300], format="", source_db=source_db[:120],
                         created_by=user.id if user else None)
     db.add(imp)
     db.flush()
-    rows, skipped = [], 0
-    for r in records:
+    n, skipped, fmt, batch = 0, 0, "", []
+    for r in biblio.iter_file(filename, data):
+        fmt = fmt or r.get("_format", "")
         rec = biblio.normalise(r)
         if not rec["title"] and not rec["doi"]:
             skipped += 1
             continue
         if source_db and source_db.lower() not in rec["source_db"].lower():
             rec["source_db"] = source_db
-        rows.append({**{f: rec[f] for f in RECORD_FIELDS}, "review_id": review.id, "import_id": imp.id})
-    if rows:
-        db.execute(models.Record.__table__.insert(), rows)
-    imp.n_records, imp.n_skipped = len(rows), skipped
+        batch.append({**{f: rec[f] for f in RECORD_FIELDS}, "review_id": review.id, "import_id": imp.id})
+        if len(batch) == BATCH:
+            db.execute(models.Record.__table__.insert(), batch)
+            n, batch = n + len(batch), []
+    if batch:
+        db.execute(models.Record.__table__.insert(), batch)
+        n += len(batch)
+    if not fmt:
+        if not isinstance(data, (bytes, bytearray)):
+            data.seek(0)
+        fmt = biblio.file_format(filename, data)
+    imp.format = fmt
+    imp.n_records, imp.n_skipped = n, skipped
     db.add(models.ActivityLog(review_id=review.id, user_id=user.id if user else None, kind="import",
-                              detail={"filename": filename, "n": len(rows), "format": fmt}))
+                              detail={"filename": filename, "n": n, "format": fmt}))
     db.commit()
     db.refresh(imp)
     return imp

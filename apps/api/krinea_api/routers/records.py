@@ -36,19 +36,23 @@ SORTS = ("import", "title", "title_desc", "year_desc", "year", "author", "journa
 
 # ── Imports ──────────────────────────────────────────────────────────────────────
 @router.post("/imports", status_code=201)
-async def upload_imports(files: list[UploadFile] = File(...), source_db: str = Form(""),
-                         access=Depends(ReviewAccess("admin")), user: models.User = Depends(current_user),
-                         db: DBSession = Depends(get_db)):
+def upload_imports(files: list[UploadFile] = File(...), source_db: str = Form(""),
+                   access=Depends(ReviewAccess("admin")), user: models.User = Depends(current_user),
+                   db: DBSession = Depends(get_db)):
+    """Imports search exports. Each file is read from the disk copy the upload left, as it
+    streams (D-56), in a worker thread: the server keeps answering other requests meanwhile."""
     review, _ = access
     limit = get_settings().max_upload_mb * 1024 * 1024
     out = []
     for f in files:
-        data = await f.read()
-        if len(data) > limit:
+        f.file.seek(0, 2)
+        size = f.file.tell()
+        f.file.seek(0)
+        if size > limit:
             out.append({"filename": f.filename, "error": f"File larger than {get_settings().max_upload_mb} MB"})
             continue
         try:
-            imp = import_service.import_file(db, review, user, f.filename or "export", data, source_db)
+            imp = import_service.import_file(db, review, user, f.filename or "export", f.file, source_db)
             out.append({"id": imp.id, "filename": imp.filename, "format": imp.format, "source_db": imp.source_db,
                         "n_records": imp.n_records, "n_skipped": imp.n_skipped, "created_at": imp.created_at})
         except Exception as e:                     # noqa: BLE001
@@ -272,12 +276,14 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
                   view: str | list[str] = "all", search: str = "", source: str = "", label: str | list[str] = "",
                   import_id: str | list[str] = "", year_from: str = "", year_to: str = "",
                   kw: list[str] | None = None, kw_mode: str = "all",
-                  sort: str = "import") -> tuple[list[models.Record], dict, str]:
+                  sort: str = "import") -> tuple[list, dict, str]:
     """Every record of a list as a screening page shows it (views, filters, keywords, order),
     with the screening state of the review and the stage whose decisions count. Views, files
     and labels can be picked several at once: a record shows when it matches any of the views,
     any of the files and any of the labels. The record list and the AI runs that follow it
-    (D-40) both read it from here."""
+    (D-40) both read it from here. Only the columns the views, filters and orders need are
+    read, never the abstracts unless keywords are picked: a list of 20,000 records stays light,
+    and its pages read their records whole (D-56)."""
     views = _listed(view) or ["all"]
     labels = _listed(label)
     files = _listed(import_id)
@@ -308,7 +314,11 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
                    or (v == "not_retrieved" and not retrievable)
                    for v in views)
 
-    q = select(models.Record).where(models.Record.review_id == review.id)
+    cols = [models.Record.id, models.Record.title, models.Record.authors, models.Record.year, models.Record.journal,
+            models.Record.labels, models.Record.pdf_key, models.Record.pdf_status]
+    if any(k.strip() for k in kw):            # the keyword test reads the abstract and keywords too
+        cols += [models.Record.abstract, models.Record.keywords]
+    q = select(*cols).where(models.Record.review_id == review.id)
     if stage != "all":
         q = q.where(models.Record.is_duplicate.is_(False))
     if search.strip():
@@ -330,7 +340,7 @@ def queue_records(db: DBSession, review: models.Review, user_id: str, stage: str
     if year_to.strip():
         q = q.where(models.Record.year <= year_to.strip()[:4])
     in_pool = set(pool)
-    rows = [r for r in db.scalars(q.order_by(models.Record.id)).all() if r.id in in_pool and shown(r)]
+    rows = [r for r in db.execute(q.order_by(models.Record.id)).all() if r.id in in_pool and shown(r)]
     if labels:                                # exact labels: "SQ1" must not match "SQ10"
         wanted = {x.lower() for x in labels}
         rows = [r for r in rows if wanted & _labels_of(r.labels)]
@@ -361,6 +371,10 @@ def list_records(stage: str = "ta", view: list[str] = Query(default=["all"]), se
     else:                                     # the cursor is the last record of the previous page
         start = next((i + 1 for i, r in enumerate(rows) if r.id == cursor), 0) if cursor else 0
         page = rows[start:start + limit]
+    # The records of the page, whole.
+    page_ids = [r.id for r in page]
+    whole = {r.id: r for r in db.scalars(select(models.Record).where(models.Record.id.in_(page_ids)))} if page_ids else {}
+    page = [whole[i] for i in page_ids if i in whole]
     names = _names(db, review.id)
     ai = _ai_map(db, review.id, st_stage, [r.id for r in page])
     merged = _merged_from(db, review, [r.id for r in page])
@@ -496,11 +510,12 @@ def bulk_decide(body: schemas.BulkDecisionIn, access=Depends(ReviewAccess("revie
 
 # ── PDFs ─────────────────────────────────────────────────────────────────────────
 @router.post("/records/{record_id}/pdf", response_model=schemas.RecordOut)
-async def upload_pdf(record_id: int, file: UploadFile = File(...), access=Depends(ReviewAccess("reviewer")),
-                     user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+def upload_pdf(record_id: int, file: UploadFile = File(...), access=Depends(ReviewAccess("reviewer")),
+               user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+    # In a worker thread: sending the PDF to storage does not hold up other requests.
     review, m = access
     rec = _one(db, review, record_id)
-    data = await file.read()
+    data = file.file.read()
     if not data.startswith(b"%PDF"):
         raise HTTPException(400, "This file is not a PDF")
     if rec.pdf_key:

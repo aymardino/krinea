@@ -22,8 +22,10 @@ def test_words_lose_accents_case_and_stop_words_and_come_with_their_pairs():
 
 
 def test_rows_have_unit_length_and_rare_terms_are_left_out():
-    x, terms = learn.features(["solar village", "solar grid", "hospital"])
-    assert terms == ["solar"]                          # the only term found in two records
+    texts = ["solar village", "solar grid", "hospital"]
+    x, buckets = learn.features(texts)
+    # Terms are hashed into columns: the only one kept is the term found in two records.
+    assert x.n_features == 1 and learn.term_names(texts, set(buckets.tolist())) == {int(buckets[0]): "solar"}
     norms = np.sqrt(np.bincount(x.rowid, weights=x.data ** 2, minlength=x.n))
     assert np.allclose(norms, [1, 1, 0])
     sub = x.rows([2, 0])

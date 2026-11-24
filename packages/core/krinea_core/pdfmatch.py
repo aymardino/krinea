@@ -56,19 +56,22 @@ class Clues:
 def read_clues(data: bytes, filename: str = "") -> Clues:
     """The clues of a PDF; ValueError when it cannot be read."""
     import pymupdf
-    try:
-        doc = pymupdf.open(stream=data, filetype="pdf")
-    except Exception as e:  # noqa: BLE001  (any parsing failure means the same to the reviewer)
-        raise ValueError("This PDF cannot be read") from e
-    try:
-        meta = {k: str(v) for k, v in (doc.metadata or {}).items() if v}
+
+    from krinea_core.pdftext import reading
+    with reading():
         try:
-            xmp = doc.get_xml_metadata() or ""
-        except Exception:  # noqa: BLE001  (metadata is a bonus)
-            xmp = ""
-        pages = [doc[i].get_text() for i in range(min(2, doc.page_count))]
-    finally:
-        doc.close()
+            doc = pymupdf.open(stream=data, filetype="pdf")
+        except Exception as e:  # noqa: BLE001  (any parsing failure means the same to the reviewer)
+            raise ValueError("This PDF cannot be read") from e
+        try:
+            meta = {k: str(v) for k, v in (doc.metadata or {}).items() if v}
+            try:
+                xmp = doc.get_xml_metadata() or ""
+            except Exception:  # noqa: BLE001  (metadata is a bonus)
+                xmp = ""
+            pages = [doc[i].get_text() for i in range(min(2, doc.page_count))]
+        finally:
+            doc.close()
     meta_dois = find_dois(" ".join(meta.get(k, "") for k in ("subject", "keywords", "title")) + "\n" + xmp)
     return Clues(meta_dois, find_dois(pages[0]) if pages else [], meta.get("title", ""),
                  norm("\n".join(pages))[:HEAD_CHARS], filename or "")

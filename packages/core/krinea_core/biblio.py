@@ -13,13 +13,18 @@ a record came from.
 
 Writes RIS and CSV for the records you want to export (e.g. included studies).
 Only pandas is needed, and only for CSV/Excel inputs.
+
+`iter_file` reads a file as it streams, a record at a time: an export of 20,000 records with
+their cited references never sits whole in memory (D-56).
 """
 from __future__ import annotations
 
+import codecs
 import csv
 import io
 import re
 import unicodedata
+from collections.abc import Iterable, Iterator
 
 RECORD_FIELDS = ["title", "abstract", "authors", "year", "journal", "volume", "issue",
                  "pages", "doi", "url", "keywords", "pmid", "publisher", "type",
@@ -109,25 +114,40 @@ def _all(d: dict, *tags) -> list[str]:
     return [v.strip() for t in tags for v in d.get(t, []) if v.strip()]
 
 
+def _lines(text: str | Iterable[str]) -> Iterator[str]:
+    """The lines of a text, or of a stream of decoded lines (a text file read with universal
+    newlines), cut as str.splitlines cuts them, a byte order mark left out."""
+    if isinstance(text, str):
+        yield from text.lstrip("\ufeff").splitlines()
+        return
+    first = True
+    for raw in text:
+        line = raw[:-1] if raw.endswith("\n") else raw
+        if first:
+            line, first = line.lstrip("\ufeff"), False
+        yield from (line.splitlines() or [""])
+
+
 # ── RIS ──────────────────────────────────────────────────────────────────────────
 _RIS_TAG = re.compile(r"^([A-Z][A-Z0-9])\s{1,2}-\s?(.*)$")
 
 
-def parse_ris(text: str) -> list[dict]:
-    records, cur, last = [], None, None
-    for raw in text.lstrip("\ufeff").splitlines():
+def iter_ris(text: str | Iterable[str]) -> Iterator[dict]:
+    """The records of a RIS export, one at a time; `text` is the whole text or its lines."""
+    cur, last = None, None
+    for raw in _lines(text):
         line = raw.rstrip()
         m = _RIS_TAG.match(line)
         if m:
             tag, val = m.group(1), m.group(2).strip()
             if tag == "TY":
                 if cur:
-                    records.append(_ris_record(cur))
+                    yield _ris_record(cur)
                 cur, last = {"TY": [val]}, "TY"
                 continue
             if tag == "ER":
                 if cur is not None:
-                    records.append(_ris_record(cur))
+                    yield _ris_record(cur)
                 cur, last = None, None
                 continue
             if cur is None:
@@ -138,8 +158,11 @@ def parse_ris(text: str) -> list[dict]:
             # Continuation line of a wrapped field (abstracts, long titles)
             cur[last][-1] = (cur[last][-1] + " " + line.strip()).strip()
     if cur:
-        records.append(_ris_record(cur))
-    return records
+        yield _ris_record(cur)
+
+
+def parse_ris(text: str | Iterable[str]) -> list[dict]:
+    return list(iter_ris(text))
 
 
 def _ris_record(d: dict) -> dict:
@@ -172,13 +195,14 @@ def _ris_record(d: dict) -> dict:
 _NBIB_TAG = re.compile(r"^([A-Z]{2,4})\s*- (.*)$")
 
 
-def parse_nbib(text: str) -> list[dict]:
-    records, cur, last = [], None, None
-    for raw in text.lstrip("\ufeff").splitlines():
+def iter_nbib(text: str | Iterable[str]) -> Iterator[dict]:
+    """The records of a PubMed export, one at a time; `text` is the whole text or its lines."""
+    cur, last = None, None
+    for raw in _lines(text):
         line = raw.rstrip()
         if not line.strip():
             if cur:
-                records.append(_nbib_record(cur))
+                yield _nbib_record(cur)
             cur, last = None, None
             continue
         m = _NBIB_TAG.match(line)
@@ -191,8 +215,11 @@ def parse_nbib(text: str) -> list[dict]:
         elif cur is not None and last:
             cur[last][-1] = (cur[last][-1] + " " + line.strip()).strip()
     if cur:
-        records.append(_nbib_record(cur))
-    return records
+        yield _nbib_record(cur)
+
+
+def parse_nbib(text: str | Iterable[str]) -> list[dict]:
+    return list(iter_nbib(text))
 
 
 def _nbib_record(d: dict) -> dict:
@@ -218,9 +245,11 @@ def _nbib_record(d: dict) -> dict:
 _WOS_TAG = re.compile(r"^([A-Z][A-Z0-9]) (.*)$")
 
 
-def parse_wos(text: str) -> list[dict]:
-    records, cur, last = [], None, None
-    for raw in text.lstrip("\ufeff").splitlines():
+def iter_wos(text: str | Iterable[str]) -> Iterator[dict]:
+    """The records of a Web of Science export, one at a time; `text` is the whole text or its
+    lines."""
+    cur, last = None, None
+    for raw in _lines(text):
         line = raw.rstrip()
         if line.startswith("   ") and cur is not None and last:
             cur[last].append(line.strip())   # continuation = extra author / wrapped text
@@ -228,7 +257,7 @@ def parse_wos(text: str) -> list[dict]:
         m = _WOS_TAG.match(line)
         if not m:
             if line.strip() in ("ER", "EF") and cur:
-                records.append(_wos_record(cur))
+                yield _wos_record(cur)
                 cur, last = None, None
             continue
         tag, val = m.group(1), m.group(2).strip()
@@ -236,7 +265,7 @@ def parse_wos(text: str) -> list[dict]:
             continue
         if tag == "PT":
             if cur:
-                records.append(_wos_record(cur))
+                yield _wos_record(cur)
             cur, last = {"PT": [val]}, "PT"
             continue
         if cur is None:
@@ -244,8 +273,11 @@ def parse_wos(text: str) -> list[dict]:
         cur.setdefault(tag, []).append(val)
         last = tag
     if cur:
-        records.append(_wos_record(cur))
-    return records
+        yield _wos_record(cur)
+
+
+def parse_wos(text: str | Iterable[str]) -> list[dict]:
+    return list(iter_wos(text))
 
 
 def _wos_record(d: dict) -> dict:
@@ -454,40 +486,82 @@ def decode_bytes(data: bytes) -> str:
     return data.decode("utf-8", errors="replace")
 
 
-def parse_table(data: bytes, filename: str = "") -> list[dict]:
+# Every column name a table may hold that is read (any other column, such as the cited
+# references of a Scopus export, is left out as the file is read).
+_TABLE_NAMES = {n for names in _COLUMN_SYNONYMS.values() for n in names} | set(_PAGE_START) | set(_PAGE_END)
+
+
+def _table_frames(stream, filename: str, encoding: str):
+    """The table as data frames of the columns read: an Excel sheet at once, a CSV file 2,000
+    rows at a time."""
     import pandas as pd
+
+    def keep(c) -> bool:
+        return str(c).strip().lower() in _TABLE_NAMES
     if filename.lower().endswith((".xlsx", ".xls")):
-        df = pd.read_excel(io.BytesIO(data), dtype=str)
-    else:
-        text = decode_bytes(data)
-        df = pd.read_csv(io.StringIO(text), sep=None, engine="python", dtype=str,
-                         keep_default_na=False, on_bad_lines="skip")
-    df = df.fillna("")
-    cols = {str(c).strip().lower(): c for c in df.columns}
-    mapping = {}
-    for field, names in _COLUMN_SYNONYMS.items():
-        for name in names:
-            if name in cols:
-                mapping[field] = cols[name]
-                break
-    p_start = next((cols[n] for n in _PAGE_START if n in cols), None)
-    p_end = next((cols[n] for n in _PAGE_END if n in cols), None)
-    if "title" not in mapping and "doi" not in mapping:
-        raise ValueError("No title or DOI column found. Columns seen: "
-                         + ", ".join(str(c) for c in df.columns[:15]))
-    records = []
-    for _, row in df.iterrows():
-        rec = {f: str(row[c]) for f, c in mapping.items()}
-        if not rec.get("pages") and p_start and str(row[p_start]).strip():
-            rec["pages"] = str(row[p_start]).strip()
-            if p_end and str(row[p_end]).strip():
-                rec["pages"] += "-" + str(row[p_end]).strip()
-        if rec.get("authors") and ";" not in rec["authors"] and " and " in rec["authors"]:
-            rec["authors"] = "; ".join(a.strip() for a in rec["authors"].split(" and "))
-        if rec.get("keywords") and ";" not in rec["keywords"]:
-            rec["keywords"] = "; ".join(k.strip() for k in rec["keywords"].split(","))
-        records.append(normalise(rec))
-    return records
+        yield pd.read_excel(stream, dtype=str, usecols=keep)
+        return
+    text = io.TextIOWrapper(stream, encoding=encoding, newline="")
+    try:
+        yield from pd.read_csv(text, sep=None, engine="python", dtype=str, keep_default_na=False,
+                               on_bad_lines="skip", usecols=keep, chunksize=2000)
+    finally:
+        text.detach()
+
+
+def _table_columns(stream, filename: str, encoding: str) -> list[str]:
+    """Every column name of a table (for the message of a table with no title or DOI)."""
+    import pandas as pd
+    stream.seek(0)
+    if filename.lower().endswith((".xlsx", ".xls")):
+        return [str(c) for c in pd.read_excel(stream, nrows=0).columns]
+    text = io.TextIOWrapper(stream, encoding=encoding, newline="")
+    try:
+        return [str(c) for c in pd.read_csv(text, sep=None, engine="python", nrows=0).columns]
+    finally:
+        text.detach()
+
+
+def iter_table(stream, filename: str = "", encoding: str = "utf-8") -> Iterator[dict]:
+    """The records of a CSV, TSV or Excel export, one at a time, from a binary file."""
+    mapping: dict | None = None
+    p_start = p_end = None
+    for df in _table_frames(stream, filename, encoding):
+        df = df.fillna("")
+        if mapping is None:
+            cols = {str(c).strip().lower(): c for c in df.columns}
+            mapping = {}
+            for field, names in _COLUMN_SYNONYMS.items():
+                for name in names:
+                    if name in cols:
+                        mapping[field] = cols[name]
+                        break
+            p_start = next((cols[n] for n in _PAGE_START if n in cols), None)
+            p_end = next((cols[n] for n in _PAGE_END if n in cols), None)
+            if "title" not in mapping and "doi" not in mapping:
+                raise ValueError("No title or DOI column found. Columns seen: "
+                                 + ", ".join(_table_columns(stream, filename, encoding)[:15]))
+        for _, row in df.iterrows():
+            rec = {f: str(row[c]) for f, c in mapping.items()}
+            if not rec.get("pages") and p_start and str(row[p_start]).strip():
+                rec["pages"] = str(row[p_start]).strip()
+                if p_end and str(row[p_end]).strip():
+                    rec["pages"] += "-" + str(row[p_end]).strip()
+            if rec.get("authors") and ";" not in rec["authors"] and " and " in rec["authors"]:
+                rec["authors"] = "; ".join(a.strip() for a in rec["authors"].split(" and "))
+            if rec.get("keywords") and ";" not in rec["keywords"]:
+                rec["keywords"] = "; ".join(k.strip() for k in rec["keywords"].split(","))
+            yield normalise(rec)
+    if mapping is None:                     # no row at all: fine with a title or DOI column
+        columns = _table_columns(stream, filename, encoding)
+        if not {c.strip().lower() for c in columns} & set(_COLUMN_SYNONYMS["title"] + _COLUMN_SYNONYMS["doi"]):
+            raise ValueError("No title or DOI column found. Columns seen: " + ", ".join(columns[:15]))
+
+
+def parse_table(data: bytes, filename: str = "") -> list[dict]:
+    stream = io.BytesIO(data)
+    encoding = "" if filename.lower().endswith((".xlsx", ".xls")) else _sniff_encoding(stream)
+    return list(iter_table(stream, filename, encoding))
 
 
 # ── Dispatcher ───────────────────────────────────────────────────────────────────
@@ -517,16 +591,78 @@ def detect_format(filename: str, text: str = "") -> str:
 
 
 PARSERS = {"ris": parse_ris, "bibtex": parse_bibtex, "nbib": parse_nbib, "wos": parse_wos}
+_ITERATORS = {"ris": iter_ris, "nbib": iter_nbib, "wos": iter_wos}
+
+
+def _sniff_encoding(stream) -> str:
+    """The encoding decode_bytes picks, found by reading the rest of `stream` in chunks: UTF-16
+    with a byte order mark, else UTF-8, else Windows-1252, else Latin-1. The stream is left
+    where it was."""
+    start = stream.tell()
+    try:
+        if stream.read(2) in (b"\xff\xfe", b"\xfe\xff"):
+            return "utf-16"
+        for enc in ("utf-8-sig", "cp1252"):
+            stream.seek(start)
+            dec = codecs.getincrementaldecoder(enc)()
+            try:
+                while chunk := stream.read(1 << 20):
+                    dec.decode(chunk)
+                dec.decode(b"", final=True)
+            except UnicodeDecodeError:
+                continue
+            return enc
+        return "latin-1"
+    finally:
+        stream.seek(start)
+
+
+def _open(filename: str, source) -> tuple:
+    """A binary stream on `source` (bytes, or a binary file read from where it stands), its
+    encoding and its format."""
+    stream = io.BytesIO(source) if isinstance(source, (bytes, bytearray)) else source
+    if filename.lower().endswith((".xlsx", ".xls")):
+        return stream, "", "table"
+    encoding = _sniff_encoding(stream)
+    start = stream.tell()
+    head = stream.read(20000).decode(encoding, errors="replace")
+    stream.seek(start)
+    return stream, encoding, detect_format(filename, head)
+
+
+def file_format(filename: str, source) -> str:
+    """The format of an export: ris, nbib, wos, bibtex or table."""
+    return _open(filename, source)[2]
+
+
+def _decoded_lines(stream, encoding: str) -> Iterator[str]:
+    text = io.TextIOWrapper(stream, encoding=encoding, newline=None)
+    try:
+        yield from text
+    finally:
+        text.detach()
+
+
+def iter_file(filename: str, source) -> Iterator[dict]:
+    """The normalised records of any supported export, one at a time, each with its "_format".
+    `source` is the file's bytes or a binary file open on it. RIS, PubMed, Web of Science and
+    CSV files are read as they stream, keeping only the columns read for a table, so that a
+    large export never sits whole in memory; BibTeX and Excel files are read at once."""
+    stream, encoding, fmt = _open(filename, source)
+    if fmt == "table":
+        records = iter_table(stream, filename, encoding)
+    elif fmt == "bibtex":
+        records = iter(parse_bibtex(stream.read().decode(encoding)))
+    else:
+        records = _ITERATORS[fmt](_decoded_lines(stream, encoding))
+    for r in records:
+        r["_format"] = fmt
+        yield r
 
 
 def parse_file(filename: str, data: bytes) -> list[dict]:
     """Parse any supported export. Returns a list of normalised records."""
-    text = "" if filename.lower().endswith((".xlsx", ".xls")) else decode_bytes(data)
-    fmt = detect_format(filename, text)
-    records = parse_table(data, filename) if fmt == "table" else PARSERS[fmt](text)
-    for r in records:
-        r["_format"] = fmt
-    return records
+    return list(iter_file(filename, data))
 
 
 # ── Export ───────────────────────────────────────────────────────────────────────
