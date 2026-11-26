@@ -64,7 +64,7 @@
  [
   "countries",
   "iso",
-  "comma-separated ISO-2 codes of ALL countries studied"
+  "ISO 3166-1 alpha-2 codes of ALL countries studied, comma-separated (two capital letters each, for example NG, ZA, CD); codes only, never country names"
  ],
  [
   "nb_countries_covered",
@@ -259,7 +259,7 @@
  [
   "author_origin",
   "iso",
-  "ISO-2 codes of the authors' institutional countries"
+  "ISO 3166-1 alpha-2 codes of the countries of the authors' institutions, comma-separated, each country once. Official codes only, never common abbreviations or names: United Kingdom is GB (never UK), Greece is GR (never EL)"
  ],
  [
   "local_ownership",
