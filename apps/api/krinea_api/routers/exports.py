@@ -210,7 +210,7 @@ def _select(db: DBSession, review: models.Review, role: str, user_id: str, stage
     q = (select(models.Record.id, models.Record.labels)
          .where(models.Record.review_id == review.id, models.Record.is_duplicate.is_(False)))
     if files:                                  # what counts for a file: scr.in_file (D-29, D-42)
-        q = q.where(or_(*(scr.in_file(review, f) for f in files)))
+        q = q.where(scr.in_files(review, files))
     if pdfs:
         has = {"available": models.Record.pdf_key != "",
                "not_retrieved": models.Record.pdf_status == "not_retrieved",
@@ -324,30 +324,45 @@ def export_included(fmt: str, access=Depends(ReviewAccess("viewer")), db: DBSess
 
 
 @router.get("/export/records.csv")
-def export_records(access=Depends(ReviewAccess("viewer")), db: DBSession = Depends(get_db)):
+def export_records(import_id: list[str] = Query(default=[]), access=Depends(ReviewAccess("viewer")),
+                   db: DBSession = Depends(get_db)):
+    """Every imported record, duplicates included, with the file it came from; with files
+    given, the records those files imported (D-57)."""
     review, _ = access
     c = scr.compute(db, review)
-    ids = list(db.scalars(select(models.Record.id).where(models.Record.review_id == review.id).order_by(models.Record.id)))
-    extra = ["id", "is_duplicate", "ta_status", "ft_status", "labels", "notes", "pdf_status"]
+    files = _values(import_id)
+    q = select(models.Record.id).where(models.Record.review_id == review.id)
+    if files:
+        q = q.where(models.Record.import_id.in_(files))
+    ids = list(db.scalars(q.order_by(models.Record.id)))
+    names = dict(db.execute(select(models.Import.id, models.Import.filename)
+                            .where(models.Import.review_id == review.id)).all())
+    extra = ["id", "file", "is_duplicate", "ta_status", "ft_status", "labels", "notes", "pdf_status"]
     columns = list(biblio.RECORD_FIELDS) + [f for f in extra if f not in biblio.RECORD_FIELDS]
 
     def rows() -> Iterator[list]:
         for r in _in_batches(db, ids):
             d = _record_dict(r)
+            d["file"] = names.get(r.import_id or "", "")
             d["ta_status"], d["ft_status"] = c["ta_status"].get(r.id, ""), c["ft_status"].get(r.id, "")
             yield [d.get(f, "") for f in columns]
     return _send(_csv_file(columns, rows()), "records.csv", "text/csv")
 
 
 @router.get("/export/decisions.csv")
-def export_decisions(access=Depends(ReviewAccess("viewer")), user: models.User = Depends(current_user),
-                     db: DBSession = Depends(get_db)):
+def export_decisions(import_id: list[str] = Query(default=[]), access=Depends(ReviewAccess("viewer")),
+                     user: models.User = Depends(current_user), db: DBSession = Depends(get_db)):
+    """Every decision of the review; with files given, those on the records that count for
+    them (D-57)."""
     review, m = access
     names = dict(db.execute(select(models.User.id, models.User.email).join(
         models.Membership, models.Membership.user_id == models.User.id).where(models.Membership.review_id == review.id)).all())
     q = select(models.Decision).where(models.Decision.review_id == review.id)
     if scr.is_blind(review, m.role):              # a blind reviewer gets their own decisions only
         q = q.where(models.Decision.reviewer == user.id)
+    if files := _values(import_id):
+        q = q.where(models.Decision.record_id.in_(select(models.Record.id).where(
+            models.Record.review_id == review.id, models.Record.is_duplicate.is_(False), scr.in_files(review, files))))
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["record_id", "stage", "reviewer", "decision", "reason", "note", "seconds", "decided_at"])
@@ -407,9 +422,11 @@ def export_extractions(fmt: str, status: str = "verified", import_id: list[str] 
 
 
 @router.get("/export/prisma.csv")
-def export_prisma(access=Depends(ReviewAccess("viewer")), db: DBSession = Depends(get_db)):
+def export_prisma(import_id: list[str] = Query(default=[]), access=Depends(ReviewAccess("viewer")),
+                  db: DBSession = Depends(get_db)):
+    """The PRISMA counts of the review, or of the searches of the files given (D-57)."""
     review, _ = access
-    c = prisma_service.counts(db, review)
+    c = prisma_service.counts(db, review, _values(import_id))
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["item", "n"])

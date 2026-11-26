@@ -1054,3 +1054,27 @@ to +24 MB, the Excel export from +452 MB to +25 MB, the learned suggestions from
 **Why.** On 2026-11-23 a new account imported 19,846 references and the API, on Render's
 Starter plan (512 MB), ran out of memory and restarted. A larger plan costs more every month;
 reading and writing in batches keeps reviews of this size, and larger, on the same plan.
+
+## D-57 · 2026-11-26 · decided · The other exports by imported file, and PRISMA sources counted once
+
+**Decision.** The decision log, the PRISMA counts and the records export (duplicates
+included) take the file filter of the other exports, several files at once, and nothing else:
+PRISMA counts every decision, so decision, reason, label and PDF filters would make its
+numbers wrong. With files chosen, the records export holds the records those files imported,
+the decision log the decisions on the records that count for them (`scr.in_file`, D-29, D-42),
+and the PRISMA counts are those of their searches alone: identified are the records the files
+imported, screened the unique records that count for them, the duplicates removed the
+difference, and the later counts follow the screened records. The records export gains a
+`file` column. The PRISMA counts per source now count each record once, for the source it was
+imported with (the label of its import, else the first source it lists), instead of every
+source a record lists.
+
+**Why.** A review that holds several searches, one per sub-question, reports each with its own
+PRISMA flow, and the file filter of the exports page did not reach these exports. Without the
+file order, a study that two searches found counts for both, each one's duplicates removed
+being those within its own files; with it, a study counts for the file it was kept from, and
+another search that found it counts it as a duplicate removed. Counting the sources each
+record lists counted a database once more for each of its records merged as a duplicate: the
+kept record lists the sources of its duplicates, which also count through their own records,
+so the sources added up to more than the records identified.
+

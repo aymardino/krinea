@@ -91,13 +91,18 @@ def sources(db: Session, review_id: str) -> list[dict]:
     return [{"source": names[k], "n": n} for k, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))]
 
 
-def _own_source(db: Session, rec: models.Record) -> str:
-    """The source a record was imported with: the one matching its import's label, otherwise
-    the first it lists (a kept record lists its own source first)."""
-    tokens = [s.strip() for s in str(rec.source_db or "").split(";") if s.strip()]
-    imp = db.get(models.Import, rec.import_id) if rec.import_id else None
-    label = (imp.source_db or "").strip().lower() if imp else ""
+def own_source(source_db: str | None, import_label: str | None) -> str:
+    """The source a record was imported with, from its list of sources and the label of its
+    import: the one matching the label, otherwise the first listed (a kept record lists its own
+    source first, then those of the duplicates merged into it)."""
+    tokens = [s.strip() for s in str(source_db or "").split(";") if s.strip()]
+    label = (import_label or "").strip().lower()
     return next((t for t in tokens if label and t.lower() == label), tokens[0] if tokens else "")
+
+
+def _own_source(db: Session, rec: models.Record) -> str:
+    imp = db.get(models.Import, rec.import_id) if rec.import_id else None
+    return own_source(rec.source_db, imp.source_db if imp else "")
 
 
 def _keep_original(db: Session, keeper_id: int) -> None:

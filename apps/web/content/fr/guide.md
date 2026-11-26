@@ -194,7 +194,7 @@ Un champ *doi* est rempli par Krinea avec le lien du DOI de la notice de l'étud
 
 Dans les fichiers Excel, les DOI et les adresses web sont des liens cliquables.
 
-**Autres exports.** Le journal des décisions, les comptages PRISMA, et toutes les notices doublons compris.
+**Autres exports.** Le journal des décisions, les comptages PRISMA, et les notices doublons compris (avec le fichier d'où vient chacune). Choisissez un ou plusieurs fichiers pour les limiter à ces recherches : les notices que ces fichiers ont importées, les décisions sur les études qui comptent pour eux, et leurs propres comptages PRISMA. Ceux-ci comptent comme identifiées les notices importées par ces fichiers, comme triées les études qui comptent pour eux, et la différence comme doublons retirés.
 
 En mode aveugle, les relecteurs n'exportent que leurs propres décisions et motifs.
 

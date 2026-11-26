@@ -168,6 +168,11 @@ def in_file(review: models.Review, import_id: str):
     return found_in_import(review.id, import_id)
 
 
+def in_files(review: models.Review, import_ids: list[str]):
+    """The records that count for any of these imported files (`in_file`)."""
+    return or_(*(in_file(review, f) for f in import_ids))
+
+
 def record_files(db: Session, review: models.Review, record: models.Record) -> list[str]:
     """The searches (imported files) a record belongs to: the file of the copy kept under the
     file order (D-42), else every file that found it, merged duplicates included."""

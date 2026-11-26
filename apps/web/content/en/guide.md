@@ -194,7 +194,7 @@ A *doi* field is filled in by Krinea with the link of the DOI of the study's cit
 
 In the Excel files, DOIs and web addresses are links you can click.
 
-**Other exports.** The decision log, the PRISMA counts, and all records with duplicates included.
+**Other exports.** The decision log, the PRISMA counts, and the records with duplicates included (with the file each came from). Pick one or more files to limit them to those searches: the records the files imported, the decisions on the studies that count for them, and PRISMA counts of their own. These count as identified the records the files imported, as screened the studies that count for them, and the difference as duplicates removed.
 
 In blind mode, reviewers only export their own decisions and reasons.
 

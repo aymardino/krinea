@@ -740,9 +740,10 @@
         "xlsx": "Excel"
       },
       "other": "Other exports",
+      "otherText": "For the whole review, or for the searches of the files chosen alone. PRISMA counts every decision, so only the file filter applies here.",
       "decisions": "Decision log (CSV)",
       "prismaCounts": "PRISMA counts (CSV)",
-      "allRecords": "All records, duplicates included (CSV)"
+      "allRecords": "Records, duplicates included (CSV)"
     },
     "settings": {
       "title": "Review settings",

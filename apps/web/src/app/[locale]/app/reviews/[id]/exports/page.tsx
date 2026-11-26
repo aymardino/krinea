@@ -57,6 +57,7 @@ export default function ExportsPage() {
   const [extraction, setExtraction] = useState("verified");
   const [file, setFile] = useState<string[]>([]);
   const [label, setLabel] = useState<string[]>([]);
+  const [otherFiles, setOtherFiles] = useState<string[]>([]);
   const imports = useQuery<ImportRow[]>({ queryKey: ["imports", rid], queryFn: () => api.get(`/reviews/${rid}/imports`) });
   const labels = useQuery<LabelCount[]>({ queryKey: ["labels", rid], queryFn: () => api.get(`/reviews/${rid}/labels`) });
 
@@ -78,10 +79,16 @@ export default function ExportsPage() {
   const n = count.data?.n;
   const href = (fmt: string) => api.url(`/reviews/${rid}/export/${stage === "extract" ? "extractions" : "screening"}.${fmt}?${qs}`);
   const reasons: [string, string][] = [...review.criteria.exclusion_reasons.map((r): [string, string] => [r, r]), [NO_REASON, t("noReason")]];
+  const fileOptions = (imports.data ?? []).map((i): [string, string] => [i.id, i.filename]);
+  // The other exports cover every stage: only the file filter applies to them, PRISMA then
+  // counting the searches of the files chosen alone (D-57).
+  const otherParams = new URLSearchParams();
+  otherFiles.forEach((f) => otherParams.append("import_id", f));
+  const otherQs = otherFiles.length ? `?${otherParams}` : "";
   const others: [string, string][] = [
-    [t("decisions"), `/reviews/${rid}/export/decisions.csv`],
-    [t("prismaCounts"), `/reviews/${rid}/export/prisma.csv`],
-    [t("allRecords"), `/reviews/${rid}/export/records.csv`],
+    [t("decisions"), `/reviews/${rid}/export/decisions.csv${otherQs}`],
+    [t("prismaCounts"), `/reviews/${rid}/export/prisma.csv${otherQs}`],
+    [t("allRecords"), `/reviews/${rid}/export/records.csv${otherQs}`],
   ];
 
   return (
@@ -99,7 +106,7 @@ export default function ExportsPage() {
             )}
             {withReasons && <Filter label={t("reason")} all={t("allReasons")} value={reason} onChange={setReason} options={reasons} />}
             {stage === "ft" && <Filter label={t("pdf")} all={t("allPdfs")} value={pdf} onChange={setPdf} options={PDFS.map((p): [string, string] => [p, t(`pdfs.${p}`)])} />}
-            <Filter label={t("file")} all={t("allFiles")} value={file} onChange={setFile} options={(imports.data ?? []).map((i): [string, string] => [i.id, i.filename])} />
+            <Filter label={t("file")} all={t("allFiles")} value={file} onChange={setFile} options={fileOptions} />
             <Filter label={t("label")} all={t("allLabels")} value={label} onChange={setLabel} options={(labels.data ?? []).map((l): [string, string] => [l.label, `${l.label} (${l.n})`])} />
           </div>
           <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
@@ -113,9 +120,14 @@ export default function ExportsPage() {
         </CardContent>
       </Card>
       <Card>
-        <CardHeader><CardTitle>{t("other")}</CardTitle></CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          {others.map(([text, path]) => <Button key={path} variant="outline" asChild><a href={api.url(path)}><Download />{text}</a></Button>)}
+        <CardHeader><CardTitle>{t("other")}</CardTitle><CardDescription>{t("otherText")}</CardDescription></CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Filter label={t("file")} all={t("allFiles")} value={otherFiles} onChange={setOtherFiles} options={fileOptions} />
+          </div>
+          <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+            {others.map(([text, path]) => <Button key={path} variant="outline" asChild><a href={api.url(path)}><Download />{text}</a></Button>)}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -740,9 +740,10 @@
         "xlsx": "Excel"
       },
       "other": "Autres exports",
+      "otherText": "Pour toute la revue, ou pour les seules recherches des fichiers choisis. PRISMA compte toutes les décisions : seul le filtre par fichier s'applique ici.",
       "decisions": "Journal des décisions (CSV)",
       "prismaCounts": "Comptages PRISMA (CSV)",
-      "allRecords": "Toutes les notices, doublons compris (CSV)"
+      "allRecords": "Notices, doublons compris (CSV)"
     },
     "settings": {
       "title": "Paramètres de la revue",

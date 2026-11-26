@@ -6,6 +6,13 @@ Zenodo with its own DOI.
 
 ## [Unreleased]
 
+- **Exports.** The decision log, the PRISMA counts and the records export
+  can be limited to one or more imported files, for example to report each
+  search of a review on its own; the records export names the file of each
+  record.
+- **Fixed.** PRISMA counted a database once more for each study it found
+  that was merged as a duplicate: each record now counts once, for the
+  database it was imported from.
 - **Large reviews.** Reviews of 20,000 references and more stay within the
   memory of a small server: imports, record lists, exports and the suggestions
   learned from your decisions read and write in batches instead of holding
